@@ -1,0 +1,70 @@
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+  margin-bottom: var(--sp-5);
+}
+.tabs {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  background: var(--paper-sunken);
+  border-radius: var(--r-pill);
+}
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
+  padding: 0.5rem 1rem;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--ink-3);
+  border-radius: var(--r-pill);
+  transition: all var(--dur-fast) var(--ease-out);
+}
+.tab:hover {
+  color: var(--ink);
+}
+.tabActive,
+.tabActive:hover {
+  background: var(--paper-raised);
+  color: var(--ink);
+  box-shadow: var(--shadow-xs);
+}
+.tabCount {
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  padding: 0.1em 0.45em;
+  border-radius: var(--r-pill);
+  background: var(--paper);
+  color: var(--ink-3);
+}
+.tabActive .tabCount {
+  background: var(--signal-soft);
+  color: var(--signal-strong);
+}
+.select {
+  padding: 0.5rem 2rem 0.5rem 0.8rem;
+  font: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 550;
+  color: var(--ink);
+  background: var(--paper-raised)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2379746a' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")
+    no-repeat right 0.7rem center;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-pill);
+  appearance: none;
+  cursor: pointer;
+}
+.select:focus-visible {
+  border-color: var(--signal);
+  outline: none;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
+  gap: var(--sp-4);
+}

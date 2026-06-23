@@ -1,0 +1,115 @@
+/* StarRating */
+.stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  color: #e2a33c;
+}
+.starsInteractive button {
+  display: grid;
+  place-items: center;
+  padding: 2px;
+  color: var(--line-2);
+  border-radius: var(--r-xs);
+  transition: color var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
+}
+.starsInteractive button:hover {
+  transform: scale(1.12);
+}
+.starOn {
+  color: #e2a33c;
+}
+.starOff {
+  color: var(--line-2);
+}
+
+/* SaveButton */
+.save {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45em;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--line-2);
+  background: var(--paper-raised);
+  color: var(--ink-3);
+  transition: all var(--dur-fast) var(--ease-out);
+}
+.save:hover {
+  border-color: var(--ink-3);
+  color: var(--ink);
+}
+.saveActive {
+  border-color: var(--signal);
+  color: var(--signal);
+  background: var(--signal-soft);
+}
+.saveWide {
+  width: auto;
+  padding-inline: 0.9em;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+
+/* FormError */
+.formError {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4em;
+  margin-top: 0.4rem;
+  font-size: var(--fs-sm);
+  color: var(--danger);
+}
+.formError svg {
+  flex: none;
+  margin-top: 0.15em;
+}
+
+/* HelpTooltip */
+.help {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  color: var(--ink-3);
+  vertical-align: middle;
+}
+.help:hover,
+.help:focus-visible {
+  color: var(--signal-strong);
+}
+.helpBubble {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  width: max-content;
+  max-width: 240px;
+  padding: 0.55em 0.75em;
+  font-size: var(--fs-xs);
+  font-weight: 450;
+  line-height: 1.4;
+  color: var(--on-ink);
+  background: var(--ink-panel);
+  border-radius: var(--r-sm);
+  box-shadow: var(--shadow-md);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
+  z-index: var(--z-nav);
+}
+.help:hover .helpBubble,
+.help:focus-within .helpBubble {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+.helpBubble::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: var(--ink-panel);
+}

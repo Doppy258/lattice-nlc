@@ -1,0 +1,123 @@
+/*
+ * Ping — Design Tokens
+ * ────────────────────────────────────────────────────────────────────────
+ * One source of truth for the "Signal & Echo" system. Every color, type,
+ * radius, shadow, and motion value is declared here as a CSS custom property
+ * so the rest of the app never hard-codes a raw value.
+ *
+ * Concept: a "ping" is a signal sent into the local area; offers echo back.
+ * The palette is warm "telemetry" — bone paper, warm ink, a deep ink panel
+ * that anchors the brand, and a single punchy signal-orange accent.
+ */
+
+:root {
+  /* ── Surfaces (warm, paper-like — deliberately not pure white) ───────── */
+  --paper: #f3efe6;          /* app canvas */
+  --paper-raised: #fcfaf4;   /* cards & raised surfaces */
+  --paper-sunken: #eae4d6;   /* insets, inputs, track backgrounds */
+  --paper-veil: #fbf9f2cc;   /* translucent overlay (sticky bars) */
+
+  /* ── Ink (text + lines) ─────────────────────────────────────────────── */
+  --ink: #18160f;            /* primary text — near-black, warm */
+  --ink-2: #46433a;          /* secondary text */
+  --ink-3: #79746a;          /* muted / helper text */
+  --ink-4: #a8a293;          /* faint captions, placeholders */
+  --line: #e4ddcd;           /* hairline borders */
+  --line-2: #d3cab5;         /* stronger borders / dividers */
+
+  /* ── Deep ink panel (sidebar, hero, footer — the brand anchor) ──────── */
+  --ink-panel: #16150e;
+  --ink-panel-2: #211f15;
+  --ink-panel-3: #2d2a1d;
+  --on-ink: #efeadb;         /* text on dark */
+  --on-ink-2: #b8b2a0;       /* secondary text on dark */
+  --on-ink-3: #847f6f;       /* muted text on dark */
+  --on-ink-line: #efeadb1f;  /* hairline on dark (~12%) */
+  --on-ink-line-2: #efeadb33; /* stronger hairline on dark (~20%) */
+
+  /* ── Signal accent (the "ping") ─────────────────────────────────────── */
+  --signal: #ef4a23;
+  --signal-strong: #c8370f;  /* hover / pressed / accessible text on light */
+  --signal-soft: #fae0d6;    /* tinted backgrounds */
+  --signal-line: #f3a78f;
+
+  /* ── Semantic ───────────────────────────────────────────────────────── */
+  --emerald: #0f7b57;        /* savings / success / "money saved" */
+  --emerald-soft: #dcefe5;
+  --amber: #b07d0c;          /* warning / weak quality */
+  --amber-soft: #f6e8c8;
+  --danger: #b12b1c;         /* error / destructive */
+  --danger-soft: #f4d9d1;
+  --info: #1f6f8b;           /* neutral info */
+  --info-soft: #d9eaf0;
+
+  /* ── Typography ─────────────────────────────────────────────────────── */
+  --font-display: 'Bricolage Grotesque Variable', 'Bricolage Grotesque',
+    system-ui, sans-serif;
+  --font-sans: 'Hanken Grotesk Variable', 'Hanken Grotesk', system-ui,
+    -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace,
+    'SF Mono', 'Cascadia Code', monospace;
+
+  /* Type scale (fluid where it matters) */
+  --fs-display: clamp(2.6rem, 1.6rem + 4vw, 4.5rem);
+  --fs-h1: clamp(1.9rem, 1.3rem + 2.4vw, 2.85rem);
+  --fs-h2: clamp(1.4rem, 1.1rem + 1.2vw, 1.9rem);
+  --fs-h3: 1.25rem;
+  --fs-lg: 1.0625rem;
+  --fs-body: 0.96875rem;     /* 15.5px */
+  --fs-sm: 0.84375rem;       /* 13.5px */
+  --fs-xs: 0.75rem;          /* 12px */
+  --fs-2xs: 0.6875rem;       /* 11px — eyebrows, codes */
+
+  --lh-tight: 1.05;
+  --lh-snug: 1.25;
+  --lh-body: 1.55;
+
+  /* ── Spacing (8pt-ish rhythm) ───────────────────────────────────────── */
+  --sp-1: 0.25rem;
+  --sp-2: 0.5rem;
+  --sp-3: 0.75rem;
+  --sp-4: 1rem;
+  --sp-5: 1.5rem;
+  --sp-6: 2rem;
+  --sp-7: 3rem;
+  --sp-8: 4rem;
+  --sp-9: 6rem;
+
+  /* ── Radii ──────────────────────────────────────────────────────────── */
+  --r-xs: 6px;
+  --r-sm: 9px;
+  --r-md: 13px;
+  --r-lg: 18px;
+  --r-xl: 26px;
+  --r-2xl: 34px;
+  --r-pill: 999px;
+
+  /* ── Shadows (warm, layered, soft) ──────────────────────────────────── */
+  --shadow-xs: 0 1px 2px #2a241510;
+  --shadow-sm: 0 1px 2px #2a24150f, 0 2px 6px -2px #2a241514;
+  --shadow-md: 0 2px 4px #2a24150d, 0 10px 24px -8px #2a241524;
+  --shadow-lg: 0 4px 8px #2a241510, 0 24px 48px -16px #2a24152e;
+  --shadow-signal: 0 8px 30px -10px #ef4a2359;
+  --shadow-ring: 0 0 0 4px #ef4a2326; /* focus glow */
+
+  /* ── Layout ─────────────────────────────────────────────────────────── */
+  --sidebar-w: 264px;
+  --topbar-h: 64px;
+  --mobilenav-h: 66px;
+  --content-max: 1180px;
+
+  /* ── Motion ─────────────────────────────────────────────────────────── */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur-fast: 140ms;
+  --dur-mid: 240ms;
+  --dur-slow: 420ms;
+
+  --z-base: 1;
+  --z-sticky: 50;
+  --z-nav: 100;
+  --z-modal: 1000;
+  --z-toast: 1100;
+}

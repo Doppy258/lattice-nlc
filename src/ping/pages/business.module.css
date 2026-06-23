@@ -1,0 +1,292 @@
+/* ── Shared ───────────────────────────────────────────────────────────── */
+.switcher {
+  padding: 0.5rem 2rem 0.5rem 0.85rem;
+  font: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--ink);
+  background: var(--paper-raised)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2379746a' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")
+    no-repeat right 0.7rem center;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-pill);
+  appearance: none;
+  cursor: pointer;
+  max-width: 240px;
+}
+.switcher:focus-visible {
+  border-color: var(--signal);
+  outline: none;
+}
+
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(180px, 100%), 1fr));
+  gap: var(--sp-4);
+  margin-bottom: var(--sp-5);
+}
+.dashGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-4);
+}
+@media (max-width: 860px) {
+  .dashGrid {
+    grid-template-columns: 1fr;
+  }
+}
+.section {
+  margin-top: var(--sp-6);
+}
+
+/* ── Tabs (manage offers) ─────────────────────────────────────────────── */
+.tabs {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  margin-bottom: var(--sp-5);
+  background: var(--paper-sunken);
+  border-radius: var(--r-pill);
+}
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
+  padding: 0.5rem 1rem;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--ink-3);
+  border-radius: var(--r-pill);
+}
+.tab:hover {
+  color: var(--ink);
+}
+.tabActive,
+.tabActive:hover {
+  background: var(--paper-raised);
+  color: var(--ink);
+  box-shadow: var(--shadow-xs);
+}
+.tabCount {
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  padding: 0.1em 0.45em;
+  border-radius: var(--r-pill);
+  background: var(--paper);
+  color: var(--ink-3);
+}
+.tabActive .tabCount {
+  background: var(--signal-soft);
+  color: var(--signal-strong);
+}
+
+/* ── Manage offer rows ────────────────────────────────────────────────── */
+.offerList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+.offerRow {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: var(--sp-4) var(--sp-5);
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  flex-wrap: wrap;
+}
+.offerInfo {
+  flex: 1;
+  min-width: 180px;
+}
+.offerTitle {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+.offerDates {
+  font-size: var(--fs-xs);
+  color: var(--ink-3);
+}
+.offerStats {
+  display: flex;
+  gap: var(--sp-5);
+}
+.oStat {
+  display: flex;
+  flex-direction: column;
+}
+.oStatVal {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+.oStatLabel {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-3);
+}
+.offerActions {
+  display: flex;
+  gap: var(--sp-2);
+}
+
+/* ── Redeem ───────────────────────────────────────────────────────────── */
+.redeemGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-5);
+  align-items: start;
+}
+@media (max-width: 860px) {
+  .redeemGrid {
+    grid-template-columns: 1fr;
+  }
+}
+.codeForm {
+  display: flex;
+  gap: var(--sp-2);
+  margin-top: var(--sp-4);
+}
+.codeInput {
+  flex: 1;
+  padding: 0.8rem 1rem;
+  font-family: var(--font-mono);
+  font-size: 1.2rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  background: var(--paper);
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-md);
+  color: var(--ink);
+}
+.codeInput:focus-visible {
+  border-color: var(--signal);
+  outline: none;
+  box-shadow: var(--shadow-ring);
+}
+.result {
+  margin-top: var(--sp-4);
+  padding: var(--sp-4);
+  border-radius: var(--r-md);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-3);
+  font-size: var(--fs-sm);
+}
+.resultOk {
+  background: var(--emerald-soft);
+  color: var(--emerald);
+}
+.resultErr {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+.resultPending {
+  background: var(--info-soft);
+  color: var(--info);
+}
+.resultBody b {
+  display: block;
+  font-size: var(--fs-body);
+  margin-bottom: 0.15rem;
+}
+.activeClaim {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  padding: 0.6rem 0;
+  border-top: 1px solid var(--line);
+  font-size: var(--fs-sm);
+}
+.activeClaim:first-of-type {
+  border-top: 0;
+}
+.activeClaimCode {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* ── Offer form ───────────────────────────────────────────────────────── */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-4);
+}
+@media (max-width: 640px) {
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.field--full {
+  grid-column: 1 / -1;
+}
+.label {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--ink);
+}
+.input,
+.textarea,
+.selectField {
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  font: inherit;
+  font-size: var(--fs-sm);
+  background: var(--paper);
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-sm);
+  color: var(--ink);
+}
+.textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+.input:focus-visible,
+.textarea:focus-visible,
+.selectField:focus-visible {
+  border-color: var(--signal);
+  outline: none;
+  box-shadow: var(--shadow-ring);
+}
+.toggleRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+}
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: 0.6rem 0.85rem;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-md);
+  font-size: var(--fs-sm);
+  font-weight: 550;
+  cursor: pointer;
+}
+.toggle input {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--signal);
+}
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--sp-2);
+  margin-top: var(--sp-2);
+}

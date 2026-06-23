@@ -1,0 +1,134 @@
+.toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  margin-bottom: var(--sp-5);
+}
+
+.summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+}
+.summaryChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  padding: 0.4em 0.75em;
+  font-size: var(--fs-sm);
+  font-weight: 550;
+  color: var(--ink-2);
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+}
+.summaryChip svg {
+  color: var(--signal-strong);
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+}
+.count {
+  font-size: var(--fs-sm);
+  color: var(--ink-2);
+}
+.count b {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  color: var(--ink);
+}
+.sort {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+.sort label {
+  font-size: var(--fs-xs);
+  color: var(--ink-3);
+}
+.select {
+  padding: 0.5rem 2rem 0.5rem 0.8rem;
+  font: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 550;
+  color: var(--ink);
+  background: var(--paper-raised)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2379746a' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")
+    no-repeat right 0.7rem center;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-pill);
+  appearance: none;
+  cursor: pointer;
+}
+.select:focus-visible {
+  border-color: var(--signal);
+  outline: none;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  align-items: center;
+}
+.filtersLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  font-size: var(--fs-xs);
+  color: var(--ink-3);
+  margin-right: var(--sp-1);
+}
+
+.results {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(340px, 100%), 1fr));
+  gap: var(--sp-4);
+}
+
+.banner {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-3) var(--sp-4);
+  margin-bottom: var(--sp-4);
+  background: var(--danger-soft);
+  color: var(--danger);
+  border-radius: var(--r-md);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+}
+.bannerClose {
+  margin-left: auto;
+  color: inherit;
+  display: grid;
+  place-items: center;
+}
+
+.nearMiss {
+  margin-top: var(--sp-5);
+}
+.suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  margin-top: var(--sp-3);
+  margin-bottom: var(--sp-5);
+}
+.suggestion {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  font-size: var(--fs-sm);
+  color: var(--ink-2);
+  padding: 0.4em 0.8em;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-pill);
+  background: var(--paper-raised);
+}

@@ -1,0 +1,25 @@
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  margin-bottom: var(--sp-4);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--ink-3);
+}
+.back:hover {
+  color: var(--signal-strong);
+}
+.section {
+  margin-top: var(--sp-7);
+}
+.similarGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr));
+  gap: var(--sp-4);
+}
+.tagWrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+}

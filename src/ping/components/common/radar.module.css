@@ -1,0 +1,56 @@
+/* Radar sweep animation shared by the logo mark and the hero ring field. */
+
+.mark {
+  display: block;
+}
+
+.sweep {
+  transform-box: view-box;
+  transform-origin: 24px 24px;
+  animation: radar-spin 4.5s linear infinite;
+}
+
+.field {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.fieldSweep {
+  transform-box: view-box;
+  transform-origin: 300px 300px;
+  animation: radar-spin 9s linear infinite;
+}
+
+.blip {
+  animation: radar-blip 4.5s var(--ease-out) infinite;
+}
+.blip2 {
+  animation: radar-blip 4.5s var(--ease-out) infinite;
+  animation-delay: 1.6s;
+}
+.blip3 {
+  animation: radar-blip 4.5s var(--ease-out) infinite;
+  animation-delay: 3s;
+}
+
+@keyframes radar-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes radar-blip {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  18% {
+    opacity: 1;
+  }
+  55% {
+    opacity: 0.15;
+  }
+}
