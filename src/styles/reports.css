@@ -1,0 +1,243 @@
+.rating-input {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.rating-input__stars {
+  display: inline-flex;
+  gap: 1px;
+}
+
+.rating-input__star {
+  color: #d1d5db;
+  border-radius: var(--radius-sm);
+  transition: color var(--transition);
+}
+
+.rating-input__star--on {
+  color: var(--warning);
+}
+
+.rating-input__star--on .stars__star,
+.rating-input__star--on svg {
+  fill: currentColor;
+}
+
+.rating-input__label {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.review-form,
+.pairwise {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.review-form__offer,
+.pairwise__sub,
+.pairwise__progress {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.review-form__actions,
+.pairwise__actions {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: flex-end;
+}
+
+.pairwise__prompt {
+  color: var(--text);
+}
+
+.pairwise__pair {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.pairwise__option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 112px;
+  padding: var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  text-align: center;
+}
+
+.pairwise__option--new {
+  border-color: #bfdbfe;
+  background: var(--accent-soft);
+}
+
+.pairwise__badge,
+.pairwise__vs {
+  color: var(--accent);
+  font-size: var(--text-xs);
+}
+
+.pairwise__vs {
+  color: var(--text-faint);
+}
+
+.pairwise__name {
+  color: var(--ink);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.pairwise__buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+}
+
+.pairwise--done {
+  align-items: center;
+  text-align: center;
+}
+
+.pairwise__done-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.pairwise__done-title {
+  color: var(--ink);
+  font-size: var(--text-lg);
+  font-weight: 600;
+}
+
+.rankings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.ranked-list__items {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ranked-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border-bottom: 1px solid var(--line);
+}
+
+.ranked-row:last-child {
+  border-bottom: 0;
+}
+
+.ranked-row__num {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+}
+
+.ranked-row__num--top {
+  color: #fff;
+  background: var(--accent);
+}
+
+.ranked-row__main {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+}
+
+.ranked-row__name {
+  color: var(--ink);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.ranked-row__main:hover .ranked-row__name {
+  color: var(--accent);
+}
+
+.ranked-row__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+}
+
+.ranked-row__saved {
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.column-chart {
+  width: 100%;
+}
+
+.column-chart__svg {
+  width: 100%;
+  height: 170px;
+  overflow: visible;
+}
+
+.column-chart__axis {
+  stroke: var(--line);
+  stroke-width: 1;
+}
+
+.column-chart__bar {
+  fill: var(--accent);
+}
+
+.column-chart__value-label,
+.column-chart__x-label {
+  fill: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-anchor: middle;
+}
+
+.report-filters {
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+}
+
+.report-filters__field {
+  min-width: 0;
+}
+
+@media (max-width: 620px) {
+  .pairwise__pair,
+  .pairwise__buttons {
+    grid-template-columns: 1fr;
+  }
+}

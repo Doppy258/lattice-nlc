@@ -1,0 +1,203 @@
+import type {
+  Business,
+  GeoPoint,
+  MatchResult,
+  Offer,
+  PingRequest,
+  ScoreBreakdown,
+  User,
+} from "../models";
+import { OFFER_RANK_WEIGHTS, RELATED_CATEGORIES } from "../utils/constants";
+import { distanceKm, roundKm } from "../utils/distance";
+import { isBusinessOpenDuring } from "../utils/dateTime";
+import { DEMO_ORIGINS } from "../data/catalog";
+
+/** Resolves the distance anchor for a user (their seeded home origin). */
+export function getOriginPoint(user: User | undefined): GeoPoint {
+  const origin = DEMO_ORIGINS.find((o) => o.id === user?.homeLocationId);
+  return (origin ?? DEMO_ORIGINS[0]).location;
+}
+
+/** 100 exact category, 60 related, 0 unrelated. */
+export function calculateCategoryScore(request: PingRequest, offer: Offer): number {
+  if (offer.category === request.category) return 100;
+  if (RELATED_CATEGORIES[request.category]?.includes(offer.category)) return 60;
+  return 0;
+}
+
+/** 100 within budget, 70 within +15%, 30 over but strongly rated, else 0. */
+export function calculateBudgetScore(
+  request: PingRequest,
+  offer: Offer,
+  business: Business
+): number {
+  if (request.budgetMax === undefined) return 100; // "No budget" selected.
+  if (offer.price <= request.budgetMax) return 100;
+  if (offer.price <= request.budgetMax * 1.15) return 70;
+  if (business.ratingAverage >= 4.5) return 30;
+  return 0;
+}
+
+/** 100 at the origin, scaling toward 80 at the chosen radius; 0 beyond it. */
+export function calculateDistanceScore(
+  request: PingRequest,
+  business: Business,
+  origin: GeoPoint
+): number {
+  const d = distanceKm(origin, business.location);
+  if (d > request.distanceKm) return 0;
+  const ratio = request.distanceKm === 0 ? 0 : d / request.distanceKm;
+  return Math.round(100 - 20 * ratio);
+}
+
+/** Maps a 1–5 average rating to 0–100 (4.5 → 90). */
+export function calculateRatingScore(business: Business): number {
+  return Math.round((business.ratingAverage / 5) * 100);
+}
+
+/** 100 fully available, 50 partially, 0 unavailable during the window. */
+export function calculateTimeScore(
+  request: PingRequest,
+  offer: Offer,
+  business: Business
+): number {
+  const offerOverlaps =
+    Date.parse(offer.validUntil) >= Date.parse(request.timeStart) &&
+    Date.parse(offer.validFrom) <= Date.parse(request.timeEnd);
+  if (!offerOverlaps) return 0;
+  const open = isBusinessOpenDuring(business.hours, request.timeStart, request.timeEnd);
+  return open === "full" ? 100 : open === "partial" ? 50 : 0;
+}
+
+/** 100 verified + redemption required, 70 verified, 40 unverified. */
+export function calculateVerificationScore(business: Business, offer: Offer): number {
+  if (business.verified && offer.verificationRequired) return 100;
+  if (business.verified) return 70;
+  return 40;
+}
+
+/** Share of the user's requested preferences this offer/business satisfies. */
+export function calculatePreferenceScore(
+  request: PingRequest,
+  offer: Offer,
+  business: Business,
+  _user: User
+): number {
+  const prefs = request.preferences ?? [];
+  if (prefs.length === 0) return 100; // Nothing requested → no penalty.
+
+  const tags = new Set([...offer.tags, ...business.tags]);
+  const access = new Set(business.accessibilityFeatures);
+  const open = isBusinessOpenDuring(business.hours, request.timeStart, request.timeEnd) !== "none";
+
+  const satisfied = (pref: string): boolean => {
+    switch (pref) {
+      case "studentDiscount":
+        return offer.studentOnly || tags.has("student-friendly");
+      case "openNow":
+        return open;
+      case "highlyRated":
+        return business.ratingAverage >= 4.5;
+      case "verifiedOnly":
+        return business.verified;
+      case "groupFriendly":
+        return tags.has("group-friendly");
+      case "wheelchairAccessible":
+        return access.has("wheelchairAccessible");
+      case "quiet":
+        return access.has("quiet") || tags.has("quiet");
+      case "vegetarian":
+        return tags.has("vegetarian");
+      case "fastService":
+      case "under30":
+        return tags.has("fast");
+      default:
+        return false;
+    }
+  };
+
+  const matched = prefs.filter(satisfied).length;
+  return Math.round((matched / prefs.length) * 100);
+}
+
+/** Computes the full weighted score (0–100) and its breakdown. */
+export function calculateOfferScore(
+  request: PingRequest,
+  offer: Offer,
+  business: Business,
+  user: User,
+  origin: GeoPoint
+): { score: number; breakdown: ScoreBreakdown } {
+  const breakdown: ScoreBreakdown = {
+    categoryScore: calculateCategoryScore(request, offer),
+    budgetScore: calculateBudgetScore(request, offer, business),
+    distanceScore: calculateDistanceScore(request, business, origin),
+    ratingScore: calculateRatingScore(business),
+    timeScore: calculateTimeScore(request, offer, business),
+    verificationScore: calculateVerificationScore(business, offer),
+    preferenceScore: calculatePreferenceScore(request, offer, business, user),
+  };
+  const w = OFFER_RANK_WEIGHTS;
+  const score =
+    breakdown.categoryScore * w.category +
+    breakdown.budgetScore * w.budget +
+    breakdown.distanceScore * w.distance +
+    breakdown.ratingScore * w.rating +
+    breakdown.timeScore * w.time +
+    breakdown.verificationScore * w.verification +
+    breakdown.preferenceScore * w.preference;
+  return { score: Math.round(score), breakdown };
+}
+
+/** Turns the score breakdown into a short list of human-readable reasons. */
+export function generateMatchReasons(
+  breakdown: ScoreBreakdown,
+  request: PingRequest,
+  offer: Offer,
+  business: Business,
+  origin: GeoPoint
+): string[] {
+  const reasons: string[] = [];
+  if (breakdown.budgetScore >= 70) reasons.push("Fits your budget");
+  if (breakdown.timeScore >= 100) reasons.push("Open during your requested time");
+  else if (breakdown.timeScore >= 50) reasons.push("Partly open during your window");
+  if (breakdown.distanceScore > 0) {
+    reasons.push(`${roundKm(distanceKm(origin, business.location))} km away`);
+  }
+  if (breakdown.ratingScore >= 90) reasons.push("Highly rated by verified reviews");
+  if (offer.studentOnly) reasons.push("Has a student discount");
+  if (business.verified && reasons.length < 4) reasons.push("Verified local business");
+  return reasons.slice(0, 4);
+}
+
+/**
+ * Ranks active offers for a request, best match first. Each result carries its
+ * score, breakdown, and reasons (the OfferRank intelligent feature).
+ */
+export function getMatchingOffers(
+  request: PingRequest,
+  offers: Offer[],
+  businesses: Business[],
+  user: User
+): MatchResult[] {
+  const origin = getOriginPoint(user);
+  const byId = new Map(businesses.map((b) => [b.id, b]));
+
+  const results: MatchResult[] = [];
+  for (const offer of offers) {
+    if (!offer.active) continue;
+    const business = byId.get(offer.businessId);
+    if (!business) continue;
+    const { score, breakdown } = calculateOfferScore(request, offer, business, user, origin);
+    if (score <= 0) continue;
+    results.push({
+      offerId: offer.id,
+      businessId: business.id,
+      requestId: request.id,
+      score,
+      scoreBreakdown: breakdown,
+      reasons: generateMatchReasons(breakdown, request, offer, business, origin),
+    });
+  }
+  return results.sort((a, b) => b.score - a.score);
+}

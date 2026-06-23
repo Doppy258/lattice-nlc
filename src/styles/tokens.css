@@ -1,0 +1,90 @@
+:root {
+  --ink: #0f172a;
+  --ink-soft: #1f2937;
+  --paper: #fbfbfb;
+  --surface: #ffffff;
+  --surface-2: #f7f7f8;
+  --surface-3: #f1f5f9;
+
+  --accent: #0b5cff;
+  --accent-2: #1447e6;
+  --accent-strong: #0b4bd3;
+  --accent-soft: #eef6ff;
+  --accent-ring: rgba(11, 92, 255, 0.22);
+  --accent-contrast: #ffffff;
+  --accent-gradient: linear-gradient(180deg, #1267ff 0%, #0648dd 100%);
+  --accent-gradient-soft: #eef6ff;
+
+  --violet: #635bff;
+
+  --text: #111827;
+  --text-muted: #647084;
+  --text-faint: #98a1b2;
+  --text-on-accent: #ffffff;
+
+  --line: #e5e7eb;
+  --line-strong: #d8dde5;
+
+  --success: #047857;
+  --success-soft: #ecfdf5;
+  --warning: #b45309;
+  --warning-soft: #fffbeb;
+  --error: #dc2626;
+  --error-soft: #fef2f2;
+  --neutral-soft: #f3f4f6;
+
+  --glass-bg: #ffffff;
+  --glass-bg-strong: #ffffff;
+  --glass-blur: none;
+  --glass-border: var(--line);
+
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, ui-sans-serif, system-ui, sans-serif;
+  --font-serif: Georgia, ui-serif, serif;
+  --font-mono: "SF Mono", "Roboto Mono", ui-monospace, Menlo, Consolas, monospace;
+
+  --text-xs: 11px;
+  --text-sm: 13px;
+  --text-base: 14px;
+  --text-lg: 16px;
+  --text-xl: 18px;
+  --text-2xl: 22px;
+  --text-3xl: 28px;
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 10px;
+  --radius-pill: 999px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 8px 18px rgba(15, 23, 42, 0.06);
+  --shadow-lg: 0 18px 40px rgba(15, 23, 42, 0.08);
+  --glow: 0 0 0 3px rgba(11, 92, 255, 0.12);
+  --glow-strong: 0 8px 18px rgba(11, 92, 255, 0.22);
+
+  --sidebar-w: 236px;
+  --topbar-h: 56px;
+  --content-max: 1056px;
+
+  --transition: 140ms ease;
+  --transition-fast: 100ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --transition: 0ms;
+    --transition-fast: 0ms;
+  }
+}
