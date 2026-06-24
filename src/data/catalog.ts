@@ -1,18 +1,18 @@
 import type { BusinessCategory, GeoPoint, NeedType, OfferType } from "../models";
 
-/** Seeded distance origins (no live geolocation). Oakville, ON coordinates. */
+/** Seeded distance origins for the downtown San Antonio demo. */
 export type DemoOrigin = { id: string; name: string; location: GeoPoint };
 
 export const DEMO_ORIGINS: DemoOrigin[] = [
   {
     id: "origin_school",
-    name: "White Oaks Secondary School",
-    location: { lat: 43.4459, lng: -79.6877 },
+    name: "UTSA Downtown Campus",
+    location: { lat: 29.4227, lng: -98.5021 },
   },
   {
     id: "origin_downtown",
-    name: "Downtown Oakville",
-    location: { lat: 43.4452, lng: -79.667 },
+    name: "Downtown San Antonio",
+    location: { lat: 29.4241, lng: -98.4936 },
   },
 ];
 

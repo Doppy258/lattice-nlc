@@ -12,7 +12,7 @@ import {
   type OfferStatus,
 } from "../services/offerService";
 import { byDate } from "../utils/sorting";
-import { PageHeader } from "../components/layout/PageHeader";
+import { PageHero } from "../components/layout/PageHero";
 import { Button } from "../components/common/Button";
 import { Icon } from "../components/common/Icon";
 import { Modal } from "../components/common/Modal";
@@ -80,8 +80,9 @@ export function ManageOffersPage() {
 
   return (
     <>
-      <PageHeader
-        eyebrow="Business"
+      <PageHero
+        variant="compact"
+        kicker="Business"
         title="Manage offers"
         subtitle={`Offers for ${activeBusiness.name}`}
         actions={

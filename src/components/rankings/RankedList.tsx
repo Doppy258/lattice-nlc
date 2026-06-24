@@ -12,10 +12,10 @@ type Props = {
   savedBusinessIds: string[];
 };
 
-/** Title like "Food · Lunch", falling back to the category when no need type. */
+/** Title like "Food - Lunch", falling back to the category when no need type. */
 function listTitle(ranking: PersonalRanking): string {
   const category = CATEGORY_META[ranking.category].label;
-  return ranking.needType ? `${category} · ${NEED_TYPE_LABELS[ranking.needType]}` : category;
+  return ranking.needType ? `${category} - ${NEED_TYPE_LABELS[ranking.needType]}` : category;
 }
 
 /** One ranked list for a (category, needType) pair, ordered best to worst. */

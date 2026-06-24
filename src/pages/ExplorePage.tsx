@@ -12,32 +12,30 @@ import {
   type BusinessSort,
 } from "../services/businessService";
 import { ALL_CATEGORIES, CATEGORY_META } from "../data/catalog";
-import { PageHeader } from "../components/layout/PageHeader";
-import { Icon } from "../components/common/Icon";
+import { PageHero } from "../components/layout/PageHero";
+import { FilterBar } from "../components/common/FilterBar";
+import { ScrollRail } from "../components/common/ScrollRail";
 import { EmptyState } from "../components/common/EmptyState";
 import { BusinessCard } from "../components/businesses/BusinessCard";
 
 const SORTS: { key: BusinessSort; label: string }[] = [
-  { key: "highestRating", label: "Highest rating" },
-  { key: "mostReviews", label: "Most reviews" },
-  { key: "closest", label: "Closest" },
-  { key: "activeDeals", label: "Active deals" },
-  { key: "alphabetical", label: "Alphabetical" },
-  { key: "category", label: "Category" },
+  { key: "highestRating", label: "Top rated" },
+  { key: "closest", label: "Nearest" },
+  { key: "activeDeals", label: "Most deals" },
+  { key: "alphabetical", label: "A-Z" },
 ];
 
-const RATING_OPTIONS = [
-  { value: 0, label: "Any rating" },
-  { value: 4, label: "4.0+" },
-  { value: 4.5, label: "4.5+" },
+const RATING_SEGMENTS = [
+  { id: "0", label: "Any rating" },
+  { id: "4", label: "4.0+" },
+  { id: "4.5", label: "4.5+" },
 ];
 
-const DISTANCE_OPTIONS = [
-  { value: 0, label: "Any distance" },
-  { value: 1, label: "Within 1 km" },
-  { value: 3, label: "Within 3 km" },
-  { value: 5, label: "Within 5 km" },
-  { value: 10, label: "Within 10 km" },
+const DISTANCE_SEGMENTS = [
+  { id: "0", label: "Any distance" },
+  { id: "3", label: "< 3 km" },
+  { id: "5", label: "< 5 km" },
+  { id: "10", label: "< 10 km" },
 ];
 
 export function ExplorePage() {
@@ -46,8 +44,8 @@ export function ExplorePage() {
 
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<BusinessCategory | "">("");
-  const [minRating, setMinRating] = useState(0);
-  const [maxDistanceKm, setMaxDistanceKm] = useState(0);
+  const [minRating, setMinRating] = useState("0");
+  const [maxDistanceKm, setMaxDistanceKm] = useState("0");
   const [hasDeals, setHasDeals] = useState(false);
   const [sort, setSort] = useState<BusinessSort>("highestRating");
 
@@ -59,8 +57,8 @@ export function ExplorePage() {
       {
         query: query || undefined,
         category: category || undefined,
-        minRating: minRating || undefined,
-        maxDistanceKm: maxDistanceKm || undefined,
+        minRating: Number(minRating) || undefined,
+        maxDistanceKm: Number(maxDistanceKm) || undefined,
         hasDeals: hasDeals || undefined,
       },
       data.offers,
@@ -69,112 +67,144 @@ export function ExplorePage() {
     return sortBusinesses(filtered, sort, data.offers, origin);
   }, [data.businesses, data.offers, query, category, minRating, maxDistanceKm, hasDeals, sort, origin]);
 
+  const featured = results.slice(0, 3);
+  const rest = results.slice(3);
+
   return (
     <>
-      <PageHeader
-        eyebrow="Explore"
+      <PageHero
+        variant="split"
+        kicker="Explore"
         title="Browse local businesses"
         subtitle="Search, filter, and sort nearby businesses, then bookmark the ones you like."
+        aside={
+          <div className="page-hero__stat-pill">
+            <strong>{results.length}</strong>
+            <span>businesses nearby</span>
+          </div>
+        }
       />
 
-      <div className="explore-toolbar">
-        <label className="search-field">
-          <Icon name="search" size={16} className="search-field__icon" />
-          <input
-            type="search"
-            className="search-field__input"
-            placeholder="Search businesses, tags, or descriptions"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            aria-label="Search businesses"
-          />
-        </label>
-
-        <div className="explore-toolbar__selects">
-          <select
-            className="select-input"
-            value={category}
-            onChange={(e) => setCategory(e.target.value as BusinessCategory | "")}
-            aria-label="Category"
-          >
-            <option value="">All categories</option>
-            {ALL_CATEGORIES.map((c) => (
-              <option key={c} value={c}>
-                {CATEGORY_META[c].label}
-              </option>
-            ))}
-          </select>
-
-          <select
-            className="select-input"
-            value={minRating}
-            onChange={(e) => setMinRating(Number(e.target.value))}
-            aria-label="Minimum rating"
-          >
-            {RATING_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </select>
-
-          <select
-            className="select-input"
-            value={maxDistanceKm}
-            onChange={(e) => setMaxDistanceKm(Number(e.target.value))}
-            aria-label="Maximum distance"
-          >
-            {DISTANCE_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </select>
-
-          <select
-            className="select-input"
-            value={sort}
-            onChange={(e) => setSort(e.target.value as BusinessSort)}
-            aria-label="Sort by"
-          >
-            {SORTS.map((s) => (
-              <option key={s.key} value={s.key}>
-                {s.label}
-              </option>
-            ))}
-          </select>
-
-          <button
-            type="button"
-            className={`chip ${hasDeals ? "chip--on" : ""}`}
-            aria-pressed={hasDeals}
-            onClick={() => setHasDeals((v) => !v)}
-          >
-            Active deals only
-          </button>
+      <FilterBar
+        search={query}
+        onSearchChange={setQuery}
+        searchPlaceholder="Search businesses, tags, or descriptions"
+        segments={SORTS.map((s) => ({ id: s.key, label: s.label }))}
+        activeSegment={sort}
+        onSegmentChange={(id) => setSort(id as BusinessSort)}
+      >
+        <select
+          className="select-input"
+          value={category}
+          onChange={(e) => setCategory(e.target.value as BusinessCategory | "")}
+          aria-label="Category"
+          style={{ width: "auto", minWidth: 140 }}
+        >
+          <option value="">All categories</option>
+          {ALL_CATEGORIES.map((c) => (
+            <option key={c} value={c}>
+              {CATEGORY_META[c].label}
+            </option>
+          ))}
+        </select>
+        <div className="filter-bar__segmented">
+          {RATING_SEGMENTS.map((seg) => (
+            <button
+              key={seg.id}
+              type="button"
+              className={`filter-bar__segment${minRating === seg.id ? " filter-bar__segment--on" : ""}`}
+              onClick={() => setMinRating(seg.id)}
+            >
+              {seg.label}
+            </button>
+          ))}
         </div>
-      </div>
+        <div className="filter-bar__segmented">
+          {DISTANCE_SEGMENTS.map((seg) => (
+            <button
+              key={seg.id}
+              type="button"
+              className={`filter-bar__segment${maxDistanceKm === seg.id ? " filter-bar__segment--on" : ""}`}
+              onClick={() => setMaxDistanceKm(seg.id)}
+            >
+              {seg.label}
+            </button>
+          ))}
+        </div>
+        <button
+          type="button"
+          className={`chip ${hasDeals ? "chip--on" : ""}`}
+          aria-pressed={hasDeals}
+          onClick={() => setHasDeals((v) => !v)}
+        >
+          Active deals only
+        </button>
+      </FilterBar>
+
+      {results.length > 0 && (
+        <div style={{ marginBottom: "var(--space-6)" }}>
+          <ScrollRail>
+          {ALL_CATEGORIES.slice(0, 6).map((cat) => (
+            <button
+              key={cat}
+              type="button"
+              className={`scroll-rail__item chip${category === cat ? " chip--on" : ""}`}
+              onClick={() => setCategory(category === cat ? "" : cat)}
+            >
+              {CATEGORY_META[cat].label}
+            </button>
+          ))}
+          </ScrollRail>
+        </div>
+      )}
 
       {results.length === 0 ? (
         <EmptyState
-          icon="explore"
+          variant="map"
           title="No businesses match those filters"
           body="Try clearing a filter or widening your distance."
         />
       ) : (
-        <div className="biz-grid">
-          {results.map((business) => (
-            <BusinessCard
-              key={business.id}
-              business={business}
-              distanceKm={distanceForBusiness(business, origin)}
-              dealCount={activeDealCount(business.id, data.offers)}
-              saved={interactions.isBusinessSaved(business.id)}
-              onToggleSave={() => interactions.toggleSaveBusiness(business.id)}
-              onView={() => navigate(`/business/profile?b=${business.id}`)}
-            />
-          ))}
-        </div>
+        <>
+          {featured.length >= 3 && (
+            <div className="featured-row">
+              <BusinessCard
+                business={featured[0]}
+                distanceKm={distanceForBusiness(featured[0], origin)}
+                dealCount={activeDealCount(featured[0].id, data.offers)}
+                saved={interactions.isBusinessSaved(featured[0].id)}
+                onToggleSave={() => interactions.toggleSaveBusiness(featured[0].id)}
+                onView={() => navigate(`/business/profile?b=${featured[0].id}`)}
+              />
+              <div className="featured-row__side">
+                {featured.slice(1, 3).map((business) => (
+                  <BusinessCard
+                    key={business.id}
+                    business={business}
+                    distanceKm={distanceForBusiness(business, origin)}
+                    dealCount={activeDealCount(business.id, data.offers)}
+                    saved={interactions.isBusinessSaved(business.id)}
+                    onToggleSave={() => interactions.toggleSaveBusiness(business.id)}
+                    onView={() => navigate(`/business/profile?b=${business.id}`)}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+          <div className="biz-grid">
+            {(featured.length >= 3 ? rest : results).map((business) => (
+              <BusinessCard
+                key={business.id}
+                business={business}
+                distanceKm={distanceForBusiness(business, origin)}
+                dealCount={activeDealCount(business.id, data.offers)}
+                saved={interactions.isBusinessSaved(business.id)}
+                onToggleSave={() => interactions.toggleSaveBusiness(business.id)}
+                onView={() => navigate(`/business/profile?b=${business.id}`)}
+              />
+            ))}
+          </div>
+        </>
       )}
     </>
   );

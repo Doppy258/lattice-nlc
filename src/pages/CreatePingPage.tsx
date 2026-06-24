@@ -81,13 +81,18 @@ function StudioSection({
   children: ReactNode;
 }) {
   return (
-    <section className="studio-section">
+    <motion.section
+      className="studio-section"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ type: "spring", stiffness: 100, damping: 20 }}
+    >
       <div className="studio-section__head">
         <h2>{title}</h2>
       </div>
       {children}
       <FormError message={error} />
-    </section>
+    </motion.section>
   );
 }
 
@@ -216,6 +221,12 @@ export function CreatePingPage() {
     return TIME_WINDOW_PRESETS.find((p) => p.id === timeWindow.presetId)?.label;
   })();
 
+  const sentenceCategory = category ? CATEGORY_META[category].label : "Select category";
+  const sentenceNeed = needType ? NEED_TYPE_LABELS[needType] : "Choose need";
+  const sentenceDistance = distanceKm !== undefined ? `Within ${distanceKm} km` : "Set distance";
+  const sentenceTime = timeLabel ? timeLabel : "Set time";
+  const sentenceBudget = budgetChosen ? budgetToLabel(budget) : "Set budget";
+
   const selectedRow =
     previewRows.find((row) => row.business.id === selectedBusinessId) ?? previewRows[0];
 
@@ -285,7 +296,7 @@ export function CreatePingPage() {
           </p>
         </div>
         <div className="studio-score-card">
-          <strong>{quality.score}%</strong>
+          <strong>{quality.score ?? 0}%</strong>
           <span>request clarity</span>
           <div>
             <Badge tone={validation.valid ? "success" : "accent"}>
@@ -293,6 +304,29 @@ export function CreatePingPage() {
             </Badge>
           </div>
         </div>
+      </section>
+
+      <section className="ping-sentence-builder" aria-label="Ping request sentence preview">
+        <span className={`ping-sentence-builder__slot${category ? "" : " ping-sentence-builder__slot--empty"}`}>
+          <small>Category</small>
+          <strong>{sentenceCategory}</strong>
+        </span>
+        <span className={`ping-sentence-builder__slot${needType ? "" : " ping-sentence-builder__slot--empty"}`}>
+          <small>Need</small>
+          <strong>{sentenceNeed}</strong>
+        </span>
+        <span className={`ping-sentence-builder__slot${distanceKm !== undefined ? "" : " ping-sentence-builder__slot--empty"}`}>
+          <small>Distance</small>
+          <strong>{sentenceDistance}</strong>
+        </span>
+        <span className={`ping-sentence-builder__slot${timeLabel ? "" : " ping-sentence-builder__slot--empty"}`}>
+          <small>Time</small>
+          <strong>{sentenceTime}</strong>
+        </span>
+        <span className={`ping-sentence-builder__slot${budgetChosen ? "" : " ping-sentence-builder__slot--empty"}`}>
+          <small>Budget</small>
+          <strong>{sentenceBudget}</strong>
+        </span>
       </section>
 
       <div className="ping-studio-layout">
@@ -315,7 +349,7 @@ export function CreatePingPage() {
 
           {(locationState === "denied" || locationState === "unsupported") && (
             <p className="studio-note">
-              Location is not available, so Lattice is previewing from the demo Oakville origin.
+              Location is not available, so Lattice is previewing from the downtown San Antonio demo origin.
             </p>
           )}
 
@@ -434,7 +468,7 @@ export function CreatePingPage() {
                     <strong>{row.business.name}</strong>
                     <small>{row.offer.title}</small>
                   </span>
-                  <em>{formatCurrency(row.offer.price)}</em>
+                  <span className="studio-match__price">{formatCurrency(row.offer.price)}</span>
                 </motion.button>
               ))}
             </AnimatePresence>
@@ -443,7 +477,7 @@ export function CreatePingPage() {
           {errorFor("duplicate") && <FormError message={errorFor("duplicate")} />}
 
           <Button block size="lg" disabled={!validation.valid} onClick={() => setVerifying(true)}>
-            Send Ping
+            Find matching offers
           </Button>
           {!validation.valid && (
             <p className="builder-preview__hint">

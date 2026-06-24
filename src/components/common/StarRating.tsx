@@ -10,7 +10,7 @@ type Props = {
 };
 
 /**
- * Read-only 1–5 star display. The filled count rounds to the nearest whole
+ * Read-only 1-5 star display. The filled count rounds to the nearest whole
  * star; the precise value is shown alongside (and announced for screen readers).
  */
 export function StarRating({ value, size = 14, showValue = true, reviewCount }: Props) {

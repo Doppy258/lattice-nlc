@@ -64,7 +64,7 @@ export function RedeemPanel({ result, onSubmit, onClear }: Props) {
           <div>
             <p className="redeem-result__title">Redeemed {result.code}</p>
             <p className="redeem-result__detail">
-              {result.customerName} · {result.offerTitle} ·{" "}
+              {result.customerName} - {result.offerTitle} -{" "}
               {result.price === 0 ? "Free" : formatCurrency(result.price)}
             </p>
           </div>

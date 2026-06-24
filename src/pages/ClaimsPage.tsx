@@ -7,12 +7,14 @@ import { createReview, updateBusinessRating } from "../services/reviewService";
 import { upsertRanking } from "../services/rankingService";
 import { byDate } from "../utils/sorting";
 import { relativeTime } from "../utils/formatting";
-import { PageHeader } from "../components/layout/PageHeader";
+import { businessImageUrl } from "../utils/businessVisuals";
+import { PageHero } from "../components/layout/PageHero";
 import { Card } from "../components/common/Card";
 import { Button } from "../components/common/Button";
 import { Badge } from "../components/common/Badge";
 import { Icon } from "../components/common/Icon";
 import { EmptyState } from "../components/common/EmptyState";
+import { RichListRow } from "../components/common/RichListRow";
 import { ReviewModal, type ReviewDraft } from "../components/reviews/ReviewModal";
 import { PairwiseModal } from "../components/reviews/PairwiseModal";
 
@@ -134,26 +136,34 @@ export function ClaimsPage() {
 
   return (
     <>
-      <PageHeader eyebrow="Claims" title="Your claims" subtitle="Track active codes, redeemed visits, and past claims." />
+      <PageHero
+        variant="compact"
+        kicker="Claims"
+        title="Your claims"
+        subtitle="Track active codes, redeemed visits, and past claims."
+      />
 
-      <div className="tabs" role="tablist">
-        {TABS.map((t) => (
-          <button
-            key={t.id}
-            role="tab"
-            aria-selected={tab === t.id}
-            className={`tab ${tab === t.id ? "tab--on" : ""}`}
-            onClick={() => setTab(t.id)}
-          >
-            {t.label}
-            <span className="tab__count">{byTab[t.id].length}</span>
-          </button>
-        ))}
+      <div className="tabs-underline-wrap">
+        <div className="tabs-underline" role="tablist">
+          {TABS.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              role="tab"
+              aria-selected={tab === t.id}
+              className={`tab-underline ${tab === t.id ? "tab-underline--on" : ""}`}
+              onClick={() => setTab(t.id)}
+            >
+              {t.label}
+              <span className="tab__count">{byTab[t.id].length}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
       {list.length === 0 ? (
         <EmptyState
-          icon="claims"
+          variant="ticket"
           title={`No ${tab === "past" ? "past" : tab} claims`}
           body={
             tab === "active"
@@ -175,14 +185,13 @@ export function ClaimsPage() {
             const business = bizById.get(claim.businessId);
             const reviewed = reviewedClaimIds.has(claim.id);
             return (
-              <Card key={claim.id} className="claim-card">
-                <div className="claim-card__main">
-                  <div>
-                    <h3 className="claim-card__title">{offer?.title ?? "Offer"}</h3>
-                    <p className="claim-card__biz">{business?.name}</p>
-                  </div>
-                  <span className="claim-card__code mono">{claim.claimCode}</span>
-                </div>
+              <Card key={claim.id} className="claim-card" pad={false}>
+                <RichListRow
+                  thumbnail={business ? businessImageUrl(business) : undefined}
+                  title={offer?.title ?? "Offer"}
+                  meta={business?.name}
+                  trailing={<span className="claim-card__code mono">{claim.claimCode}</span>}
+                />
 
                 <div className="claim-card__foot">
                   {claim.status === "active" && (

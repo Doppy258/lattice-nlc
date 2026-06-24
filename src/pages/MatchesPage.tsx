@@ -7,7 +7,8 @@ import { getMatchingOffers, getOriginPoint } from "../services/offerMatchingServ
 import { distanceKm } from "../utils/distance";
 import { byDate } from "../utils/sorting";
 import { NEED_TYPE_LABELS } from "../data/catalog";
-import { PageHeader } from "../components/layout/PageHeader";
+import { PageHero } from "../components/layout/PageHero";
+import { FilterBar } from "../components/common/FilterBar";
 import { Button } from "../components/common/Button";
 import { Icon } from "../components/common/Icon";
 import { EmptyState } from "../components/common/EmptyState";
@@ -24,19 +25,18 @@ type SortKey =
 
 const SORTS: { key: SortKey; label: string }[] = [
   { key: "bestMatch", label: "Best match" },
-  { key: "highestRating", label: "Highest rating" },
-  { key: "closest", label: "Closest" },
+  { key: "highestRating", label: "Top rated" },
+  { key: "closest", label: "Nearest" },
   { key: "lowestPrice", label: "Lowest price" },
   { key: "endingSoon", label: "Ending soon" },
-  { key: "mostClaimed", label: "Most claimed" },
 ];
 
 const FILTERS: { id: string; label: string }[] = [
   { id: "activeDeals", label: "Active deals" },
   { id: "openNow", label: "Open in window" },
-  { id: "studentDiscount", label: "Student discount" },
+  { id: "studentDiscount", label: "Student" },
   { id: "verified", label: "Verified" },
-  { id: "saved", label: "Saved businesses" },
+  { id: "saved", label: "Saved" },
 ];
 
 export function MatchesPage() {
@@ -111,16 +111,13 @@ export function MatchesPage() {
   if (!request) {
     return (
       <>
-        <PageHeader eyebrow="Matches" title="Your ranked offers" />
+        <PageHero variant="compact" kicker="Matches" title="Your ranked offers" />
         <EmptyState
-          icon="matches"
+          variant="radar"
           title="No Ping yet"
           body="Create a Ping describing what you need and OfferRank will surface the best nearby offers."
-          actions={
-            <Button onClick={() => navigate("/create-ping")} iconLeft={<Icon name="ping" size={16} />}>
-              Create a Ping
-            </Button>
-          }
+          actionLabel="Create a Ping"
+          onAction={() => navigate("/create-ping")}
         />
       </>
     );
@@ -130,14 +127,25 @@ export function MatchesPage() {
     NEED_TYPE_LABELS[request.needType],
     request.budgetMax !== undefined ? `under $${request.budgetMax}` : "any budget",
     `within ${request.distanceKm} km`,
-  ].join(" · ");
+  ].join(" - ");
+
+  const [top, ...rest] = visible;
 
   return (
     <>
-      <PageHeader
-        eyebrow="Matches"
+      <PageHero
+        variant="split"
+        kicker="Matches"
         title="Your ranked offers"
         subtitle={summary}
+        aside={
+          matches.length > 0 ? (
+            <div className="page-hero__stat-pill">
+              <strong>{visible.length}</strong>
+              <span>of {matches.length} matches</span>
+            </div>
+          ) : undefined
+        }
         actions={
           <Button variant="secondary" onClick={() => navigate("/create-ping")} iconLeft={<Icon name="ping" size={16} />}>
             Edit request
@@ -146,30 +154,11 @@ export function MatchesPage() {
       />
 
       {matches.length > 0 && (
-        <div className="matches-toolbar">
-          <div className="matches-toolbar__count">
-            <strong>{visible.length}</strong> of {matches.length} matching offer
-            {matches.length === 1 ? "" : "s"}
-          </div>
-          <label className="sort-control">
-            <span>Sort</span>
-            <select
-              className="select-input"
-              value={sortKey}
-              onChange={(e) => setSortKey(e.target.value as SortKey)}
-            >
-              {SORTS.map((s) => (
-                <option key={s.key} value={s.key}>
-                  {s.label}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-      )}
-
-      {matches.length > 0 && (
-        <div className="chip-row matches-filters">
+        <FilterBar
+          segments={SORTS.map((s) => ({ id: s.key, label: s.label }))}
+          activeSegment={sortKey}
+          onSegmentChange={(id) => setSortKey(id as SortKey)}
+        >
           {FILTERS.map((f) => (
             <button
               key={f.id}
@@ -181,23 +170,35 @@ export function MatchesPage() {
               {f.label}
             </button>
           ))}
-        </div>
+        </FilterBar>
       )}
 
       {matches.length === 0 ? (
         <EmptyState
-          icon="matches"
+          variant="radar"
           title="No exact matches found"
-          body="Try increasing your distance, raising your budget, or changing your time window. Here are a few near misses worth a look."
-          actions={
-            <Button onClick={() => navigate("/create-ping")} iconLeft={<Icon name="ping" size={16} />}>
-              Adjust your Ping
-            </Button>
-          }
+          body="Try increasing your distance, raising your budget, or changing your time window."
+          actionLabel="Adjust your Ping"
+          onAction={() => navigate("/create-ping")}
         />
       ) : (
         <div className="offer-grid">
-          {visible.map(({ match, offer, business, distance }) => (
+          {top && (
+            <OfferCard
+              key={top.offer.id}
+              featured
+              offer={top.offer}
+              business={top.business}
+              distanceKm={top.distance}
+              match={top.match}
+              saved={interactions.isOfferSaved(top.offer.id)}
+              claimState={interactions.claimStateFor(top.offer)}
+              onClaim={() => interactions.claim(top.offer)}
+              onToggleSave={() => interactions.toggleSaveOffer(top.offer.id)}
+              onViewBusiness={() => navigate(`/business/profile?b=${top.business.id}`)}
+            />
+          )}
+          {rest.map(({ match, offer, business, distance }) => (
             <OfferCard
               key={offer.id}
               offer={offer}

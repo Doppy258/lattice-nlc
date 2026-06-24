@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useApp } from "../app/providers";
-import { PageHeader } from "../components/layout/PageHeader";
+import { PageHero } from "../components/layout/PageHero";
 import { Card } from "../components/common/Card";
 import { Button } from "../components/common/Button";
 import { Badge } from "../components/common/Badge";
@@ -35,8 +35,9 @@ export function DemoControlsPage() {
 
   return (
     <>
-      <PageHeader
-        eyebrow="Admin · Demo"
+      <PageHero
+        variant="compact"
+        kicker="Admin demo"
         title="Demo controls"
         subtitle="Inspect the seeded dataset that powers the app, and reset everything to its original state."
         actions={
@@ -46,7 +47,7 @@ export function DemoControlsPage() {
         }
       />
 
-      <Card>
+      <Card variant="bento">
         <div className="row" style={{ justifyContent: "space-between", marginBottom: "var(--space-5)" }}>
           <h2 className="card__title">Seed data viewer</h2>
           <Badge tone="success" dot>

@@ -3,7 +3,7 @@ import { useApp } from "../app/providers";
 import { getBusinessClaims, redeemClaim } from "../services/claimService";
 import { byDate } from "../utils/sorting";
 import { relativeTime } from "../utils/formatting";
-import { PageHeader } from "../components/layout/PageHeader";
+import { PageHero } from "../components/layout/PageHero";
 import { Card } from "../components/common/Card";
 import { Icon } from "../components/common/Icon";
 import { EmptyState } from "../components/common/EmptyState";
@@ -51,13 +51,11 @@ export function RedeemClaimPage() {
 
   return (
     <>
-      <PageHeader
-        eyebrow="Business"
-        title="Redeem a claim"
+      <PageHero variant="compact" kicker="Business" title="Redeem a claim"
         subtitle={`Verify a customer's code at ${activeBusiness.name} to mark it redeemed.`}
       />
 
-      <Card className="redeem-card">
+      <Card variant="glass" className="redeem-card">
         <RedeemPanel result={result} onSubmit={handleRedeem} onClear={() => setResult(null)} />
       </Card>
 
@@ -80,7 +78,7 @@ export function RedeemClaimPage() {
                     <div>
                       <p className="dash-claim__offer">{offer?.title ?? "Offer"}</p>
                       <p className="dash-claim__sub">
-                        {user?.name.split(" ")[0] ?? "Customer"} · Redeemed{" "}
+                        {user?.name.split(" ")[0] ?? "Customer"} - Redeemed{" "}
                         {relativeTime(claim.redeemedAt ?? claim.createdAt)}
                       </p>
                     </div>

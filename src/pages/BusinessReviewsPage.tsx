@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useApp } from "../app/providers";
 import { getBusinessReviews } from "../services/reviewService";
-import { PageHeader } from "../components/layout/PageHeader";
+import { PageHero } from "../components/layout/PageHero";
 import { Card } from "../components/common/Card";
 import { EmptyState } from "../components/common/EmptyState";
 import { BusinessReviews } from "../components/businesses/BusinessReviews";
@@ -20,9 +20,7 @@ export function BusinessReviewsPage() {
 
   return (
     <>
-      <PageHeader
-        eyebrow="Business"
-        title="Reviews"
+      <PageHero variant="compact" kicker="Business" title="Reviews"
         subtitle={`Verified customer feedback for ${activeBusiness.name}.`}
       />
 
@@ -34,10 +32,10 @@ export function BusinessReviewsPage() {
         />
       ) : (
         <div className="reviews-columns">
-          <Card>
+          <Card variant="inset">
             <RatingBreakdown reviews={reviews} />
           </Card>
-          <Card>
+          <Card variant="inset">
             <BusinessReviews reviews={reviews} users={data.users} />
           </Card>
         </div>

@@ -1,7 +1,7 @@
 import type { AppData, CollectionName } from "../models";
 import { buildSeedData } from "../data/seed";
 
-const STORAGE_KEY = "lattice.appData.v1";
+const STORAGE_KEY = "lattice.appData.v2.san-antonio";
 const ACTIVE_USER_KEY = "lattice.activeUserId.v1";
 const ACTIVE_BUSINESS_KEY = "lattice.activeBusinessId.v1";
 

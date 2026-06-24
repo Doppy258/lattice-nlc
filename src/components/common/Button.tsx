@@ -21,11 +21,24 @@ export function Button({
   children,
   ...rest
 }: Props) {
+  const base =
+    "btn inline-flex items-center justify-center gap-2 rounded-full border text-sm font-bold transition disabled:pointer-events-none disabled:opacity-45";
+  const variants: Record<Variant, string> = {
+    primary: "btn--primary border-accent bg-accent text-white",
+    secondary: "btn--secondary border-blue-200 bg-white text-accent",
+    ghost: "btn--ghost border-transparent bg-transparent text-accent",
+    danger: "btn--danger border-red-200 bg-white text-red-600",
+  };
+  const sizes: Record<Size, string> = {
+    sm: "btn--sm min-h-9 px-3 text-[13px]",
+    md: "min-h-11 px-5",
+    lg: "btn--lg min-h-13 px-6 text-base",
+  };
   const classes = [
-    "btn",
-    `btn--${variant}`,
-    size !== "md" ? `btn--${size}` : "",
-    block ? "btn--block" : "",
+    base,
+    variants[variant],
+    sizes[size],
+    block ? "btn--block w-full" : "",
     className,
   ]
     .filter(Boolean)

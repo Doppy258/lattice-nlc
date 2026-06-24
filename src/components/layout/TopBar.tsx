@@ -36,7 +36,7 @@ export function TopBar({ onOpenMenu }: { onOpenMenu: () => void }) {
   }, []);
 
   const originName =
-    DEMO_ORIGINS.find((o) => o.id === activeUser.homeLocationId)?.name ?? "Oakville";
+    DEMO_ORIGINS.find((o) => o.id === activeUser.homeLocationId)?.name ?? "San Antonio";
 
   const switchUser = (id: string) => {
     setActiveUserId(id);

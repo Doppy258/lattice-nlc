@@ -18,6 +18,7 @@ type Props = {
   match?: MatchResult;
   saved: boolean;
   claimState: OfferClaimState;
+  featured?: boolean;
   onClaim: () => void;
   onToggleSave: () => void;
   onViewBusiness: () => void;
@@ -40,13 +41,14 @@ export function OfferCard({
   onClaim,
   onToggleSave,
   onViewBusiness,
+  featured = false,
 }: Props) {
   const savings = offer.originalPrice ? offer.originalPrice - offer.price : 0;
   const expired = claimState === "expired";
   const savedBy = savedByCount(offer.id);
 
   return (
-    <Card className="offer-card" interactive>
+    <Card className={`offer-card${featured ? " offer-card--featured" : ""}`} interactive pad={!featured}>
       <div className="offer-card__media">
         <img src={businessImageUrl(business)} alt={`${business.name} offer preview`} />
         <Badge tone="accent">{businessGrade(business)}</Badge>

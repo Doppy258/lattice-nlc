@@ -1,4 +1,4 @@
-import { PageHeader } from "../layout/PageHeader";
+import { PageHero } from "../layout/PageHero";
 import { EmptyState } from "../common/EmptyState";
 import { Button } from "../common/Button";
 import { Icon } from "../common/Icon";
@@ -11,7 +11,7 @@ import { navigate } from "../../app/navigation";
 export function NoBusiness() {
   return (
     <>
-      <PageHeader eyebrow="Business" title="No business selected" />
+      <PageHero variant="compact" kicker="Business" title="No business selected" />
       <EmptyState
         icon="store"
         title="This account doesn't manage a business"

@@ -6,7 +6,8 @@ import { useOfferInteractions } from "../app/useOfferInteractions";
 import { getOriginPoint } from "../services/offerMatchingService";
 import { activeDealCount } from "../services/businessService";
 import { distanceKm } from "../utils/distance";
-import { PageHeader } from "../components/layout/PageHeader";
+import { PageHero } from "../components/layout/PageHero";
+import { FilterBar } from "../components/common/FilterBar";
 import { EmptyState } from "../components/common/EmptyState";
 import { BusinessCard } from "../components/businesses/BusinessCard";
 import { OfferCard } from "../components/offers/OfferCard";
@@ -79,26 +80,35 @@ export function SavedPage() {
     return [...list].sort(sorters[offerSort]);
   }, [activeUser.preferences.savedOfferIds, data.offers, bizById, offerSort]);
 
+  const totalSaved = savedBusinesses.length + savedOffers.length;
   const empty =
     (tab === "businesses" && savedBusinesses.length === 0) ||
     (tab === "offers" && savedOffers.length === 0);
 
   return (
     <>
-      <PageHeader
-        eyebrow="Saved"
+      <PageHero
+        variant="split"
+        kicker="Saved"
         title="Saved businesses & offers"
         subtitle="Everything you've bookmarked, in one place."
+        aside={
+          <div className="page-hero__stat-pill">
+            <strong>{totalSaved}</strong>
+            <span>saved items</span>
+          </div>
+        }
       />
 
-      <div className="saved-controls">
-        <div className="tabs" role="tablist">
+      <div className="tabs-underline-wrap">
+        <div className="tabs-underline" role="tablist">
           {(["businesses", "offers"] as Tab[]).map((t) => (
             <button
               key={t}
+              type="button"
               role="tab"
               aria-selected={tab === t}
-              className={`tab ${tab === t ? "tab--on" : ""}`}
+              className={`tab-underline ${tab === t ? "tab-underline--on" : ""}`}
               onClick={() => setTab(t)}
             >
               {t === "businesses" ? "Businesses" : "Offers"}
@@ -108,38 +118,20 @@ export function SavedPage() {
             </button>
           ))}
         </div>
-
-        {!empty && (
-          <label className="sort-control">
-            <span>Sort</span>
-            {tab === "businesses" ? (
-              <select
-                className="select-input"
-                value={bizSort}
-                onChange={(e) => setBizSort(e.target.value as BizSort)}
-              >
-                {BIZ_SORTS.map((s) => (
-                  <option key={s.key} value={s.key}>
-                    {s.label}
-                  </option>
-                ))}
-              </select>
-            ) : (
-              <select
-                className="select-input"
-                value={offerSort}
-                onChange={(e) => setOfferSort(e.target.value as OfferSort)}
-              >
-                {OFFER_SORTS.map((s) => (
-                  <option key={s.key} value={s.key}>
-                    {s.label}
-                  </option>
-                ))}
-              </select>
-            )}
-          </label>
-        )}
       </div>
+
+      {!empty && (
+        <FilterBar
+          segments={(tab === "businesses" ? BIZ_SORTS : OFFER_SORTS).map((s) => ({
+            id: s.key,
+            label: s.label,
+          }))}
+          activeSegment={tab === "businesses" ? bizSort : offerSort}
+          onSegmentChange={(id) =>
+            tab === "businesses" ? setBizSort(id as BizSort) : setOfferSort(id as OfferSort)
+          }
+        />
+      )}
 
       {empty ? (
         <EmptyState
@@ -149,7 +141,7 @@ export function SavedPage() {
           actions={undefined}
         />
       ) : tab === "businesses" ? (
-        <div className="biz-grid">
+        <div className="saved-masonry">
           {savedBusinesses.map((business) => (
             <BusinessCard
               key={business.id}

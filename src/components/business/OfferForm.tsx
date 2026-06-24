@@ -4,6 +4,7 @@ import { validateOfferInput, type OfferInput } from "../../services/offerService
 import { ALL_OFFER_TYPES, OFFER_TYPE_LABELS } from "../../data/catalog";
 import { Button } from "../common/Button";
 import { Icon } from "../common/Icon";
+import { FormField } from "../common/FormField";
 
 type Props = {
   /** Supplied in edit mode to seed the fields. */
@@ -115,25 +116,17 @@ export function OfferForm({ initial, onSubmit, onCancel, submitLabel = "Publish 
 
   return (
     <form className="offer-form" onSubmit={submit} noValidate>
-      <div className="field">
-        <label className="field__label" htmlFor="offer-title">
-          Offer title
-        </label>
-        <input
-          id="offer-title"
-          className="text-input"
-          value={form.title}
-          maxLength={80}
-          placeholder="e.g. Student lunch bowl — 20% off"
-          onChange={(e) => set("title", e.target.value)}
-        />
-        {err("title") && <span className="field__error">{err("title")}</span>}
-      </div>
+      <FormField
+        label="Offer title"
+        id="offer-title"
+        value={form.title}
+        maxLength={80}
+        placeholder="e.g. Student lunch bowl - 20% off"
+        onChange={(e) => set("title", e.target.value)}
+        error={err("title")}
+      />
 
-      <div className="field">
-        <label className="field__label" htmlFor="offer-desc">
-          Description
-        </label>
+      <FormField label="Description" id="offer-desc" error={err("description")}>
         <textarea
           id="offer-desc"
           className="text-input text-area"
@@ -142,14 +135,10 @@ export function OfferForm({ initial, onSubmit, onCancel, submitLabel = "Publish 
           placeholder="What's included and any conditions customers should know."
           onChange={(e) => set("description", e.target.value)}
         />
-        {err("description") && <span className="field__error">{err("description")}</span>}
-      </div>
+      </FormField>
 
       <div className="offer-form__grid">
-        <div className="field">
-          <label className="field__label" htmlFor="offer-type">
-            Offer type
-          </label>
+        <FormField label="Offer type" id="offer-type">
           <select
             id="offer-type"
             className="select-input"
@@ -162,97 +151,67 @@ export function OfferForm({ initial, onSubmit, onCancel, submitLabel = "Publish 
               </option>
             ))}
           </select>
-        </div>
+        </FormField>
 
-        <div className="field">
-          <label className="field__label" htmlFor="offer-max">
-            Max claims
-          </label>
-          <input
-            id="offer-max"
-            type="number"
-            min={1}
-            className="text-input"
-            value={form.maxClaims}
-            onChange={(e) => set("maxClaims", e.target.value)}
-          />
-          {err("maxClaims") && <span className="field__error">{err("maxClaims")}</span>}
-        </div>
+        <FormField
+          label="Max claims"
+          id="offer-max"
+          type="number"
+          min={1}
+          value={form.maxClaims}
+          onChange={(e) => set("maxClaims", e.target.value)}
+          error={err("maxClaims")}
+        />
 
-        <div className="field">
-          <label className="field__label" htmlFor="offer-price">
-            Offer price ($)
-          </label>
-          <input
-            id="offer-price"
-            type="number"
-            min={0}
-            step="0.01"
-            className="text-input"
-            value={form.price}
-            placeholder="0 for free"
-            onChange={(e) => set("price", e.target.value)}
-          />
-          {err("price") && <span className="field__error">{err("price")}</span>}
-        </div>
+        <FormField
+          label="Offer price ($)"
+          id="offer-price"
+          type="number"
+          min={0}
+          step="0.01"
+          value={form.price}
+          placeholder="0 for free"
+          onChange={(e) => set("price", e.target.value)}
+          error={err("price")}
+        />
 
-        <div className="field">
-          <label className="field__label" htmlFor="offer-original">
-            Original price ($)
-          </label>
-          <input
-            id="offer-original"
-            type="number"
-            min={0}
-            step="0.01"
-            className="text-input"
-            value={form.originalPrice}
-            placeholder="Optional"
-            onChange={(e) => set("originalPrice", e.target.value)}
-          />
-          {err("originalPrice") && <span className="field__error">{err("originalPrice")}</span>}
-        </div>
+        <FormField
+          label="Original price ($)"
+          id="offer-original"
+          type="number"
+          min={0}
+          step="0.01"
+          value={form.originalPrice}
+          placeholder="Optional"
+          onChange={(e) => set("originalPrice", e.target.value)}
+          error={err("originalPrice")}
+        />
 
-        <div className="field">
-          <label className="field__label" htmlFor="offer-from">
-            Valid from
-          </label>
-          <input
-            id="offer-from"
-            type="datetime-local"
-            className="text-input"
-            value={form.validFrom}
-            onChange={(e) => set("validFrom", e.target.value)}
-          />
-        </div>
+        <FormField
+          label="Valid from"
+          id="offer-from"
+          type="datetime-local"
+          value={form.validFrom}
+          onChange={(e) => set("validFrom", e.target.value)}
+        />
 
-        <div className="field">
-          <label className="field__label" htmlFor="offer-until">
-            Valid until
-          </label>
-          <input
-            id="offer-until"
-            type="datetime-local"
-            className="text-input"
-            value={form.validUntil}
-            onChange={(e) => set("validUntil", e.target.value)}
-          />
-          {err("validUntil") && <span className="field__error">{err("validUntil")}</span>}
-        </div>
-      </div>
-
-      <div className="field">
-        <label className="field__label" htmlFor="offer-tags">
-          Tags
-        </label>
-        <input
-          id="offer-tags"
-          className="text-input"
-          value={form.tags}
-          placeholder="Comma-separated, e.g. vegetarian, quick, student"
-          onChange={(e) => set("tags", e.target.value)}
+        <FormField
+          label="Valid until"
+          id="offer-until"
+          type="datetime-local"
+          value={form.validUntil}
+          onChange={(e) => set("validUntil", e.target.value)}
+          error={err("validUntil")}
         />
       </div>
+
+      <FormField
+        label="Tags"
+        id="offer-tags"
+        value={form.tags}
+        placeholder="Comma-separated, e.g. vegetarian, quick, student"
+        onChange={(e) => set("tags", e.target.value)}
+      />
 
       <div className="offer-form__toggles">
         <label className="verify__check">

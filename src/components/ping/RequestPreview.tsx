@@ -56,7 +56,7 @@ export function RequestPreview({
       <dl className="preview-list">
         <div>
           <dt>Need</dt>
-          <dd>{needLabel ?? "—"}</dd>
+          <dd>{needLabel ?? "Not set"}</dd>
         </div>
         <div>
           <dt>Budget</dt>
@@ -64,11 +64,11 @@ export function RequestPreview({
         </div>
         <div>
           <dt>Distance</dt>
-          <dd>{distanceLabel ?? "—"}</dd>
+          <dd>{distanceLabel ?? "Not set"}</dd>
         </div>
         <div>
           <dt>Time</dt>
-          <dd>{timeLabel ?? "—"}</dd>
+          <dd>{timeLabel ?? "Not set"}</dd>
         </div>
       </dl>
 
@@ -88,7 +88,7 @@ export function RequestPreview({
         <div>
           <span className="preview-card__metric-label">Estimated matches</span>
           <span className="preview-card__metric mono">
-            {estimatedMatches ?? "—"}
+            {estimatedMatches ?? "Not set"}
           </span>
         </div>
         <div className="preview-card__quality">

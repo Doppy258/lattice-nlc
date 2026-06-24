@@ -98,7 +98,7 @@ export function ReviewModal({ open, offer, business, onClose, onSubmit }: Props)
             onChange={(e) => setText(e.target.value)}
           />
           <span className="field__hint">
-            {text.trim().length}/{REVIEW_TEXT_MAX} · minimum {REVIEW_TEXT_MIN} characters
+            {text.trim().length}/{REVIEW_TEXT_MAX} - minimum {REVIEW_TEXT_MIN} characters
           </span>
           {errors.text && <span className="field__error">{errors.text}</span>}
         </div>

@@ -3,7 +3,7 @@ import { useApp } from "../app/providers";
 import { navigate } from "../app/navigation";
 import { createOffer, type OfferInput } from "../services/offerService";
 import { CATEGORY_META } from "../data/catalog";
-import { PageHeader } from "../components/layout/PageHeader";
+import { PageHero } from "../components/layout/PageHero";
 import { Card } from "../components/common/Card";
 import { Icon } from "../components/common/Icon";
 import { OfferForm } from "../components/business/OfferForm";
@@ -27,10 +27,8 @@ export function CreateOfferPage() {
 
   return (
     <>
-      <PageHeader
-        eyebrow="Business"
-        title="Create an offer"
-        subtitle={`New deal for ${activeBusiness.name} · ${CATEGORY_META[activeBusiness.category].label}`}
+      <PageHero variant="compact" kicker="Business" title="Create an offer"
+        subtitle={`New deal for ${activeBusiness.name} - ${CATEGORY_META[activeBusiness.category].label}`}
       />
 
       {error && (

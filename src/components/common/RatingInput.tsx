@@ -10,7 +10,7 @@ type Props = {
 const LABELS = ["", "Poor", "Fair", "Good", "Great", "Excellent"];
 
 /**
- * Interactive 1–5 star picker. Supports mouse hover preview, click, and full
+ * Interactive 1-5 star picker. Supports mouse hover preview, click, and full
  * keyboard control via a radiogroup (arrow keys move between stars).
  */
 export function RatingInput({ value, onChange, size = 28 }: Props) {

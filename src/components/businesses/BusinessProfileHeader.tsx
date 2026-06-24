@@ -27,7 +27,7 @@ export function BusinessProfileHeader({ business, distanceKm, saved, onToggleSav
           )}
         </div>
         <p className="profile-header__category">
-          {CATEGORY_META[business.category].label} · {PRICE_LEVEL[business.priceLevel]}
+          {CATEGORY_META[business.category].label} - {PRICE_LEVEL[business.priceLevel]}
         </p>
         <div className="profile-header__stats">
           <StarRating value={business.ratingAverage} reviewCount={business.reviewCount} size={16} />
