@@ -114,9 +114,9 @@ export function MatchesPage() {
         <PageHero variant="compact" kicker="Matches" title="Your ranked offers" />
         <EmptyState
           variant="radar"
-          title="No Ping yet"
-          body="Create a Ping describing what you need and OfferRank will surface the best nearby offers."
-          actionLabel="Create a Ping"
+          title="No request yet"
+          body="Start a request describing what you need and OfferRank will surface the best nearby offers."
+          actionLabel="Start a request"
           onAction={() => navigate("/create-ping")}
         />
       </>
@@ -178,7 +178,7 @@ export function MatchesPage() {
           variant="radar"
           title="No exact matches found"
           body="Try increasing your distance, raising your budget, or changing your time window."
-          actionLabel="Adjust your Ping"
+          actionLabel="Adjust request"
           onAction={() => navigate("/create-ping")}
         />
       ) : (

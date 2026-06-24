@@ -38,12 +38,12 @@ export function validateOfferInput(input: OfferInput): OfferValidation {
   const errors: OfferValidation["errors"] = [];
 
   if (!lengthWithin(input.title, TITLE_MIN, TITLE_MAX)) {
-    errors.push({ field: "title", message: `Title must be ${TITLE_MIN}–${TITLE_MAX} characters.` });
+    errors.push({ field: "title", message: `Title must be ${TITLE_MIN}-${TITLE_MAX} characters.` });
   }
   if (!lengthWithin(input.description, DESC_MIN, DESC_MAX)) {
     errors.push({
       field: "description",
-      message: `Description must be ${DESC_MIN}–${DESC_MAX} characters.`,
+      message: `Description must be ${DESC_MIN}-${DESC_MAX} characters.`,
     });
   }
   if (!isNumber(input.price) || input.price < 0) {

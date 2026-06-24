@@ -69,12 +69,12 @@ export function HomePage() {
             What do you need nearby, {firstName}?
           </h1>
           <p>
-            Launch a Ping and let Lattice scan local offers by distance, time, budget,
-            and fit before you choose where to go.
+            Tell Lattice what you are looking for, then compare nearby offers by distance,
+            timing, budget, and fit.
           </p>
           <div className="home-command__actions">
             <Button onClick={() => navigate("/create-ping")} iconLeft={<Icon name="ping" size={16} />}>
-              Create a Ping
+              Start a request
             </Button>
             <Button variant="secondary" onClick={() => navigate("/explore")}>
               Explore businesses
@@ -129,8 +129,8 @@ export function HomePage() {
             <EmptyState
               variant="ticket"
               title="No active claims yet"
-              body="Create a Ping to find offers you can claim in a couple of clicks."
-              actionLabel="Create a Ping"
+              body="Start a request to find offers you can claim in a couple of clicks."
+              actionLabel="Start a request"
               onAction={() => navigate("/create-ping")}
             />
           ) : (

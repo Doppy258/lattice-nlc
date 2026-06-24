@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Lattice — Find exactly what you need, nearby</title>
+    <title>Lattice - Find exactly what you need, nearby</title>
     <link rel="icon" type="image/png" href="./assets/lattice-logo.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -25,17 +25,17 @@
         <span class="brand-word">Lattice</span>
       </a>
       <div class="links">
-        <a href="#">How it works</a><a href="#">For Businesses</a><a href="#">Discover</a><a href="#">Pricing</a
-        ><a href="#">Blog</a>
+        <a href="#how" data-section="how">How it works</a><a href="#businesses" data-section="businesses">For businesses</a><a href="#/explore" data-route="#/explore">Discover</a><a href="#/business" data-route="#/business">Business app</a
+        ><a href="#/help" data-route="#/help">Help</a>
       </div>
       <div class="right">
-        <a class="signin" href="#">Sign In</a>
+        <a class="signin" href="#/home" data-route="#/home">Open app</a>
         <button class="cta">
           <div class="bb-wrap" aria-hidden="true">
             <div class="bb-beam bb-beam-1"></div>
             <div class="bb-beam bb-beam-2"></div>
           </div>
-          Get Started
+          Start request
         </button>
         <button class="nav__burger" id="navBurger" aria-label="Menu"><span></span><span></span><span></span></button>
       </div>
@@ -44,12 +44,12 @@
 
     <div class="nav__drawer" id="navDrawer">
       <button class="drawer-close" id="drawerClose">✕</button>
-      <a href="#">How it works</a>
-      <a href="#">For Businesses</a>
-      <a href="#">Discover</a>
-      <a href="#">Pricing</a>
-      <a href="#">Blog</a>
-      <a href="#" style="opacity:.7;font-size:20px">Sign In</a>
+      <a href="#how" data-section="how">How it works</a>
+      <a href="#businesses" data-section="businesses">For businesses</a>
+      <a href="#/explore" data-route="#/explore">Discover</a>
+      <a href="#/business" data-route="#/business">Business app</a>
+      <a href="#/help" data-route="#/help">Help</a>
+      <a href="#/home" data-route="#/home" style="opacity:.7;font-size:20px">Open app</a>
     </div>
 
 
@@ -83,9 +83,9 @@
           >
         </h1>
         <p class="sub">
-          <span class="sub-line">Describe what you want — your budget, timing, and distance.</span
-          ><span class="sub-line">Lattice turns it into a structured Ping and matches you with</span
-          ><span class="sub-line">ranked offers from nearby local businesses in seconds.</span>
+          <span class="sub-line">Describe what you want: budget, timing, and distance.</span
+          ><span class="sub-line">Lattice structures the request and matches you with</span
+          ><span class="sub-line">ranked offers from nearby local businesses.</span>
         </p>
         <div class="ctas">
           <button class="btn primary" style="padding: 0px 16px; letter-spacing: -0.9px">
@@ -93,7 +93,7 @@
               <div class="bb-beam bb-beam-1"></div>
               <div class="bb-beam bb-beam-2"></div>
             </div>
-            Create a Ping
+            Start a request
             <svg
               viewBox="0 0 18 18"
               fill="none"
@@ -178,7 +178,7 @@
                   alt=""
                   style="width:14px;height:14px;display:inline-block;vertical-align:middle"
                 />
-                My Pings</a
+                Requests</a
               >
               <a href="#"
                 ><img
@@ -204,8 +204,8 @@
             </div>
             <div class="welcome">Your matches are ready, Maya</div>
             <div class="ping-chip">
-              <span class="ping-chip__tag">ACTIVE PING</span>
-              <span class="ping-chip__text">Lunch after school · under $15 · within 3 km · open 3:30–5:00 PM</span>
+              <span class="ping-chip__tag">ACTIVE REQUEST</span>
+              <span class="ping-chip__text">Lunch after school - under $15 - within 3 km - open 3:30-5:00 PM</span>
               <span class="ping-chip__count">3 matches</span>
             </div>
             <div class="kpis">
@@ -302,7 +302,7 @@
         <div class="section fp-curtain" data-anchor="hero"></div>
 
 
-        <div class="section" data-anchor="engineers">
+        <div class="section" data-anchor="mission" id="mission">
           <section class="sect s2" data-screen-label="02 Mission">
             <div class="s2-inner">
               <div class="ovals" aria-hidden="true">
@@ -314,19 +314,18 @@
               <div class="reveal">
                 <div class="grid">
                   <div>
-                    <span class="eyebrow"><span class="sq"></span>HOW WE THINK</span>
+                    <span class="eyebrow"><span class="sq"></span>WHY LATTICE</span>
                   </div>
                   <div>
-                    <h2>We help neighbors and<br />local businesses find each other</h2>
+                    <h2>The shortest path from<br />intent to a local offer</h2>
                     <p class="lede">
                       <span class="sub-line"
-                        >Lattice<sup style="font-size:.5em;letter-spacing:0">TM</sup> is built by a small team who</span
-                      ><span class="sub-line">believe supporting local shouldn't mean</span
-                      ><span class="sub-line">scrolling through dozens of listings,</span
-                      ><span class="sub-line">menus, ratings, and opening hours.</span
-                      ><span class="sub-line">So instead of making you browse, we let</span
-                      ><span class="sub-line">you say what you need — and bring the</span
-                      ><span class="sub-line">right nearby offers straight to you.</span>
+                        >Lattice starts with what someone is ready</span
+                      ><span class="sub-line">to buy, then connects that intent to the</span
+                      ><span class="sub-line">businesses nearby that can answer it.</span
+                      ><span class="sub-line">Less browsing. More relevant matches.</span
+                      ><span class="sub-line">A cleaner way for local demand and local</span
+                      ><span class="sub-line">supply to find each other.</span>
                     </p>
                   </div>
                   <div></div>
@@ -335,11 +334,10 @@
               <div class="bottom">
                 <div class="left">
                   <p>
-                    We believe finding what you need nearby shouldn't take longer than walking there. Say it once,
-                    and let the matches come to you.
+                    Lattice turns a specific need into a short list of claimable offers, with the match reasons made clear before anyone commits.
                   </p>
-                  <button class="meet">
-                    Read our story
+                  <button class="meet" data-section="how">
+                    See how it works
                     <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6">
                       <path d="M4 10h12 M11 5l5 5-5 5" />
                     </svg>
@@ -361,19 +359,19 @@
         </div>
 
 
-        <div class="section" data-anchor="how">
+        <div class="section" data-anchor="how" id="how">
           <section class="sect s3" data-screen-label="03 How it works">
             <div class="s3-grid-lines"><i></i><i></i><i></i><i></i></div>
             <div class="s3-inner">
               <div class="s3-head">
-                <span class="corner l">THE THREE STEPS TO</span>
+                  <span class="corner l">THE THREE PARTS OF</span>
                 <span class="corner r">YOUR PERFECT MATCH</span>
                 <div class="eyebrow"><span class="sq"></span>HOW IT WORKS</div>
                 <h2>From a Simple Ask to<br /><span class="it">the Right Offer</span></h2>
                 <p>
-                  <span class="sub-line">Most apps make you dig through listings. Lattice takes your Ping,</span
-                  ><span class="sub-line">ranks the best nearby offers and explains every match, then lets</span
-                  ><span class="sub-line">you claim and verify them in a couple of taps</span>
+                  <span class="sub-line">Most apps make you dig through listings. Lattice ranks nearby</span
+                  ><span class="sub-line">offers against your request, explains each match, then lets you</span
+                  ><span class="sub-line">claim and verify the one that fits.</span>
                 </p>
               </div>
 
@@ -428,12 +426,12 @@
                       </div>
                       <div class="meta">
                         <div class="kicker">Timing</div>
-                        <div class="name">3:30 – 5:00 PM</div>
+                        <div class="name">3:30-5:00 PM</div>
                       </div>
                       <div class="live-pill">SET</div>
                     </div>
                   </div>
-                  <div class="stamp">01 — PING</div>
+                  <div class="stamp">01 - REQUEST</div>
                 </div>
 
 
@@ -453,7 +451,7 @@
                       </div>
                     </div>
                     <div class="insight-msg" style="padding: 50px 4px 0px">
-                      Taco lunch combo for $11, 0.4 km away and open until 5 PM — fits your budget, distance, and time
+                      Taco lunch combo for $11, 0.4 km away and open until 5 PM. Fits your budget, distance, and time.
                     </div>
                     <div class="anomaly" style="background:#2352DE">
                       <i style="color:#2352DE"
@@ -466,7 +464,7 @@
                       <div class="v">96<em>% match</em></div>
                     </div>
                   </div>
-                  <div class="stamp">02 — MATCH</div>
+                  <div class="stamp">02 - MATCH</div>
                 </div>
 
 
@@ -500,7 +498,7 @@
                       </div>
                     </div>
                     <div class="chart">
-                      <div class="badge">VERIFIED · SAVED $11</div>
+                      <div class="badge">VERIFIED - SAVED $11</div>
                       <div class="chart-dot"></div>
                       <svg viewBox="0 0 280 140" preserveAspectRatio="none">
                         <defs>
@@ -558,10 +556,10 @@
                     </div>
                     <div class="runway-foot" style="margin: 20px 0px 0px">
                       <div class="v">Review unlocked</div>
-                      <div class="d">Redemption verified at 4:12 PM · rate your visit</div>
+                      <div class="d">Redemption verified at 4:12 PM - rate your visit</div>
                     </div>
                   </div>
-                  <div class="stamp">03 — CLAIM</div>
+                  <div class="stamp">03 - CLAIM</div>
                 </div>
               </div>
 
@@ -575,7 +573,7 @@
 
 
         </div>
-        <div class="section" data-anchor="integrations">
+        <div class="section" data-anchor="categories" id="categories">
           <section class="sect s4" data-screen-label="04 Categories">
             <div class="s4-grid-lines"><i></i><i></i><i></i><i></i></div>
             <div class="s4-horiz"></div>
@@ -756,7 +754,7 @@
 
               <div class="s4-bottom">
                 <div class="eyebrow"><span class="sq"></span>YOUR NEIGHBORHOOD</div>
-                <h2>Your Whole Town,<br /><span class="it">One Ping Away</span></h2>
+                <h2>Your whole town,<br /><span class="it">sorted by fit</span></h2>
               </div>
 
               <div class="int-pill">
@@ -782,6 +780,42 @@
           </section>
 
 
+        </div>
+        <div class="section fp-footer" data-anchor="businesses" id="businesses">
+          <footer>
+            <div class="inner">
+              <div>
+                <h3>Lattice helps local businesses meet demand while it is still nearby.</h3>
+                <p style="max-width:540px;margin:24px 0 0;color:rgba(255,255,255,.68);font-size:16px;line-height:1.55;letter-spacing:-0.02em">
+                  Publish structured offers, fill slow windows, verify redemptions, and see which categories bring people through the door.
+                </p>
+              </div>
+              <div class="columns">
+                <div>
+                  <h6>Product</h6>
+                  <a href="#how" data-section="how">How it works</a>
+                  <a href="#categories" data-section="categories">Categories</a>
+                  <a href="#/explore" data-route="#/explore">Discover</a>
+                </div>
+                <div>
+                  <h6>App</h6>
+                  <a href="#/home" data-route="#/home">Customer home</a>
+                  <a href="#/business" data-route="#/business">Business dashboard</a>
+                  <a href="#/help" data-route="#/help">Help</a>
+                </div>
+                <div>
+                  <h6>Start</h6>
+                  <a href="#/onboarding" data-route="#/onboarding">Start request</a>
+                  <a href="#/business/create-offer" data-route="#/business/create-offer">Create offer</a>
+                  <a href="#/reports" data-route="#/reports">View reports</a>
+                </div>
+              </div>
+            </div>
+            <div class="bottom">
+              <span>Lattice</span>
+              <span>Local offers matched by budget, timing, distance, and fit.</span>
+            </div>
+          </footer>
         </div>
       </div>
     </main>
@@ -816,10 +850,36 @@
             });
           });
         }
+        function wireRoutes() {
+          document.querySelectorAll("[data-route]").forEach(function (el) {
+            el.style.cursor = "pointer";
+            el.addEventListener("click", function (e) {
+              e.preventDefault();
+              e.stopPropagation();
+              goto(el.getAttribute("data-route"));
+            });
+          });
+        }
+        function wireSections() {
+          document.querySelectorAll("[data-section]").forEach(function (el) {
+            el.addEventListener("click", function (e) {
+              e.preventDefault();
+              e.stopPropagation();
+              var target = el.getAttribute("data-section");
+              if (window.__latticeScrollToSection) {
+                window.__latticeScrollToSection(target);
+              } else {
+                var section = document.getElementById(target);
+                if (section) section.scrollIntoView({ behavior: "smooth" });
+              }
+            });
+          });
+        }
         function init() {
           wire(".cta", "#/onboarding");
           wire(".btn.primary", "#/onboarding");
-          wire(".signin", "#/discover");
+          wireRoutes();
+          wireSections();
         }
         if (document.readyState === "loading") {
           document.addEventListener("DOMContentLoaded", init);

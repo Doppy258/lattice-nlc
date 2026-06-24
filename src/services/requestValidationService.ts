@@ -80,7 +80,7 @@ export function validateOptionalNote(note: string | undefined): FieldError | nul
     return { field: "note", message: "Notes can't contain links." };
   }
   if (isRepeatedNonsense(note)) {
-    return { field: "note", message: "That note looks like spam — try describing your need." };
+    return { field: "note", message: "That note looks like spam. Try describing your need." };
   }
   return null;
 }
@@ -98,7 +98,7 @@ export function detectDuplicateRequest(
   const mine = existing.filter((r) => r.userId === userId);
   const active = mine.filter((r) => r.status === "submitted" || r.status === "matched");
   if (active.length >= MAX_ACTIVE_REQUESTS) {
-    return { field: "duplicate", message: "You have too many active Pings. Close one before creating another." };
+    return { field: "duplicate", message: "You have too many active requests. Close one before creating another." };
   }
   const recentDuplicate = mine.find((r) => {
     const sameNeed = r.category === request.category && r.needType === request.needType;
@@ -108,7 +108,7 @@ export function detectDuplicateRequest(
   if (recentDuplicate) {
     return {
       field: "duplicate",
-      message: "You already created a similar Ping recently. Edit that one or wait a few minutes.",
+      message: "You already created a similar request recently. Edit that one or wait a few minutes.",
     };
   }
   return null;

@@ -173,7 +173,7 @@ export function ClaimsPage() {
           actions={
             tab === "active" ? (
               <Button onClick={() => navigate("/create-ping")} iconLeft={<Icon name="ping" size={16} />}>
-                Create a Ping
+                Start a request
               </Button>
             ) : undefined
           }

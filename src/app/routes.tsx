@@ -23,7 +23,7 @@ export type NavItem = { path: string; label: string; icon: IconName };
 /** Customer navigation (section 9). */
 export const USER_NAV: NavItem[] = [
   { path: "/home", label: "Home", icon: "home" },
-  { path: "/create-ping", label: "Create Ping", icon: "ping" },
+  { path: "/create-ping", label: "New Request", icon: "ping" },
   { path: "/matches", label: "Matches", icon: "matches" },
   { path: "/explore", label: "Explore", icon: "explore" },
   { path: "/saved", label: "Saved", icon: "saved" },
@@ -51,7 +51,7 @@ export const DEMO_NAV: NavItem[] = [
 /** Compact bottom-bar set for mobile (most-used customer destinations). */
 export const MOBILE_NAV: NavItem[] = [
   { path: "/home", label: "Home", icon: "home" },
-  { path: "/create-ping", label: "Ping", icon: "ping" },
+  { path: "/create-ping", label: "Request", icon: "ping" },
   { path: "/explore", label: "Explore", icon: "explore" },
   { path: "/claims", label: "Claims", icon: "claims" },
   { path: "/reports", label: "Reports", icon: "reports" },

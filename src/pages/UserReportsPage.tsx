@@ -56,7 +56,7 @@ export function UserReportsPage() {
               icon="reports"
               title="Your report will appear after you claim or redeem offers"
               body="Claim an offer, redeem it, and leave a review to see your savings and support grow."
-              actionLabel="Create a Ping"
+              actionLabel="Start a request"
               onAction={() => navigate("/create-ping")}
             />
           ) : (

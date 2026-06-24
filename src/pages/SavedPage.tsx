@@ -137,7 +137,7 @@ export function SavedPage() {
         <EmptyState
           icon="saved"
           title="Nothing saved yet"
-          body="You have not saved any businesses or offers yet. Explore local businesses or create a Ping to find offers."
+          body="You have not saved any businesses or offers yet. Explore local businesses or start a request to find offers."
           actions={undefined}
         />
       ) : tab === "businesses" ? (

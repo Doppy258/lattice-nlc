@@ -46,7 +46,7 @@ export function validateReview(input: ReviewInput): ReviewValidation {
   if (!lengthWithin(input.text, REVIEW_TEXT_MIN, REVIEW_TEXT_MAX)) {
     errors.push({
       field: "text",
-      message: `Review must be ${REVIEW_TEXT_MIN}–${REVIEW_TEXT_MAX} characters.`,
+      message: `Review must be ${REVIEW_TEXT_MIN}-${REVIEW_TEXT_MAX} characters.`,
     });
   }
   return { valid: errors.length === 0, errors };

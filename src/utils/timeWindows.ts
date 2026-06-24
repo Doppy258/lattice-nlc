@@ -1,6 +1,6 @@
 import { MS_PER_DAY } from "./dateTime";
 
-/** Identifiers for the time-window presets offered on the Create Ping page. */
+/** Identifiers for the time-window presets offered on the request page. */
 export type TimeWindowPresetId =
   | "now"
   | "afterSchool"

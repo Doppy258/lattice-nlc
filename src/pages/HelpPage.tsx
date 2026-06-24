@@ -3,7 +3,7 @@ import { Card } from "../components/common/Card";
 import { Icon } from "../components/common/Icon";
 
 const STEPS = [
-  { icon: "ping" as const, num: "01", title: "Ping", body: "Describe what you need with structured fields: category, budget, distance, and timing." },
+  { icon: "ping" as const, num: "01", title: "Request", body: "Describe what you need with structured fields: category, budget, distance, and timing." },
   { icon: "matches" as const, num: "02", title: "Match", body: "OfferRank scores nearby offers and explains why each one fits your request." },
   { icon: "redeem" as const, num: "03", title: "Claim", body: "Claim an offer to get a code, redeem it in store, then leave a verified review." },
 ];

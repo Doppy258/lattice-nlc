@@ -30,7 +30,7 @@ export function MobileNav({ currentPath }: { currentPath: string }) {
         <button
           type="button"
           className="mobile-nav__fab"
-          aria-label="Create a Ping"
+          aria-label="Start a request"
           aria-current={currentPath === pingPath ? "page" : undefined}
           onClick={() => navigate(pingPath)}
         >

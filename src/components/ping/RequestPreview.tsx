@@ -42,7 +42,7 @@ export function RequestPreview({
     <div className="preview-card">
       <span className="eyebrow">
         <span className="eyebrow__dot" />
-        Your Ping
+        Your request
       </span>
 
       <p className="ping-sentence">

@@ -563,6 +563,12 @@
             setTimeout(() => { animating = false; }, 1050);
           }
 
+          window.__latticeScrollToSection = function(anchor){
+            const idx = sections.findIndex((section) => section.dataset.anchor === anchor || section.id === anchor);
+            if (idx < 0) return;
+            goTo(idx);
+          };
+
 
           let wheelLock = false;
           window.addEventListener('wheel', (e) => {

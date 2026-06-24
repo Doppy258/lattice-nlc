@@ -289,10 +289,10 @@ export function CreatePingPage() {
     <div className="ping-studio-page">
       <section className="ping-studio-hero">
         <div>
-          <span className="soft-kicker">Create Ping</span>
+          <span className="soft-kicker">New Request</span>
           <h1>Make one good request. Let the best local options come to you.</h1>
           <p>
-            Pick the basics, add your vibe, and Lattice previews nearby businesses as your Ping takes shape.
+            Pick the basics, add your preferences, and Lattice previews nearby businesses as your request takes shape.
           </p>
         </div>
         <div className="studio-score-card">
@@ -306,7 +306,7 @@ export function CreatePingPage() {
         </div>
       </section>
 
-      <section className="ping-sentence-builder" aria-label="Ping request sentence preview">
+      <section className="ping-sentence-builder" aria-label="Request sentence preview">
         <span className={`ping-sentence-builder__slot${category ? "" : " ping-sentence-builder__slot--empty"}`}>
           <small>Category</small>
           <strong>{sentenceCategory}</strong>
@@ -481,7 +481,7 @@ export function CreatePingPage() {
           </Button>
           {!validation.valid && (
             <p className="builder-preview__hint">
-              Complete the required fields to send this Ping.
+              Complete the required fields to send this request.
             </p>
           )}
         </aside>
