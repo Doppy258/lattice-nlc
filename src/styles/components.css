@@ -385,3 +385,263 @@
   font-size: var(--text-xs);
   transform: translateX(-50%);
 }
+
+/* Premium app-system overrides. Kept as a layer so legacy pages inherit the new
+   surface language without losing their existing component coverage. */
+.btn {
+  height: 42px;
+  padding: 0 var(--space-5);
+  border-radius: var(--radius-pill);
+  font-weight: 760;
+  transition:
+    background var(--transition),
+    border-color var(--transition),
+    box-shadow var(--transition),
+    transform var(--transition),
+    opacity var(--transition);
+}
+
+.btn--sm {
+  height: 34px;
+  padding: 0 var(--space-3);
+}
+
+.btn--lg {
+  height: 52px;
+  padding: 0 var(--space-6);
+}
+
+.btn--primary {
+  background: var(--accent-gradient);
+  box-shadow: var(--glow-strong);
+}
+
+.btn--primary:hover:not(:disabled) {
+  background: var(--accent-gradient);
+  filter: saturate(1.15);
+  transform: translateY(-2px);
+}
+
+.btn--secondary {
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.075);
+  border-color: var(--glass-border);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.btn--ghost {
+  color: var(--ink-soft);
+}
+
+.btn--secondary:hover:not(:disabled),
+.btn--ghost:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
+  transform: translateY(-1px);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
+}
+
+.card {
+  position: relative;
+  overflow: hidden;
+  border-color: var(--glass-border);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.085), rgba(255, 255, 255, 0.035)),
+    var(--surface);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: var(--glass-blur);
+}
+
+.card::before {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  content: "";
+  background: radial-gradient(circle at 16% 0%, rgba(90, 202, 255, 0.16), transparent 38%);
+  opacity: 0.8;
+}
+
+.card > * {
+  position: relative;
+}
+
+.card--interactive:hover {
+  border-color: var(--line-strong);
+  box-shadow: var(--shadow-md), 0 0 34px rgba(57, 154, 255, 0.14);
+  transform: translateY(-3px);
+}
+
+.badge {
+  border-radius: var(--radius-pill);
+  font-weight: 780;
+}
+
+.badge--neutral {
+  color: var(--ink-soft);
+  background: var(--neutral-soft);
+  border-color: var(--line);
+}
+
+.badge--accent {
+  color: var(--accent-strong);
+  background: rgba(71, 183, 255, 0.13);
+  border-color: rgba(90, 202, 255, 0.24);
+}
+
+.badge--success {
+  color: var(--success);
+  background: var(--success-soft);
+  border-color: rgba(96, 240, 176, 0.28);
+}
+
+.badge--warning {
+  color: var(--warning);
+  background: var(--warning-soft);
+  border-color: rgba(255, 209, 102, 0.28);
+}
+
+.badge--error {
+  color: var(--error);
+  background: var(--error-soft);
+  border-color: rgba(255, 111, 145, 0.28);
+}
+
+.modal-overlay {
+  background: rgba(0, 0, 0, 0.62);
+  backdrop-filter: blur(10px);
+}
+
+.modal {
+  border-color: var(--glass-border);
+  background: rgba(8, 15, 32, 0.96);
+  box-shadow: var(--shadow-lg);
+}
+
+.modal__close,
+.help-tooltip__trigger {
+  border-color: var(--glass-border);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.empty-state {
+  border-color: rgba(157, 213, 255, 0.26);
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.empty-state__icon {
+  background: var(--accent-gradient-soft);
+  color: var(--accent-strong);
+}
+
+.tabs {
+  border-color: var(--glass-border);
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.tab--on {
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--ink);
+}
+
+.data-grid__cell {
+  border-color: var(--glass-border);
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.form-banner--error {
+  border-color: rgba(255, 111, 145, 0.28);
+}
+
+/* Light-mode primitive corrections */
+.btn {
+  border-radius: var(--radius-md);
+}
+
+.btn--primary {
+  color: #fff;
+  background: var(--accent);
+  box-shadow: var(--glow-strong);
+}
+
+.btn--primary:hover:not(:disabled) {
+  background: var(--accent-strong);
+  filter: none;
+}
+
+.btn--secondary {
+  color: var(--ink);
+  background: #fff;
+  border-color: var(--line);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn--ghost {
+  color: var(--text-muted);
+}
+
+.btn--secondary:hover:not(:disabled),
+.btn--ghost:hover:not(:disabled) {
+  background: var(--surface-2);
+}
+
+.card {
+  border-color: var(--line);
+  background: #fff;
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: none;
+}
+
+.card::before {
+  display: none;
+}
+
+.card--interactive:hover {
+  border-color: var(--line-strong);
+  box-shadow: var(--shadow-md);
+}
+
+.badge--neutral {
+  color: var(--text-muted);
+  background: var(--neutral-soft);
+  border-color: var(--line);
+}
+
+.badge--accent {
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+  border-color: #c7dcff;
+}
+
+.badge--success {
+  color: var(--success);
+  background: var(--success-soft);
+  border-color: #ccebd9;
+}
+
+.modal {
+  border-color: var(--line);
+  background: #fff;
+}
+
+.modal-overlay {
+  background: rgba(44, 36, 29, 0.34);
+}
+
+.empty-state {
+  border-color: var(--line);
+  background: #fff;
+}
+
+.empty-state__icon {
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+
+.data-grid__cell,
+.modal__close,
+.help-tooltip__trigger {
+  border-color: var(--line);
+  background: #fff;
+}

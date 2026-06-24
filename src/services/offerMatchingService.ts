@@ -178,9 +178,10 @@ export function getMatchingOffers(
   request: PingRequest,
   offers: Offer[],
   businesses: Business[],
-  user: User
+  user: User,
+  originOverride?: GeoPoint
 ): MatchResult[] {
-  const origin = getOriginPoint(user);
+  const origin = originOverride ?? getOriginPoint(user);
   const byId = new Map(businesses.map((b) => [b.id, b]));
 
   const results: MatchResult[] = [];

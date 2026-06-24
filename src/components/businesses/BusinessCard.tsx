@@ -6,6 +6,7 @@ import { Icon } from "../common/Icon";
 import { StarRating } from "../common/StarRating";
 import { CATEGORY_META } from "../../data/catalog";
 import { formatDistance } from "../../utils/formatting";
+import { businessGrade, businessImageUrl, friendAvatarUrl, savedByCount } from "../../utils/businessVisuals";
 
 type Props = {
   business: Business;
@@ -25,8 +26,23 @@ export function BusinessCard({
   onToggleSave,
   onView,
 }: Props) {
+  const savedBy = savedByCount(business.id);
+
   return (
     <Card className="biz-card" interactive>
+      <div className="biz-card__media">
+        <img src={businessImageUrl(business)} alt={`${business.name} local business preview`} />
+        <Badge tone="accent">{businessGrade(business)}</Badge>
+        <button
+          className={`icon-toggle biz-card__save ${saved ? "icon-toggle--on" : ""}`}
+          onClick={onToggleSave}
+          aria-pressed={saved}
+          aria-label={saved ? "Remove bookmark" : "Save business"}
+        >
+          <Icon name="saved" size={18} />
+        </button>
+      </div>
+
       <div className="biz-card__head">
         <div>
           <button className="biz-card__name" onClick={onView}>
@@ -41,20 +57,12 @@ export function BusinessCard({
             )}
           </div>
         </div>
-        <button
-          className={`icon-toggle ${saved ? "icon-toggle--on" : ""}`}
-          onClick={onToggleSave}
-          aria-pressed={saved}
-          aria-label={saved ? "Remove bookmark" : "Save business"}
-        >
-          <Icon name="saved" size={18} />
-        </button>
+        <StarRating value={business.ratingAverage} />
       </div>
 
       <p className="biz-card__desc">{business.description}</p>
 
       <div className="biz-card__stats">
-        <StarRating value={business.ratingAverage} reviewCount={business.reviewCount} />
         {distanceKm !== undefined && (
           <span className="biz-card__stat">
             <Icon name="location" size={14} /> {formatDistance(distanceKm)}
@@ -65,6 +73,15 @@ export function BusinessCard({
             {dealCount} active deal{dealCount === 1 ? "" : "s"}
           </Badge>
         )}
+      </div>
+
+      <div className="biz-card__social">
+        <span className="mini-avatars" aria-hidden="true">
+          {Array.from({ length: Math.min(savedBy, 3) }).map((_, index) => (
+            <img key={index} src={friendAvatarUrl(business.id, index)} alt="" />
+          ))}
+        </span>
+        <span>{savedBy} local{savedBy === 1 ? "" : "s"} saved this</span>
       </div>
 
       <Button variant="secondary" size="sm" block onClick={onView}>

@@ -9,6 +9,7 @@ import { MatchScoreBadge } from "./MatchScoreBadge";
 import { MatchReasons } from "./MatchReasons";
 import { CATEGORY_META } from "../../data/catalog";
 import { formatCurrency, formatDistance, relativeTime } from "../../utils/formatting";
+import { businessGrade, businessImageUrl, friendAvatarUrl, savedByCount } from "../../utils/businessVisuals";
 
 type Props = {
   offer: Offer;
@@ -42,9 +43,23 @@ export function OfferCard({
 }: Props) {
   const savings = offer.originalPrice ? offer.originalPrice - offer.price : 0;
   const expired = claimState === "expired";
+  const savedBy = savedByCount(offer.id);
 
   return (
     <Card className="offer-card" interactive>
+      <div className="offer-card__media">
+        <img src={businessImageUrl(business)} alt={`${business.name} offer preview`} />
+        <Badge tone="accent">{businessGrade(business)}</Badge>
+        <button
+          className={`icon-toggle offer-card__save ${saved ? "icon-toggle--on" : ""}`}
+          onClick={onToggleSave}
+          aria-pressed={saved}
+          aria-label={saved ? "Remove saved offer" : "Save offer"}
+        >
+          <Icon name="saved" size={18} />
+        </button>
+      </div>
+
       <div className="offer-card__head">
         <div className="offer-card__biz">
           <button className="offer-card__biz-name" onClick={onViewBusiness}>
@@ -90,6 +105,15 @@ export function OfferCard({
       </div>
 
       {match && <MatchReasons reasons={match.reasons} />}
+
+      <div className="biz-card__social">
+        <span className="mini-avatars" aria-hidden="true">
+          {Array.from({ length: Math.min(savedBy, 3) }).map((_, index) => (
+            <img key={index} src={friendAvatarUrl(offer.id, index)} alt="" />
+          ))}
+        </span>
+        <span>{savedBy} local{savedBy === 1 ? "" : "s"} saved this</span>
+      </div>
 
       <div className="offer-card__actions">
         <Button onClick={onClaim} disabled={claimState !== "claimable"} size="sm">

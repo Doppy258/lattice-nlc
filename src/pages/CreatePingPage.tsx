@@ -1,26 +1,38 @@
 import { useMemo, useState, type ReactNode } from "react";
-import type { BusinessCategory, NeedType, PingRequest } from "../models";
+import { AnimatePresence, motion } from "motion/react";
+import type {
+  Business,
+  BusinessCategory,
+  GeoPoint,
+  MatchResult,
+  NeedType,
+  Offer,
+  PingRequest,
+} from "../models";
 import { useApp } from "../app/providers";
 import { navigate } from "../app/navigation";
 import { createId } from "../utils/ids";
 import {
   CATEGORY_META,
   DEMO_ORIGINS,
+  NEED_TYPES_BY_CATEGORY,
   NEED_TYPE_LABELS,
   PREFERENCE_OPTIONS,
   TIME_WINDOW_PRESETS,
 } from "../data/catalog";
 import { NOTE_MAX } from "../utils/constants";
-import { formatTimeRange } from "../utils/formatting";
+import { formatCurrency, formatDistance, formatTimeRange } from "../utils/formatting";
+import { distanceKm as measureDistance } from "../utils/distance";
 import {
   getRequestQuality,
   validatePingRequest,
   type PingDraft,
 } from "../services/requestValidationService";
-import { getMatchingOffers } from "../services/offerMatchingService";
-import { PageHeader } from "../components/layout/PageHeader";
+import { getMatchingOffers, getOriginPoint } from "../services/offerMatchingService";
 import { Button } from "../components/common/Button";
+import { Badge } from "../components/common/Badge";
 import { FormError } from "../components/common/FormError";
+import { Icon } from "../components/common/Icon";
 import { CategorySelector } from "../components/ping/CategorySelector";
 import { NeedTypeSelector } from "../components/ping/NeedTypeSelector";
 import { BudgetSelector } from "../components/ping/BudgetSelector";
@@ -30,43 +42,48 @@ import {
   type TimeWindowValue,
 } from "../components/ping/TimeWindowSelector";
 import { PreferenceChips } from "../components/ping/PreferenceChips";
-import { RequestPreview } from "../components/ping/RequestPreview";
 import { VerificationModal } from "../components/ping/VerificationModal";
+import { businessGrade, businessImageUrl } from "../utils/businessVisuals";
 
 type Budget = { budgetMin?: number; budgetMax?: number };
+type LocationState = "seeded" | "requesting" | "granted" | "denied" | "unsupported";
+
+type LiveMatchRow = {
+  match: MatchResult;
+  offer: Offer;
+  business: Business;
+  distance: number;
+};
 
 const PREF_LABELS = new Map(PREFERENCE_OPTIONS.map((p) => [p.id, p.label]));
 
 function budgetToLabel(budget: Budget): string {
   const { budgetMin, budgetMax } = budget;
-  if (budgetMin !== undefined && budgetMax !== undefined) return `$${budgetMin}–$${budgetMax}`;
+  if (budgetMin !== undefined && budgetMax !== undefined) return `$${budgetMin}-${budgetMax}`;
   if (budgetMax !== undefined) return `Under $${budgetMax}`;
   if (budgetMin !== undefined) return `$${budgetMin}+`;
   return "No budget";
 }
 
-/** A labeled builder step with an optional inline error message. */
-function Step({
-  step,
-  label,
-  hint,
+function fallbackWindow() {
+  const start = new Date();
+  const end = new Date(start.getTime() + 6 * 60 * 60 * 1000);
+  return { timeStart: start.toISOString(), timeEnd: end.toISOString() };
+}
+
+function StudioSection({
+  title,
   error,
   children,
 }: {
-  step: number;
-  label: string;
-  hint?: string;
+  title: string;
   error?: string;
   children: ReactNode;
 }) {
   return (
-    <section className="builder-step">
-      <div className="builder-step__head">
-        <span className="builder-step__num">{step}</span>
-        <div>
-          <h2 className="builder-step__label">{label}</h2>
-          {hint && <p className="builder-step__hint">{hint}</p>}
-        </div>
+    <section className="studio-section">
+      <div className="studio-section__head">
+        <h2>{title}</h2>
       </div>
       {children}
       <FormError message={error} />
@@ -86,9 +103,14 @@ export function CreatePingPage() {
   const [preferences, setPreferences] = useState<string[]>([]);
   const [note, setNote] = useState("");
   const [verifying, setVerifying] = useState(false);
+  const [originOverride, setOriginOverride] = useState<GeoPoint>();
+  const [locationState, setLocationState] = useState<LocationState>("seeded");
+  const [selectedBusinessId, setSelectedBusinessId] = useState<string>();
 
-  const originName =
-    DEMO_ORIGINS.find((o) => o.id === activeUser.homeLocationId)?.name ?? "your area";
+  const seededOrigin =
+    DEMO_ORIGINS.find((o) => o.id === activeUser.homeLocationId) ?? DEMO_ORIGINS[0];
+  const origin = originOverride ?? getOriginPoint(activeUser);
+  const originName = originOverride ? "Your location" : seededOrigin.name;
 
   const draft: PingDraft = useMemo(
     () => ({
@@ -118,28 +140,71 @@ export function CreatePingPage() {
   const errorFor = (field: string): string | undefined =>
     validation.errors.find((e) => e.field === field)?.message;
 
-  // Live OfferRank estimate once the matchable fields are present.
-  const estimatedMatches = useMemo(() => {
-    if (!category || !needType || distanceKm === undefined) return null;
-    if (!timeWindow.timeStart || !timeWindow.timeEnd) return null;
-    const candidate: PingRequest = {
-      id: "draft",
+  const liveRequest = useMemo<PingRequest | undefined>(() => {
+    if (!category) return undefined;
+    const window = timeWindow.timeStart && timeWindow.timeEnd ? timeWindow : fallbackWindow();
+    return {
+      id: "draft-preview",
       userId: activeUser.id,
       category,
-      needType,
+      needType: needType ?? NEED_TYPES_BY_CATEGORY[category][0],
       budgetMin: budget.budgetMin,
       budgetMax: budget.budgetMax,
-      distanceKm,
-      timeStart: timeWindow.timeStart,
-      timeEnd: timeWindow.timeEnd,
+      distanceKm: distanceKm ?? 5,
+      timeStart: window.timeStart,
+      timeEnd: window.timeEnd,
       preferences,
       optionalNote: note || undefined,
       verifiedHuman: false,
       status: "draft",
       createdAt: new Date().toISOString(),
     };
-    return getMatchingOffers(candidate, data.offers, data.businesses, activeUser).length;
-  }, [category, needType, budget, distanceKm, timeWindow, preferences, note, data, activeUser]);
+  }, [activeUser.id, category, needType, budget, distanceKm, timeWindow, preferences, note]);
+
+  const liveRows = useMemo<LiveMatchRow[]>(() => {
+    if (!liveRequest) return [];
+    const offerById = new Map(data.offers.map((o) => [o.id, o]));
+    const bizById = new Map(data.businesses.map((b) => [b.id, b]));
+    return getMatchingOffers(liveRequest, data.offers, data.businesses, activeUser, origin)
+      .map((match) => {
+        const offer = offerById.get(match.offerId);
+        const business = bizById.get(match.businessId);
+        if (!offer || !business) return null;
+        return { match, offer, business, distance: measureDistance(origin, business.location) };
+      })
+      .filter((row): row is LiveMatchRow => row !== null)
+      .slice(0, 8);
+  }, [liveRequest, data.offers, data.businesses, activeUser, origin]);
+
+  const nearbyBusinesses = useMemo(
+    () =>
+      [...data.businesses]
+        .sort((a, b) => measureDistance(origin, a.location) - measureDistance(origin, b.location))
+        .slice(0, 5),
+    [data.businesses, origin]
+  );
+
+  const previewRows = liveRows.length > 0 ? liveRows : nearbyBusinesses.map((business) => ({
+    business,
+    offer: data.offers.find((offer) => offer.businessId === business.id) ?? data.offers[0],
+    distance: measureDistance(origin, business.location),
+    match: {
+      offerId: "",
+      businessId: business.id,
+      requestId: "preview",
+      score: Math.max(62, Math.round(92 - measureDistance(origin, business.location) * 4)),
+      scoreBreakdown: {
+        categoryScore: 0,
+        budgetScore: 0,
+        distanceScore: 0,
+        ratingScore: 0,
+        timeScore: 0,
+        verificationScore: 0,
+        preferenceScore: 0,
+      },
+      reasons: ["Close to you", "Popular locally"],
+    },
+  })).filter((row) => row.offer);
 
   const timeLabel = (() => {
     if (!timeWindow.presetId) return undefined;
@@ -151,18 +216,39 @@ export function CreatePingPage() {
     return TIME_WINDOW_PRESETS.find((p) => p.id === timeWindow.presetId)?.label;
   })();
 
+  const selectedRow =
+    previewRows.find((row) => row.business.id === selectedBusinessId) ?? previewRows[0];
+
+  const requestLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationState("unsupported");
+      return;
+    }
+    setLocationState("requesting");
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setOriginOverride({ lat: position.coords.latitude, lng: position.coords.longitude });
+        setLocationState("granted");
+      },
+      () => setLocationState("denied"),
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+    );
+  };
+
   const onCategory = (c: BusinessCategory) => {
     setCategory(c);
     setNeedType(undefined);
     setBudget({});
     setBudgetChosen(false);
     setPreferences([]);
+    setSelectedBusinessId(undefined);
   };
 
   const onNeedType = (n: NeedType) => {
     setNeedType(n);
     setBudget({});
     setBudgetChosen(false);
+    setSelectedBusinessId(undefined);
   };
 
   const submit = () => {
@@ -189,33 +275,63 @@ export function CreatePingPage() {
   };
 
   return (
-    <>
-      <PageHeader
-        eyebrow="Create Ping"
-        title="Tell us what you need"
-        subtitle="Build a structured request and we'll match it with nearby local offers."
-      />
+    <div className="ping-studio-page">
+      <section className="ping-studio-hero">
+        <div>
+          <span className="soft-kicker">Create Ping</span>
+          <h1>Make one good request. Let the best local options come to you.</h1>
+          <p>
+            Pick the basics, add your vibe, and Lattice previews nearby businesses as your Ping takes shape.
+          </p>
+        </div>
+        <div className="studio-score-card">
+          <strong>{quality.score}%</strong>
+          <span>request clarity</span>
+          <div>
+            <Badge tone={validation.valid ? "success" : "accent"}>
+              {validation.valid ? "Ready to send" : "Still shaping"}
+            </Badge>
+          </div>
+        </div>
+      </section>
 
-      <div className="builder-layout">
-        <div className="builder-steps">
-          <Step step={1} label="What category?" error={errorFor("category")}>
+      <div className="ping-studio-layout">
+        <section className="studio-form">
+          <div className="studio-location">
+            <div>
+              <span>Starting point</span>
+              <strong>{originName}</strong>
+            </div>
+            <button
+              type="button"
+              className="soft-location-btn"
+              onClick={requestLocation}
+              disabled={locationState === "requesting"}
+            >
+              <Icon name="location" size={15} />
+              {locationState === "requesting" ? "Finding" : "Use location"}
+            </button>
+          </div>
+
+          {(locationState === "denied" || locationState === "unsupported") && (
+            <p className="studio-note">
+              Location is not available, so Lattice is previewing from the demo Oakville origin.
+            </p>
+          )}
+
+          <StudioSection title="What kind of place?" error={errorFor("category")}>
             <CategorySelector value={category} onChange={onCategory} />
-          </Step>
+          </StudioSection>
 
-          <Step step={2} label="What do you need?" error={errorFor("needType")}>
+          <StudioSection title="What do you need?" error={errorFor("needType")}>
             {category ? (
               <NeedTypeSelector category={category} value={needType} onChange={onNeedType} />
             ) : (
-              <p className="builder-step__gated">Choose a category first.</p>
+              <p className="studio-empty">Choose a category to unlock more specific needs.</p>
             )}
-          </Step>
+          </StudioSection>
 
-          <Step
-            step={3}
-            label="What's your budget?"
-            hint="Pick a range or set a custom amount."
-            error={errorFor("budget")}
-          >
+          <StudioSection title="Budget and distance" error={errorFor("budget") ?? errorFor("distance")}>
             {needType ? (
               <BudgetSelector
                 needType={needType}
@@ -227,71 +343,111 @@ export function CreatePingPage() {
                 }}
               />
             ) : (
-              <p className="builder-step__gated">Choose what you need first.</p>
+              <p className="studio-empty">Choose a need first.</p>
             )}
-          </Step>
-
-          <Step step={4} label="How far will you go?" error={errorFor("distance")}>
             <DistanceSelector value={distanceKm} onChange={setDistanceKm} originName={originName} />
-          </Step>
+          </StudioSection>
 
-          <Step step={5} label="When do you need it?" error={errorFor("time")}>
+          <StudioSection title="When?" error={errorFor("time")}>
             <TimeWindowSelector value={timeWindow} onChange={setTimeWindow} />
-          </Step>
+          </StudioSection>
 
-          <Step step={6} label="Any preferences?" hint="Optional — boosts matches that fit.">
+          <StudioSection title="Preferences">
             {category ? (
-              <PreferenceChips
-                category={category}
-                selected={preferences}
-                onChange={setPreferences}
-              />
+              <PreferenceChips category={category} selected={preferences} onChange={setPreferences} />
             ) : (
-              <p className="builder-step__gated">Choose a category to see relevant preferences.</p>
+              <p className="studio-empty">Preferences appear after category selection.</p>
             )}
-          </Step>
+          </StudioSection>
 
-          <Step step={7} label="Add a note" hint="Optional — describe specifics." error={errorFor("note")}>
+          <StudioSection title="Anything specific?" error={errorFor("note")}>
             <textarea
               className="text-input text-area"
               value={note}
               maxLength={NOTE_MAX}
-              placeholder="Example: need outlets and a quiet table"
+              placeholder="Example: close to school, quiet table, good for three people"
               onChange={(e) => setNote(e.target.value)}
               aria-label="Optional note"
             />
             <div className="char-count">
               {note.length}/{NOTE_MAX}
             </div>
-          </Step>
-        </div>
+          </StudioSection>
+        </section>
 
-        <aside className="builder-preview">
-          <RequestPreview
-            categoryLabel={category ? CATEGORY_META[category].label : undefined}
-            needLabel={needType ? NEED_TYPE_LABELS[needType] : undefined}
-            budgetLabel={budgetChosen ? budgetToLabel(budget) : "—"}
-            distanceLabel={distanceKm !== undefined ? `${distanceKm} km` : undefined}
-            timeLabel={timeLabel}
-            preferenceLabels={preferences.map((id) => PREF_LABELS.get(id) ?? id)}
-            note={note || undefined}
-            estimatedMatches={estimatedMatches}
-            quality={quality}
-          />
+        <aside className="studio-preview">
+          <div className="studio-preview__scene">
+            {selectedRow && (
+              <>
+                <img
+                  src={businessImageUrl(selectedRow.business)}
+                  alt={`${selectedRow.business.name} preview`}
+                />
+                <div className="studio-preview__floating-card">
+                  <Badge tone="accent">{businessGrade(selectedRow.business)}</Badge>
+                  <h2>{selectedRow.business.name}</h2>
+                  <p>{selectedRow.offer.title}</p>
+                  <div>
+                    <strong>{selectedRow.match.score}% match</strong>
+                    <span>{formatDistance(selectedRow.distance)}</span>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+
+          <div className="studio-summary">
+            <span>{category ? CATEGORY_META[category].label : "Category"}</span>
+            <span>{needType ? NEED_TYPE_LABELS[needType] : "Need"}</span>
+            <span>{budgetChosen ? budgetToLabel(budget) : "Budget"}</span>
+            <span>{timeLabel ?? "Time"}</span>
+            {preferences.map((id) => (
+              <span key={id}>{PREF_LABELS.get(id) ?? id}</span>
+            ))}
+          </div>
+
+          <div className="studio-matches">
+            <div className="studio-matches__head">
+              <div>
+                <span>{liveRows.length ? "Live matches" : "Nearby now"}</span>
+                <h2>{previewRows.length} businesses in range</h2>
+              </div>
+              <Badge tone="neutral">{originName}</Badge>
+            </div>
+
+            <AnimatePresence initial={false}>
+              {previewRows.map((row, index) => (
+                <motion.button
+                  key={`${row.business.id}-${row.offer.id}`}
+                  type="button"
+                  className={`studio-match ${selectedRow?.business.id === row.business.id ? "studio-match--on" : ""}`}
+                  onMouseEnter={() => setSelectedBusinessId(row.business.id)}
+                  onFocus={() => setSelectedBusinessId(row.business.id)}
+                  onClick={() => setSelectedBusinessId(row.business.id)}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ delay: index * 0.025, duration: 0.18 }}
+                >
+                  <img src={businessImageUrl(row.business)} alt="" />
+                  <span>
+                    <strong>{row.business.name}</strong>
+                    <small>{row.offer.title}</small>
+                  </span>
+                  <em>{formatCurrency(row.offer.price)}</em>
+                </motion.button>
+              ))}
+            </AnimatePresence>
+          </div>
 
           {errorFor("duplicate") && <FormError message={errorFor("duplicate")} />}
 
-          <Button
-            block
-            size="lg"
-            disabled={!validation.valid}
-            onClick={() => setVerifying(true)}
-          >
-            Find matching offers
+          <Button block size="lg" disabled={!validation.valid} onClick={() => setVerifying(true)}>
+            Send Ping
           </Button>
           {!validation.valid && (
             <p className="builder-preview__hint">
-              Complete the required fields to match offers.
+              Complete the required fields to send this Ping.
             </p>
           )}
         </aside>
@@ -302,6 +458,6 @@ export function CreatePingPage() {
         onClose={() => setVerifying(false)}
         onVerified={submit}
       />
-    </>
+    </div>
   );
 }

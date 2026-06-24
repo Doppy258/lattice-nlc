@@ -1,7 +1,6 @@
 import { useMemo } from "react";
 import { useApp } from "../app/providers";
 import { navigate } from "../app/navigation";
-import { PageHeader } from "../components/layout/PageHeader";
 import { Card } from "../components/common/Card";
 import { Button } from "../components/common/Button";
 import { Badge } from "../components/common/Badge";
@@ -11,6 +10,7 @@ import { formatCurrency, relativeTime } from "../utils/formatting";
 import { CATEGORY_META, DEMO_ORIGINS } from "../data/catalog";
 import { getUserReport } from "../services/reportService";
 import { getUserClaims } from "../services/claimService";
+import { businessImageUrl } from "../utils/businessVisuals";
 
 export function HomePage() {
   const { data, activeUser } = useApp();
@@ -49,21 +49,45 @@ export function HomePage() {
 
   return (
     <>
-      <PageHeader
-        eyebrow="Home"
-        title={`What do you need nearby, ${firstName}?`}
-        subtitle={`Match with local businesses around ${originName} by budget, timing, distance, and preferences.`}
-        actions={
-          <>
+      <section className="home-command">
+        <div className="home-command__copy">
+          <span className="radar-kicker">
+            <span />
+            {originName}
+          </span>
+          <h1>What do you need nearby, {firstName}?</h1>
+          <p>
+            Launch a Ping and let Lattice scan local offers by distance, time, budget,
+            and fit before you choose where to go.
+          </p>
+          <div className="home-command__actions">
             <Button onClick={() => navigate("/create-ping")} iconLeft={<Icon name="ping" size={16} />}>
               Create a Ping
             </Button>
             <Button variant="secondary" onClick={() => navigate("/explore")}>
               Explore businesses
             </Button>
-          </>
-        }
-      />
+          </div>
+        </div>
+        <div className="home-command__collage" aria-hidden="true">
+          {recommended.slice(0, 3).map((offer, index) => {
+            const business = bizById.get(offer.businessId);
+            if (!business) return null;
+            return (
+              <img
+                key={offer.id}
+                className={`home-command__photo home-command__photo--${index + 1}`}
+                src={businessImageUrl(business)}
+                alt=""
+              />
+            );
+          })}
+          <div>
+            <strong>{recommended.length}</strong>
+            <small>live deals worth scanning</small>
+          </div>
+        </div>
+      </section>
 
       <section className="metric-grid" aria-label="Your activity">
         <Card className="metric">

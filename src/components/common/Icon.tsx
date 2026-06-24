@@ -187,14 +187,14 @@ export function BrandMark({ size = 26, className }: { size?: number; className?:
     <svg className={className} width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
       <defs>
         <linearGradient id="latticeBrandGrad" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#4f6bff" />
-          <stop offset="100%" stopColor="#9b6cff" />
+          <stop offset="0%" stopColor="#0b5cff" />
+          <stop offset="100%" stopColor="#38bdf8" />
         </linearGradient>
       </defs>
       <circle cx="7.6" cy="7.6" r="3.3" fill="url(#latticeBrandGrad)" />
-      <circle cx="17.4" cy="6.6" r="3" fill="#9b6cff" />
+      <circle cx="17.4" cy="6.6" r="3" fill="#2f80ed" />
       <circle cx="15.6" cy="16.4" r="3.2" fill="url(#latticeBrandGrad)" />
-      <circle cx="6.7" cy="17.4" r="3.3" fill="#4f6bff" />
+      <circle cx="6.7" cy="17.4" r="3.3" fill="#0b5cff" />
     </svg>
   );
 }
