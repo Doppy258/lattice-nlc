@@ -183,13 +183,15 @@ h4 {
 }
 
 .sidebar__brand-mark {
-  width: 34px;
-  height: 34px;
-  padding: 6px;
-  border-radius: 12px;
-  background: var(--accent);
-  color: #fff;
+  display: block;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--accent);
   filter: none;
+  object-fit: contain;
 }
 
 .sidebar__brand-word {

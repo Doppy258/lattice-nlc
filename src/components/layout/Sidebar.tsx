@@ -1,6 +1,6 @@
 import { useApp } from "../../app/providers";
 import { navigate } from "../../app/navigation";
-import { BrandMark, Icon } from "../common/Icon";
+import { Icon } from "../common/Icon";
 import { BUSINESS_NAV, DEMO_NAV, USER_NAV, type NavItem } from "../../app/routes";
 
 type Group = { label: string; items: NavItem[] };
@@ -31,7 +31,7 @@ export function Sidebar({ currentPath, onNavigate }: Props) {
   return (
     <aside className="sidebar">
       <button className="sidebar__brand" onClick={() => go("/home")} aria-label="Lattice home">
-        <BrandMark className="sidebar__brand-mark" />
+        <img className="sidebar__brand-mark" src="/assets/lattice-mark.svg" alt="" />
         <span className="sidebar__brand-word">Lattice</span>
       </button>
 
