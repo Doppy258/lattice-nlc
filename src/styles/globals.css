@@ -14,7 +14,9 @@
 :root {
   --radius: 0.95rem;
 
-  --background: #f7f9fc;
+  /* Blue-tinted canvas — deliberately not near-white so the liquid-glass
+     surfaces read and the app feels blue-forward rather than generic. */
+  --background: #e8eef9;
   --foreground: #0a1220;
 
   --card: #ffffff;
@@ -22,41 +24,42 @@
   --popover: #ffffff;
   --popover-foreground: #0a1220;
 
-  --primary: #2563ff;
+  /* Single blue accent (landing's bright blue), deep navy for emphasis. Solid only. */
+  --primary: #2352de;
   --primary-foreground: #ffffff;
-  --primary-strong: #1745d6;
-  --primary-bright: #4f8bff;
+  --primary-strong: #18498b;
+  --primary-bright: #3372d9;
 
-  --secondary: #eef3ff;
-  --secondary-foreground: #1745d6;
+  --secondary: #e7eefc;
+  --secondary-foreground: #18498b;
 
-  --muted: #eef2f8;
-  --muted-foreground: #5a6b85;
+  --muted: #e9f0fa;
+  --muted-foreground: #51618a;
 
-  --accent: #e7efff;
-  --accent-foreground: #1745d6;
+  --accent: #e3ecfc;
+  --accent-foreground: #18498b;
 
   --destructive: #e1483d;
   --destructive-foreground: #ffffff;
 
-  --border: #e6ecf5;
-  --input: #d8e1f0;
-  --ring: #2563ff;
+  --border: #dde6f4;
+  --input: #cdd9ee;
+  --ring: #2352de;
 
-  --chart-1: #2563ff;
-  --chart-2: #4f8bff;
+  --chart-1: #2352de;
+  --chart-2: #3372d9;
   --chart-3: #8fb6ff;
   --chart-4: #15835a;
-  --chart-5: #b0710a;
+  --chart-5: #8669b9;
 
-  --sidebar: rgba(255, 255, 255, 0.82);
+  --sidebar: rgba(255, 255, 255, 0.7);
   --sidebar-foreground: #0a1220;
-  --sidebar-primary: #2563ff;
+  --sidebar-primary: #2352de;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #e7efff;
-  --sidebar-accent-foreground: #1745d6;
-  --sidebar-border: #e6ecf5;
-  --sidebar-ring: #2563ff;
+  --sidebar-accent: #e3ecfc;
+  --sidebar-accent-foreground: #18498b;
+  --sidebar-border: #dde6f4;
+  --sidebar-ring: #2352de;
 }
 
 .dark {
@@ -162,14 +165,16 @@
   --radius-2xl: calc(var(--radius) + 10px);
   --radius-3xl: calc(var(--radius) + 18px);
 
+  /* Display = Geist set tight (like the landing h1), accent = Instrument Serif italic. */
   --font-sans: "Geist Variable", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-display: "Space Grotesk Variable", "Geist Variable", system-ui, -apple-system, sans-serif;
+  --font-display: "Geist Variable", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-accent: "Instrument Serif", Georgia, "Times New Roman", serif;
   --font-mono: "Geist Mono Variable", "Geist Mono", ui-monospace, SFMono-Regular, monospace;
 
   --shadow-soft: 0 1px 2px rgba(13, 30, 73, 0.05), 0 8px 22px -14px rgba(13, 30, 73, 0.16);
   --shadow-card: var(--tile-shadow);
   --shadow-lift: var(--tile-shadow-lift);
-  --shadow-glow: 0 16px 40px -16px rgba(37, 99, 255, 0.45);
+  --shadow-glow: 0 16px 40px -16px rgba(35, 82, 222, 0.42);
 
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-spring: cubic-bezier(0.34, 1.2, 0.64, 1);
@@ -248,7 +253,7 @@
     color: var(--foreground);
     font-family: var(--font-display);
     font-weight: 600;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.03em;
     text-wrap: balance;
   }
 
@@ -285,6 +290,47 @@
 
 @utility font-display {
   font-family: var(--font-display);
+}
+
+/* Instrument Serif italic — the signature accent face (the landing's "Nearby" move). */
+@utility font-accent {
+  font-family: var(--font-accent);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+/* ---- Liquid glass: translucency + backdrop blur + 1px highlight border + inset
+   top highlight. No gradients — depth comes from blur, borders and shadow. ---- */
+@utility glass {
+  background: var(--surface-glass);
+  -webkit-backdrop-filter: var(--glass-blur-amt);
+  backdrop-filter: var(--glass-blur-amt);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-inset), var(--tile-shadow);
+}
+
+@utility glass-strong {
+  background: var(--surface-glass-strong);
+  -webkit-backdrop-filter: var(--glass-blur-amt);
+  backdrop-filter: var(--glass-blur-amt);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-inset), var(--tile-shadow);
+}
+
+@utility glass-blue {
+  background: var(--surface-glass-blue);
+  -webkit-backdrop-filter: var(--glass-blur-amt);
+  backdrop-filter: var(--glass-blur-amt);
+  border: 1px solid var(--glass-border-blue);
+  box-shadow: var(--glass-inset), var(--tile-shadow);
+}
+
+/* Containing context for a BorderBeam / clipped liquid-glass highlight. */
+@utility beam-host {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
 }
 
 .mono {

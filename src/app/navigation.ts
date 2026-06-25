@@ -4,10 +4,7 @@ import { useEffect, useState } from "react";
 export const LANDING_PATHS = ["", "/", "/landing"];
 
 /** Marketing-site CTA hashes mapped onto canonical app routes. */
-const ALIASES: Record<string, string> = {
-  "/onboarding": "/create-ping",
-  "/discover": "/explore",
-};
+const ALIASES: Record<string, string> = {};
 
 export type ParsedRoute = { path: string; query: URLSearchParams };
 

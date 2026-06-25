@@ -1,35 +1,21 @@
-import { useState } from "react";
+import type { ReactNode } from "react";
+import { Icon } from "@/components/common/Icon";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
-type Props = {
-  /** Accessible label + tooltip text explaining the adjacent control/metric. */
-  text: string;
-  label?: string;
-};
-
-export function HelpTooltip({ text, label = "More info" }: Props) {
-  const [open, setOpen] = useState(false);
+/** A small "?" affordance that reveals an explanation on hover/focus. */
+export function HelpTooltip({ label }: { label: ReactNode }) {
   return (
-    <span
-      className="help-tooltip"
-      onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
-    >
-      <button
-        type="button"
-        className="help-tooltip__trigger"
-        aria-label={label}
-        aria-expanded={open}
-        onFocus={() => setOpen(true)}
-        onBlur={() => setOpen(false)}
-        onClick={() => setOpen((v) => !v)}
-      >
-        ?
-      </button>
-      {open && (
-        <span className="help-tooltip__bubble" role="tooltip">
-          {text}
-        </span>
-      )}
-    </span>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button
+          type="button"
+          aria-label="More information"
+          className="inline-grid size-[18px] cursor-help place-items-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-accent hover:text-primary"
+        >
+          <Icon name="help" size={12} />
+        </button>
+      </TooltipTrigger>
+      <TooltipContent>{label}</TooltipContent>
+    </Tooltip>
   );
 }

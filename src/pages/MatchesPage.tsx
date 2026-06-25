@@ -1,268 +1,210 @@
 import { useMemo, useState } from "react";
-import type { MatchResult, PingRequest } from "../models";
-import { useApp } from "../app/providers";
-import { navigate } from "../app/navigation";
-import { useOfferInteractions } from "../app/useOfferInteractions";
-import { getMatchingOffers, getOriginPoint } from "../services/offerMatchingService";
-import { distanceKm } from "../utils/distance";
-import { byDate } from "../utils/sorting";
-import { NEED_TYPE_LABELS } from "../data/catalog";
-import { PageHero } from "../components/layout/PageHero";
-import { FilterBar } from "../components/common/FilterBar";
-import { Button } from "../components/common/Button";
-import { Icon } from "../components/common/Icon";
-import { EmptyState } from "../components/common/EmptyState";
-import { OfferCard } from "../components/offers/OfferCard";
-import { ClaimResultModal } from "../components/offers/ClaimResultModal";
-import { cn } from "@/lib/utils";
+import { useApp } from "@/app/providers";
+import { useHashRoute, navigate } from "@/app/navigation";
+import { Button } from "@/components/common/Button";
+import { Badge } from "@/components/common/Badge";
+import { Card } from "@/components/common/Card";
+import { EmptyState } from "@/components/common/EmptyState";
+import { ChipGroup, ToggleChip } from "@/components/common/ToggleChip";
+import { Icon, type IconName } from "@/components/common/Icon";
+import { Select } from "@/components/ui/select";
+import { Stagger, StaggerItem } from "@/components/motion/Reveal";
+import { OfferCard } from "@/components/domain/OfferCard";
+import { useClaim } from "@/components/domain/useClaim";
+import { ClaimResultModal } from "@/components/domain/ClaimResultModal";
+import { getMatchingOffers, getOriginPoint } from "@/services/offerMatchingService";
+import { distanceForBusiness } from "@/services/businessService";
+import { isBusinessSaved, isOfferSaved, toggleSavedOffer } from "@/services/userService";
+import { NEED_TYPE_LABELS } from "@/data/catalog";
+import { formatCurrency, formatTimeRange } from "@/utils/formatting";
+import type { Business, MatchResult, Offer, PingRequest } from "@/models";
 
-type SortKey =
-  | "bestMatch"
-  | "highestRating"
-  | "closest"
-  | "lowestPrice"
-  | "endingSoon"
-  | "mostClaimed";
-
-const SORTS: { key: SortKey; label: string }[] = [
-  { key: "bestMatch", label: "Best match" },
-  { key: "highestRating", label: "Top rated" },
-  { key: "closest", label: "Nearest" },
-  { key: "lowestPrice", label: "Lowest price" },
-  { key: "endingSoon", label: "Ending soon" },
+type SortKey = "best" | "rating" | "closest" | "price" | "ending" | "claimed";
+const SORTS: { value: SortKey; label: string }[] = [
+  { value: "best", label: "Best match" },
+  { value: "rating", label: "Highest rating" },
+  { value: "closest", label: "Closest" },
+  { value: "price", label: "Lowest price" },
+  { value: "ending", label: "Ending soon" },
+  { value: "claimed", label: "Most claimed" },
 ];
 
-const FILTERS: { id: string; label: string }[] = [
-  { id: "activeDeals", label: "Active deals" },
-  { id: "openNow", label: "Open in window" },
-  { id: "studentDiscount", label: "Student" },
-  { id: "verified", label: "Verified" },
-  { id: "saved", label: "Saved" },
-];
-
-const GRID = "grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3";
+type Row = { match: MatchResult; offer: Offer; business: Business; distanceKm: number };
 
 export function MatchesPage() {
-  const { data, activeUser } = useApp();
-  const interactions = useOfferInteractions();
-  const [sortKey, setSortKey] = useState<SortKey>("bestMatch");
-  const [activeFilters, setActiveFilters] = useState<string[]>([]);
+  const { data, activeUser, setData } = useApp();
+  const { query } = useHashRoute();
+  const { claim, result, clearResult } = useClaim();
+  const origin = getOriginPoint(activeUser);
 
-  const request = useMemo<PingRequest | undefined>(() => {
-    const mine = data.requests.filter((r) => r.userId === activeUser.id);
-    return [...mine].sort(byDate((r) => r.createdAt, "desc"))[0];
-  }, [data.requests, activeUser.id]);
+  const [sort, setSort] = useState<SortKey>("best");
+  const [filters, setFilters] = useState({ deals: false, student: false, verified: false, saved: false });
+  const toggle = (k: keyof typeof filters) => setFilters((f) => ({ ...f, [k]: !f[k] }));
 
-  const offerById = useMemo(() => new Map(data.offers.map((o) => [o.id, o])), [data.offers]);
-  const bizById = useMemo(() => new Map(data.businesses.map((b) => [b.id, b])), [data.businesses]);
-  const origin = useMemo(() => getOriginPoint(activeUser), [activeUser]);
+  const request: PingRequest | undefined = useMemo(() => {
+    const id = query.get("request");
+    const byId = id ? data.requests.find((r) => r.id === id) : undefined;
+    if (byId) return byId;
+    return data.requests
+      .filter((r) => r.userId === activeUser.id && (r.status === "submitted" || r.status === "matched"))
+      .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))[0];
+  }, [query, data.requests, activeUser.id]);
 
-  const matches = useMemo<MatchResult[]>(
-    () => (request ? getMatchingOffers(request, data.offers, data.businesses, activeUser) : []),
-    [request, data.offers, data.businesses, activeUser],
-  );
-
-  const nearMisses = useMemo<MatchResult[]>(() => {
-    if (!request || matches.length > 0) return [];
-    const relaxed: PingRequest = { ...request, distanceKm: 50, budgetMax: undefined, preferences: [] };
-    return getMatchingOffers(relaxed, data.offers, data.businesses, activeUser).slice(0, 3);
-  }, [request, matches.length, data.offers, data.businesses, activeUser]);
-
-  const toggleFilter = (id: string) =>
-    setActiveFilters((prev) => (prev.includes(id) ? prev.filter((f) => f !== id) : [...prev, id]));
+  const rows: Row[] = useMemo(() => {
+    if (!request) return [];
+    return getMatchingOffers(request, data.offers, data.businesses, activeUser)
+      .map((match) => {
+        const offer = data.offers.find((o) => o.id === match.offerId);
+        const business = data.businesses.find((b) => b.id === match.businessId);
+        if (!offer || !business) return null;
+        return { match, offer, business, distanceKm: distanceForBusiness(business, origin) };
+      })
+      .filter((r): r is Row => r !== null);
+  }, [request, data.offers, data.businesses, activeUser, origin]);
 
   const visible = useMemo(() => {
-    const rows = matches
-      .map((match) => {
-        const offer = offerById.get(match.offerId);
-        const business = bizById.get(match.businessId);
-        if (!offer || !business) return null;
-        return { match, offer, business, distance: distanceKm(origin, business.location) };
-      })
-      .filter((row): row is NonNullable<typeof row> => row !== null);
-
-    const filtered = rows.filter(({ offer, business, match }) => {
-      if (activeFilters.includes("activeDeals") && offer.originalPrice === undefined) return false;
-      if (activeFilters.includes("openNow") && match.scoreBreakdown.timeScore <= 0) return false;
-      if (
-        activeFilters.includes("studentDiscount") &&
-        !(offer.studentOnly || offer.tags.includes("student-friendly"))
-      ) {
-        return false;
-      }
-      if (activeFilters.includes("verified") && !business.verified) return false;
-      if (
-        activeFilters.includes("saved") &&
-        !activeUser.preferences.savedBusinessIds.includes(business.id)
-      ) {
-        return false;
-      }
+    let list = rows.filter((r) => {
+      if (filters.deals && !(r.offer.originalPrice && r.offer.originalPrice > r.offer.price)) return false;
+      if (filters.student && !r.offer.studentOnly) return false;
+      if (filters.verified && !r.business.verified) return false;
+      if (filters.saved && !isBusinessSaved(activeUser, r.business.id)) return false;
       return true;
     });
-
-    const sorters: Record<SortKey, (a: (typeof filtered)[number], b: (typeof filtered)[number]) => number> = {
-      bestMatch: (a, b) => b.match.score - a.match.score,
-      highestRating: (a, b) => b.business.ratingAverage - a.business.ratingAverage,
-      closest: (a, b) => a.distance - b.distance,
-      lowestPrice: (a, b) => a.offer.price - b.offer.price,
-      endingSoon: (a, b) => Date.parse(a.offer.validUntil) - Date.parse(b.offer.validUntil),
-      mostClaimed: (a, b) => b.offer.currentClaims - a.offer.currentClaims,
-    };
-    return [...filtered].sort(sorters[sortKey]);
-  }, [matches, offerById, bizById, origin, activeFilters, sortKey, activeUser.preferences.savedBusinessIds]);
+    list = list.slice().sort((a, b) => {
+      switch (sort) {
+        case "rating":
+          return b.business.ratingAverage - a.business.ratingAverage;
+        case "closest":
+          return a.distanceKm - b.distanceKm;
+        case "price":
+          return a.offer.price - b.offer.price;
+        case "ending":
+          return Date.parse(a.offer.validUntil) - Date.parse(b.offer.validUntil);
+        case "claimed":
+          return b.offer.currentClaims - a.offer.currentClaims;
+        default:
+          return b.match.score - a.match.score;
+      }
+    });
+    return list;
+  }, [rows, filters, sort, activeUser]);
 
   if (!request) {
     return (
-      <>
-        <PageHero variant="compact" kicker="Matches" title="Your ranked offers" />
-        <EmptyState
-          variant="radar"
-          title="No request yet"
-          body="Start a request describing what you need and OfferRank will surface the best nearby offers."
-          actionLabel="Start a request"
-          onAction={() => navigate("/create-ping")}
-        />
-      </>
+      <EmptyState
+        icon="ping"
+        title="No Lattice yet"
+        body="Create a structured request and we'll match you with local offers ranked by OfferRank."
+        action={
+          <Button variant="brand" iconLeft={<Icon name="ping" size={17} />} onClick={() => navigate("/create")}>
+            Create a Lattice
+          </Button>
+        }
+      />
     );
   }
 
   const summary = [
-    NEED_TYPE_LABELS[request.needType],
-    request.budgetMax !== undefined ? `under $${request.budgetMax}` : "any budget",
-    `within ${request.distanceKm} km`,
-  ].join(" · ");
-
-  const [top, ...rest] = visible;
+    { icon: "ping" as IconName, text: NEED_TYPE_LABELS[request.needType] },
+    {
+      icon: "ticket" as IconName,
+      text:
+        request.budgetMax !== undefined
+          ? `under ${formatCurrency(request.budgetMax)}`
+          : request.budgetMin !== undefined
+            ? `${formatCurrency(request.budgetMin)}+`
+            : "any budget",
+    },
+    { icon: "location" as IconName, text: `within ${request.distanceKm} km` },
+    { icon: "clock" as IconName, text: formatTimeRange(request.timeStart, request.timeEnd) },
+  ];
 
   return (
-    <>
-      <PageHero
-        variant="split"
-        kicker="Matches"
-        title="Your ranked offers"
-        subtitle={summary}
-        aside={
-          matches.length > 0 ? (
-            <div className="inline-flex items-center gap-2.5 rounded-full border border-border bg-card px-4 py-2.5 shadow-soft">
-              <strong className="mono text-2xl font-extrabold text-primary">
-                {visible.length}
-              </strong>
-              <span className="text-[13px] text-muted-foreground">
-                of {matches.length} matches
+    <div className="space-y-6">
+      <Card variant="glassBlue" className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <div className="flex items-center gap-2">
+            <h1 className="font-display text-[24px] font-semibold tracking-[-0.035em]">
+              Your <span className="font-accent font-normal text-primary">matches</span>
+            </h1>
+            <Badge tone="brand">{rows.length} offers</Badge>
+          </div>
+          <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1.5 text-[13px] text-muted-foreground">
+            {summary.map((s, i) => (
+              <span key={i} className="inline-flex items-center gap-1.5">
+                <Icon name={s.icon} size={13} /> {s.text}
               </span>
-            </div>
-          ) : undefined
-        }
-        actions={
-          <Button
-            variant="secondary"
-            onClick={() => navigate("/create-ping")}
-            iconLeft={<Icon name="ping" size={16} />}
-          >
-            Edit request
-          </Button>
-        }
-      />
+            ))}
+          </div>
+        </div>
+        <Button variant="secondary" iconLeft={<Icon name="ping" size={16} />} onClick={() => navigate("/create")}>
+          Edit request
+        </Button>
+      </Card>
 
-      {matches.length > 0 && (
-        <FilterBar
-          segments={SORTS.map((s) => ({ id: s.key, label: s.label }))}
-          activeSegment={sortKey}
-          onSegmentChange={(id) => setSortKey(id as SortKey)}
-        >
-          {FILTERS.map((f) => {
-            const on = activeFilters.includes(f.id);
-            return (
-              <button
-                key={f.id}
-                type="button"
-                aria-pressed={on}
-                onClick={() => toggleFilter(f.id)}
-                className={cn(
-                  "inline-flex h-9 items-center rounded-full border px-3.5 text-[13px] font-semibold transition-colors duration-200",
-                  on
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground",
-                )}
-              >
-                {f.label}
-              </button>
-            );
-          })}
-        </FilterBar>
-      )}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <ChipGroup>
+          <ToggleChip active={filters.deals} onClick={() => toggle("deals")}>
+            Active deals
+          </ToggleChip>
+          <ToggleChip active={filters.student} onClick={() => toggle("student")}>
+            Student discount
+          </ToggleChip>
+          <ToggleChip active={filters.verified} onClick={() => toggle("verified")}>
+            Verified only
+          </ToggleChip>
+          <ToggleChip active={filters.saved} onClick={() => toggle("saved")}>
+            Saved
+          </ToggleChip>
+        </ChipGroup>
+        <div className="flex items-center gap-2">
+          <span className="hidden text-[13px] text-muted-foreground sm:block">Sort</span>
+          <Select value={sort} onChange={(e) => setSort(e.target.value as SortKey)} className="w-44">
+            {SORTS.map((s) => (
+              <option key={s.value} value={s.value}>
+                {s.label}
+              </option>
+            ))}
+          </Select>
+        </div>
+      </div>
 
-      {matches.length === 0 ? (
+      {visible.length === 0 ? (
         <EmptyState
-          variant="radar"
+          icon="matches"
           title="No exact matches found"
-          body="Try increasing your distance, raising your budget, or changing your time window."
-          actionLabel="Adjust request"
-          onAction={() => navigate("/create-ping")}
+          body="Try increasing your distance, raising your budget, or changing your time window — or browse similar offers."
+          action={
+            <>
+              <Button variant="brand" iconLeft={<Icon name="ping" size={17} />} onClick={() => navigate("/create")}>
+                Adjust request
+              </Button>
+              <Button variant="secondary" iconLeft={<Icon name="explore" size={17} />} onClick={() => navigate("/explore")}>
+                Browse businesses
+              </Button>
+            </>
+          }
         />
       ) : (
-        <div className={GRID}>
-          {top && (
-            <OfferCard
-              key={top.offer.id}
-              featured
-              offer={top.offer}
-              business={top.business}
-              distanceKm={top.distance}
-              match={top.match}
-              saved={interactions.isOfferSaved(top.offer.id)}
-              claimState={interactions.claimStateFor(top.offer)}
-              onClaim={() => interactions.claim(top.offer)}
-              onToggleSave={() => interactions.toggleSaveOffer(top.offer.id)}
-              onViewBusiness={() => navigate(`/business/profile?b=${top.business.id}`)}
-            />
-          )}
-          {rest.map(({ match, offer, business, distance }) => (
-            <OfferCard
-              key={offer.id}
-              offer={offer}
-              business={business}
-              distanceKm={distance}
-              match={match}
-              saved={interactions.isOfferSaved(offer.id)}
-              claimState={interactions.claimStateFor(offer)}
-              onClaim={() => interactions.claim(offer)}
-              onToggleSave={() => interactions.toggleSaveOffer(offer.id)}
-              onViewBusiness={() => navigate(`/business/profile?b=${business.id}`)}
-            />
+        <Stagger className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {visible.map((r) => (
+            <StaggerItem key={r.offer.id}>
+              <OfferCard
+                offer={r.offer}
+                business={r.business}
+                match={r.match}
+                distanceKm={r.distanceKm}
+                saved={isOfferSaved(activeUser, r.offer.id)}
+                onClaim={(o) => claim(o, request.id)}
+                onSave={(o) => setData((d) => toggleSavedOffer(d, activeUser.id, o.id))}
+                onView={(b) => navigate(`/business?id=${b.id}`)}
+              />
+            </StaggerItem>
           ))}
-        </div>
+        </Stagger>
       )}
 
-      {matches.length === 0 && nearMisses.length > 0 && (
-        <section className="mt-9">
-          <h2 className="font-display mb-4 text-2xl font-medium">
-            Similar offers nearby
-          </h2>
-          <div className={GRID}>
-            {nearMisses.map((match) => {
-              const offer = offerById.get(match.offerId)!;
-              const business = bizById.get(match.businessId)!;
-              return (
-                <OfferCard
-                  key={offer.id}
-                  offer={offer}
-                  business={business}
-                  distanceKm={distanceKm(origin, business.location)}
-                  match={match}
-                  saved={interactions.isOfferSaved(offer.id)}
-                  claimState={interactions.claimStateFor(offer)}
-                  onClaim={() => interactions.claim(offer)}
-                  onToggleSave={() => interactions.toggleSaveOffer(offer.id)}
-                  onViewBusiness={() => navigate(`/business/profile?b=${business.id}`)}
-                />
-              );
-            })}
-          </div>
-        </section>
-      )}
-
-      <ClaimResultModal outcome={interactions.claimOutcome} onClose={interactions.dismissClaim} />
-    </>
+      <ClaimResultModal result={result} onClose={clearResult} />
+    </div>
   );
 }

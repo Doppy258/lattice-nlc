@@ -2,7 +2,7 @@ import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { Button as UIButton } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-type Variant = "primary" | "secondary" | "ghost" | "danger";
+type Variant = "primary" | "secondary" | "ghost" | "danger" | "brand";
 type Size = "sm" | "md" | "lg";
 
 type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
@@ -18,6 +18,7 @@ const variantMap = {
   secondary: "secondary",
   ghost: "ghost",
   danger: "destructive",
+  brand: "brand",
 } as const;
 
 const sizeMap = { sm: "sm", md: "default", lg: "lg" } as const;

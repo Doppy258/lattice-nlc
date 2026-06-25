@@ -1,8 +1,7 @@
-import { Check, ChevronDown, LogOut, MapPin, Menu, Store } from "lucide-react";
-import { useApp } from "../../app/providers";
-import { navigate } from "../../app/navigation";
-import { initials } from "../../utils/formatting";
-import { CATEGORY_META, DEMO_ORIGINS } from "../../data/catalog";
+import { toast } from "sonner";
+import { useApp } from "@/app/providers";
+import { useHashRoute } from "@/app/navigation";
+import { Icon } from "@/components/common/Icon";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -12,161 +11,132 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { isSupabaseConfigured } from "../../services/supabaseClient";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { initials } from "@/utils/formatting";
+import type { User } from "@/models";
+import { LatticeMark } from "./LatticeMark";
+import { titleForPath } from "./navConfig";
 
-const ROLE_LABELS: Record<string, string> = {
-  customer: "Customer",
-  businessOwner: "Business owner",
-  admin: "Admin",
-};
-
-export function TopBar({ onOpenMenu }: { onOpenMenu: () => void }) {
-  const {
-    data,
-    activeUser,
-    activeUserId,
-    setActiveUserId,
-    ownedBusinesses,
-    activeBusinessId,
-    setActiveBusinessId,
-    signOut,
-  } = useApp();
-
-  const originName =
-    DEMO_ORIGINS.find((o) => o.id === activeUser.homeLocationId)?.name ??
-    "San Antonio";
-
-  const switchUser = (id: string) => {
-    setActiveUserId(id);
-    const role = data.users.find((u) => u.id === id)?.role;
-    navigate(role === "businessOwner" ? "/business" : "/home");
-  };
-
-  const showBizSwitch =
-    (activeUser.role === "businessOwner" || activeUser.role === "admin") &&
-    ownedBusinesses.length > 0;
-  const activeBusiness = ownedBusinesses.find((b) => b.id === activeBusinessId);
+function UserSwitcher() {
+  const { data, activeUser, setActiveUserId, setActiveBusinessId } = useApp();
+  const groups: Array<{ label: string; users: User[] }> = [
+    { label: "Customers", users: data.users.filter((u) => u.role === "customer") },
+    { label: "Business owners", users: data.users.filter((u) => u.role === "businessOwner") },
+    { label: "Admin", users: data.users.filter((u) => u.role === "admin") },
+  ];
 
   return (
-    <header className="sticky top-0 z-30 flex h-[68px] items-center gap-2.5 border-b border-border/70 bg-[var(--surface-glass)] px-4 backdrop-blur-xl sm:px-8 lg:px-10">
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          className="flex h-10 cursor-pointer items-center gap-2 rounded-full border border-border bg-card/70 pl-1.5 pr-3 text-sm font-medium text-foreground shadow-[var(--shadow-soft)] transition-[transform,background-color] duration-200 hover:bg-card active:scale-[0.98]"
+        >
+          <Avatar className="size-7">
+            <AvatarFallback className="text-[11px]">{initials(activeUser.name)}</AvatarFallback>
+          </Avatar>
+          <span className="hidden max-w-28 truncate sm:block">{activeUser.name}</span>
+          <Icon name="chevron" size={15} className="text-muted-foreground" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="min-w-56">
+        {groups.map((group) =>
+          group.users.length ? (
+            <div key={group.label}>
+              <DropdownMenuLabel>{group.label}</DropdownMenuLabel>
+              {group.users.map((u) => (
+                <DropdownMenuItem
+                  key={u.id}
+                  onClick={() => {
+                    setActiveUserId(u.id);
+                    setActiveBusinessId("");
+                  }}
+                >
+                  <Avatar className="size-6">
+                    <AvatarFallback className="text-[10px]">{initials(u.name)}</AvatarFallback>
+                  </Avatar>
+                  <span className="flex-1">{u.name}</span>
+                  {u.id === activeUser.id && <Icon name="check" size={15} className="text-primary" />}
+                </DropdownMenuItem>
+              ))}
+            </div>
+          ) : null,
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+function BusinessSwitcher() {
+  const { ownedBusinesses, activeBusiness, setActiveBusinessId } = useApp();
+  if (ownedBusinesses.length === 0) return null;
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          className="hidden h-10 cursor-pointer items-center gap-2 rounded-full border border-border bg-card/70 px-3 text-sm font-medium text-foreground shadow-[var(--shadow-soft)] transition-[transform,background-color] duration-200 hover:bg-card active:scale-[0.98] sm:flex"
+        >
+          <Icon name="store" size={16} className="text-primary" />
+          <span className="max-w-32 truncate">{activeBusiness?.name ?? "Select business"}</span>
+          <Icon name="chevron" size={15} className="text-muted-foreground" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="min-w-56">
+        <DropdownMenuLabel>Your businesses</DropdownMenuLabel>
+        {ownedBusinesses.map((b) => (
+          <DropdownMenuItem key={b.id} onClick={() => setActiveBusinessId(b.id)}>
+            <span className="flex-1">{b.name}</span>
+            {b.id === activeBusiness?.id && <Icon name="check" size={15} className="text-primary" />}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+export function TopBar() {
+  const { path } = useHashRoute();
+  const { resetDemo } = useApp();
+  const title = titleForPath(path);
+
+  return (
+    <header className="glass sticky top-0 z-30 flex h-[var(--topbar-h)] items-center gap-3 px-5 min-[900px]:px-8">
+      {/* Mobile brand (sidebar is hidden under 900px) */}
       <button
-        onClick={onOpenMenu}
-        aria-label="Open menu"
-        className="grid size-10 shrink-0 place-items-center rounded-full border border-border bg-card text-foreground outline-none transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring/45 lg:hidden"
+        type="button"
+        className="flex cursor-pointer items-center gap-2.5 min-[900px]:hidden"
+        aria-label="Lattice home"
+        onClick={() => (window.location.hash = "#/home")}
       >
-        <Menu className="size-5" strokeWidth={1.8} />
+        <LatticeMark size={34} />
       </button>
 
-      <div className="hidden h-10 items-center gap-2 rounded-full border border-border bg-card/70 px-3.5 text-sm font-medium text-foreground sm:inline-flex">
-        <MapPin className="size-4 text-primary" strokeWidth={1.9} />
-        <span>{originName}</span>
-      </div>
+      <h1 className="hidden text-[19px] font-semibold tracking-[-0.03em] text-foreground min-[900px]:block">
+        {title}
+      </h1>
 
-      {showBizSwitch && (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button className="inline-flex h-10 items-center gap-2 rounded-full border border-border bg-card/80 pr-2.5 pl-2 outline-none transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring/45">
-              <span className="grid size-7 place-items-center rounded-full bg-brand-tint text-primary">
-                <Store className="size-4" strokeWidth={1.9} />
-              </span>
-              <span className="hidden max-w-[140px] truncate text-left text-sm font-semibold sm:block">
-                {activeBusiness?.name ?? "Select business"}
-              </span>
-              <ChevronDown className="size-4 text-muted-foreground" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-72">
-            <DropdownMenuLabel>Managing</DropdownMenuLabel>
-            {ownedBusinesses.map((biz) => (
-              <DropdownMenuItem
-                key={biz.id}
-                className="gap-2.5 py-2"
-                onSelect={() => setActiveBusinessId(biz.id)}
-              >
-                <span className="grid size-8 shrink-0 place-items-center rounded-full bg-brand-tint text-primary">
-                  <Store className="size-4" strokeWidth={1.9} />
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-semibold">
-                    {biz.name}
-                  </span>
-                  <span className="block text-xs text-muted-foreground">
-                    {CATEGORY_META[biz.category].label}
-                  </span>
-                </span>
-                {biz.id === activeBusinessId && (
-                  <Check className="size-4 shrink-0 text-primary" />
-                )}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )}
-
-      <div className="flex-1" />
-
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <button className="inline-flex h-11 items-center gap-2.5 rounded-full border border-border bg-card/80 py-1 pr-2.5 pl-1 outline-none transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring/45">
-            <Avatar className="size-9">
-              <AvatarFallback>{initials(activeUser.name)}</AvatarFallback>
-            </Avatar>
-            <span className="hidden text-left leading-tight sm:block">
-              <span className="block max-w-[150px] truncate text-sm font-semibold">
-                {activeUser.name}
-              </span>
-              <span className="block text-xs text-muted-foreground">
-                {ROLE_LABELS[activeUser.role]}
-              </span>
-            </span>
-            <ChevronDown className="size-4 text-muted-foreground" />
-          </button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-72">
-          <DropdownMenuLabel>Switch profile</DropdownMenuLabel>
-          {data.users.map((user) => (
-            <DropdownMenuItem
-              key={user.id}
-              className="gap-2.5 py-2"
-              onSelect={() => switchUser(user.id)}
+      <div className="ml-auto flex items-center gap-2">
+        <BusinessSwitcher />
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              onClick={() => {
+                resetDemo();
+                toast.success("Demo data reset", { description: "Seeded data restored to its original state." });
+              }}
+              aria-label="Reset demo data"
+              className="grid size-10 cursor-pointer place-items-center rounded-full border border-border bg-card/70 text-muted-foreground shadow-[var(--shadow-soft)] transition-[transform,color,background-color] duration-200 hover:bg-card hover:text-foreground active:scale-95"
             >
-              <Avatar className="size-8">
-                <AvatarFallback className="text-[11px]">
-                  {initials(user.name)}
-                </AvatarFallback>
-              </Avatar>
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm font-semibold">
-                  {user.name}
-                </span>
-                <span className="block text-xs text-muted-foreground">
-                  {ROLE_LABELS[user.role]}
-                </span>
-              </span>
-              {user.id === activeUserId && (
-                <Check className="size-4 shrink-0 text-primary" />
-              )}
-            </DropdownMenuItem>
-          ))}
-          {isSupabaseConfigured && (
-            <>
-              <DropdownMenuSeparator />
-              <DropdownMenuLabel>Account</DropdownMenuLabel>
-              <DropdownMenuItem
-                className="gap-2.5 py-2"
-                onSelect={() => {
-                  signOut();
-                  navigate("/login");
-                }}
-              >
-                <LogOut className="size-4" strokeWidth={1.9} />
-                <span>Sign out</span>
-              </DropdownMenuItem>
-            </>
-          )}
-        </DropdownMenuContent>
-      </DropdownMenu>
-
+              <Icon name="demo" size={17} />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>Reset demo data</TooltipContent>
+        </Tooltip>
+        <UserSwitcher />
+      </div>
     </header>
   );
 }

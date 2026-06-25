@@ -1,22 +1,31 @@
 import { AppProvider, useApp } from "./app/providers";
 import { useHashRoute, isLanding, navigate } from "./app/navigation";
-import { getRouteElement } from "./app/routes";
-import { AppLayout } from "./components/layout/AppLayout";
 import { MotionProvider } from "@/components/motion/MotionProvider";
+import { AppLayout } from "@/components/layout/AppLayout";
+import { RouteView } from "@/components/layout/routes";
 import { Toaster } from "@/components/ui/sonner";
 import { isSupabaseConfigured } from "./services/supabaseClient";
 import { LoginPage } from "./pages/LoginPage";
+import { SignupPage } from "./pages/SignupPage";
 import { OnboardingPage } from "./pages/OnboardingPage";
 
 const PUBLIC_AUTH_PATHS = ["/login", "/signup"];
+
+/** Seeded demo identities are pre-onboarded, so switching to them in demo mode
+ *  must not bounce through the onboarding flow. */
+const SEEDED_USER_PREFIXES = ["user_", "owner_", "admin_"];
+function isSeededUser(id: string | undefined): boolean {
+  return !!id && SEEDED_USER_PREFIXES.some((p) => id.startsWith(p));
+}
 
 function Shell() {
   const { path } = useHashRoute();
   const { authState, activeUser } = useApp();
   const needsOnboarding =
     authState === "authenticated" &&
+    isSupabaseConfigured &&
     !activeUser?.onboardingComplete &&
-    isSupabaseConfigured;
+    !isSeededUser(activeUser?.id);
 
   if (authState === "loading") {
     return (
@@ -41,7 +50,7 @@ function Shell() {
 
   // Login/signup pages — accessible without auth.
   if (PUBLIC_AUTH_PATHS.includes(path)) {
-    return <>{getRouteElement(path)}</>;
+    return path === "/signup" ? <SignupPage /> : <LoginPage />;
   }
 
   if (authState === "unauthenticated") {
@@ -55,12 +64,12 @@ function Shell() {
     return <OnboardingPage />;
   }
 
-  if (path === "/onboarding") {
-    navigate("/home");
-    return null;
-  }
-
-  return <AppLayout currentPath={path}>{getRouteElement(path)}</AppLayout>;
+  // Authenticated and onboarded — render the app shell + routed page.
+  return (
+    <AppLayout>
+      <RouteView />
+    </AppLayout>
+  );
 }
 
 export default function App() {

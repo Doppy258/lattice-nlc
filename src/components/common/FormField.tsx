@@ -1,27 +1,44 @@
-import type { InputHTMLAttributes, ReactNode } from "react";
+import type { ReactNode } from "react";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 
-type Props = {
-  label: string;
-  hint?: string;
-  error?: string;
-  children?: ReactNode;
-} & InputHTMLAttributes<HTMLInputElement>;
-
-/** Labeled field. Public API unchanged; composed from shadcn label + input. */
-export function FormField({ label, hint, error, children, ...inputProps }: Props) {
-  const id = inputProps.id ?? inputProps.name;
+/** Labelled form control wrapper with hint + error messaging tied to the field. */
+export function FormField({
+  label,
+  htmlFor,
+  hint,
+  error,
+  required,
+  children,
+  className,
+}: {
+  label?: ReactNode;
+  htmlFor?: string;
+  hint?: ReactNode;
+  error?: ReactNode;
+  required?: boolean;
+  children: ReactNode;
+  className?: string;
+}) {
+  const describedBy = error ? `${htmlFor}-error` : hint ? `${htmlFor}-hint` : undefined;
   return (
-    <div className="flex flex-col gap-2">
-      <Label htmlFor={id}>{label}</Label>
-      {children ?? <Input id={id} aria-invalid={!!error} {...inputProps} />}
-      {hint && !error && (
-        <span className="text-xs text-muted-foreground">{hint}</span>
+    <div className={cn("flex flex-col gap-1.5", className)}>
+      {label && (
+        <Label htmlFor={htmlFor}>
+          {label}
+          {required && <span className="text-destructive">*</span>}
+        </Label>
       )}
-      {error && (
-        <span className="text-xs font-medium text-destructive">{error}</span>
-      )}
+      {children}
+      {error ? (
+        <p id={describedBy} className="text-[13px] font-medium text-destructive">
+          {error}
+        </p>
+      ) : hint ? (
+        <p id={describedBy} className="text-[13px] text-muted-foreground">
+          {hint}
+        </p>
+      ) : null}
     </div>
   );
 }

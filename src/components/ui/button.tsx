@@ -9,7 +9,9 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground shadow-[0_10px_24px_-12px_rgba(15,95,204,0.6)] hover:bg-[var(--accent-focus)] hover:shadow-[0_16px_30px_-12px_rgba(15,95,204,0.55)] hover:-translate-y-px",
+          "bg-primary text-primary-foreground shadow-[0_10px_24px_-12px_rgba(24,73,139,0.6)] hover:bg-[var(--accent-focus)] hover:shadow-[0_16px_30px_-12px_rgba(24,73,139,0.55)] hover:-translate-y-px",
+        brand:
+          "bg-primary text-primary-foreground border border-white/20 shadow-[var(--shadow-cta)] hover:-translate-y-px hover:brightness-105",
         secondary:
           "border border-[color-mix(in_oklab,var(--primary)_22%,transparent)] bg-card text-primary hover:bg-brand-tint hover:-translate-y-px",
         outline:

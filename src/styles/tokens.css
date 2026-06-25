@@ -11,10 +11,12 @@
   /* ---- Brand ---- */
   --brand: var(--primary);
   --brand-strong: var(--primary-strong);
-  --brand-soft: rgba(37, 99, 255, 0.08);
-  --brand-tint: #e7efff;
+  --brand-deep: #18498b;
+  --brand-violet: #8669b9;
+  --brand-soft: rgba(35, 82, 222, 0.08);
+  --brand-tint: #e3ecfc;
   --brand-contrast: #ffffff;
-  --brand-azure: #4f8bff;
+  --brand-azure: #3372d9;
   --brand-sky: #8fb6ff;
 
   /* ---- Semantic ---- */
@@ -28,40 +30,49 @@
   --danger-foreground: #ffffff;
   --danger-tint: #fbe9e7;
 
-  /* ---- Match score gauge ---- */
-  --match-low: #93a3bb;
-  --match-mid: #4f8bff;
-  --match-high: #2563ff;
+  /* ---- Match score gauge (solid, tiered) ---- */
+  --match-low: #6b87c0;
+  --match-mid: #2352de;
+  --match-high: #18498b;
 
   /* ========================================================================
-     BENTO — gradients, tile geometry/elevation, micro-chart palette
+     Surfaces — SOLID color tints, tile geometry/elevation, micro-chart palette.
+     Zero gradients by design: depth comes from translucency + shadow + borders.
      ====================================================================== */
-  --grad-brand: linear-gradient(135deg, #4f8bff 0%, #2563ff 52%, #1745d6 100%);
-  --grad-brand-soft: linear-gradient(135deg, #eef4ff 0%, #dbe8ff 100%);
-  --grad-mesh:
-    radial-gradient(120% 120% at 0% 0%, rgba(79, 139, 255, 0.13), transparent 60%),
-    radial-gradient(120% 120% at 100% 100%, rgba(37, 99, 255, 0.09), transparent 55%);
-  --grad-sheen: linear-gradient(115deg, transparent 0%, rgba(255, 255, 255, 0.55) 45%, transparent 60%);
+  --tint-blue: rgba(35, 82, 222, 0.06);
+  --tint-blue-border: rgba(35, 82, 222, 0.18);
+  --tint-violet: rgba(134, 105, 185, 0.07);
+  --tint-violet-border: rgba(134, 105, 185, 0.22);
+  --tint-mint: rgba(21, 131, 90, 0.07);
+  --tint-mint-border: rgba(21, 131, 90, 0.2);
+  --tint-amber: rgba(154, 98, 6, 0.08);
+  --tint-amber-border: rgba(154, 98, 6, 0.22);
 
   --tile-radius: 22px;
   --tile-radius-lg: 28px;
   --tile-gap: 18px;
 
   --tile-shadow: 0 1px 2px rgba(13, 30, 73, 0.05), 0 10px 28px -18px rgba(13, 30, 73, 0.2);
-  --tile-shadow-lift: 0 8px 18px -6px rgba(13, 30, 73, 0.1), 0 30px 60px -28px rgba(37, 99, 255, 0.28);
+  --tile-shadow-lift: 0 8px 18px -6px rgba(13, 30, 73, 0.1), 0 30px 60px -28px rgba(35, 82, 222, 0.26);
   --tile-ring: inset 0 0 0 1px rgba(13, 30, 73, 0.06);
-  --tile-ring-brand: inset 0 0 0 1px rgba(37, 99, 255, 0.2);
+  --tile-ring-brand: inset 0 0 0 1px rgba(35, 82, 222, 0.2);
 
-  --spark-line: #2563ff;
-  --spark-fill: rgba(37, 99, 255, 0.12);
+  --spark-line: #2352de;
+  --spark-fill: rgba(35, 82, 222, 0.12);
   --spark-up: #15835a;
   --spark-down: #d1453b;
   --spark-grid: rgba(10, 18, 32, 0.05);
 
-  /* ---- Glass ---- */
-  --surface-glass: rgba(255, 255, 255, 0.72);
-  --surface-glass-strong: rgba(255, 255, 255, 0.9);
-  --glass-blur-amt: blur(22px) saturate(1.4);
+  /* ---- Glass (liquid-glass surfaces) ---- */
+  --surface-glass: rgba(255, 255, 255, 0.66);
+  --surface-glass-strong: rgba(255, 255, 255, 0.86);
+  --surface-glass-blue: rgba(231, 239, 252, 0.62);
+  --glass-blur-amt: blur(20px) saturate(1.7);
+  --glass-border: rgba(255, 255, 255, 0.6);
+  --glass-border-blue: rgba(35, 82, 222, 0.14);
+  --glass-inset: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  /* Multi-layer solid-rgba shadow for the solid blue CTA (gradient-free depth). */
+  --shadow-cta: inset 0 1px 0 rgba(255, 255, 255, 0.32), 0 2px 6px rgba(24, 73, 139, 0.22), 0 10px 20px -6px rgba(24, 73, 139, 0.3), 0 20px 38px -16px rgba(24, 73, 139, 0.26);
 
   /* ---- Motion ---- */
   --motion-fast: 140ms;
@@ -90,13 +101,13 @@
   --surface-dark: #0e131f;
 
   --accent: var(--primary);
-  --accent-focus: #1a6ce0;
-  --accent-on-dark: #4d92ff;
-  --accent-2: #1a6ce0;
-  --accent-3: #4d92ff;
+  --accent-focus: #1c52cf;
+  --accent-on-dark: #5b8cf0;
+  --accent-2: #1c52cf;
+  --accent-3: #5b8cf0;
   --accent-strong: var(--brand-strong);
   --accent-soft: var(--brand-soft);
-  --accent-ring: rgba(15, 95, 204, 0.28);
+  --accent-ring: rgba(35, 82, 222, 0.28);
   --accent-contrast: #ffffff;
   --accent-gradient: var(--primary);
   --accent-gradient-soft: var(--brand-soft);
@@ -124,11 +135,10 @@
   --glass-bg: var(--surface-glass);
   --glass-bg-strong: var(--surface-glass-strong);
   --glass-blur: var(--glass-blur-amt);
-  --glass-border: rgba(255, 255, 255, 0.55);
-  --glass-inset: inset 0 1px 0 rgba(255, 255, 255, 0.65);
 
   --font-sans: "Geist Variable", "Geist", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-serif: "Space Grotesk Variable", "Geist Variable", system-ui, sans-serif;
+  --font-serif: "Geist Variable", system-ui, sans-serif;
+  --font-accent: "Instrument Serif", Georgia, "Times New Roman", serif;
   --font-mono: "Geist Mono Variable", "Geist Mono", ui-monospace, monospace;
 
   --text-xs: 11px;
@@ -163,7 +173,7 @@
   --shadow-lg: 0 4px 10px rgba(15, 35, 75, 0.06), 0 30px 60px -28px rgba(15, 35, 75, 0.3);
   --shadow-diffusion: 0 18px 44px -28px rgba(15, 35, 75, 0.22);
   --glow: 0 0 0 4px var(--accent-ring);
-  --glow-strong: 0 16px 40px -16px rgba(15, 95, 204, 0.42);
+  --glow-strong: 0 16px 40px -16px rgba(35, 82, 222, 0.42);
 
   --transition: 240ms var(--ease-out-expo);
   --transition-fast: 140ms var(--ease-out-expo);

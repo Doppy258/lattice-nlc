@@ -1,70 +1,106 @@
+import { useState } from "react";
 import { motion } from "motion/react";
-import { navigate } from "../../app/navigation";
-import { Icon } from "../common/Icon";
-import { MOBILE_NAV } from "../../app/routes";
+import { useApp } from "@/app/providers";
+import { useHashRoute, navigate } from "@/app/navigation";
+import { Icon } from "@/components/common/Icon";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import { SPRING } from "@/components/motion/tokens";
+import { DEMO_NAV, navForRole, type NavItem } from "./navConfig";
 
-export function MobileNav({ currentPath }: { currentPath: string }) {
-  const pingPath = "/create-ping";
-  const items = MOBILE_NAV.filter((item) => item.path !== pingPath);
-  const mid = Math.ceil(items.length / 2);
-  const left = items.slice(0, mid);
-  const right = items.slice(mid);
+function isActive(path: string, target: string): boolean {
+  return path === target || path.startsWith(`${target}/`);
+}
 
-  const Item = ({ path, label, icon }: (typeof items)[number]) => {
-    const active = currentPath === path;
-    return (
-      <a
-        href={`#${path}`}
-        aria-current={active ? "page" : undefined}
-        onClick={(e) => {
-          e.preventDefault();
-          navigate(path);
-        }}
-        className={cn(
-          "relative flex min-w-0 flex-1 flex-col items-center gap-1 rounded-2xl py-2 text-[10px] font-semibold transition-colors",
-          active ? "text-primary" : "text-muted-foreground",
-        )}
-      >
-        {active && (
-          <motion.span
-            layoutId="mobilenav-active"
-            transition={SPRING}
-            className="absolute inset-0 rounded-2xl bg-brand-tint"
-          />
-        )}
-        <Icon name={icon} size={20} className="relative z-10" />
-        <span className="relative z-10">{label}</span>
-      </a>
-    );
-  };
+function MobileLink({
+  item,
+  active,
+  onClick,
+}: {
+  item: NavItem;
+  active: boolean;
+  onClick?: () => void;
+}) {
+  return (
+    <motion.button
+      type="button"
+      whileTap={{ scale: 0.88 }}
+      onClick={() => {
+        navigate(item.path);
+        onClick?.();
+      }}
+      aria-label={item.label}
+      aria-current={active ? "page" : undefined}
+      className={cn(
+        "flex h-full flex-1 cursor-pointer flex-col items-center justify-center gap-1 rounded-2xl text-[11px] font-medium transition-colors",
+        active ? "text-primary" : "text-muted-foreground",
+      )}
+    >
+      <Icon name={item.icon} size={21} strokeWidth={active ? 2.2 : 1.8} />
+      <span className="tracking-tight">{item.label}</span>
+    </motion.button>
+  );
+}
+
+export function MobileNav() {
+  const { path } = useHashRoute();
+  const { activeUser } = useApp();
+  const [open, setOpen] = useState(false);
+
+  const nav = navForRole(activeUser.role);
+  const primary = nav.slice(0, 4);
+  const rest = [...nav.slice(4), ...(activeUser.role === "admin" ? [DEMO_NAV] : [])];
 
   return (
-    <nav
-      aria-label="Primary mobile"
-      className="fixed inset-x-3 z-40 flex items-end justify-center gap-1 rounded-full border border-border bg-[var(--surface-glass-strong)] p-1.5 shadow-lift backdrop-blur-xl lg:hidden"
-      style={{ bottom: "calc(0.75rem + env(safe-area-inset-bottom, 0px))" }}
-    >
-      {left.map((item) => (
-        <Item key={item.path} {...item} />
-      ))}
-      <div className="-mt-7 flex shrink-0 flex-col items-center px-1">
-        <motion.button
+    <>
+      <nav className="glass fixed inset-x-0 bottom-0 z-40 flex h-[68px] items-stretch justify-around gap-1 px-2 min-[900px]:hidden">
+        {primary.map((item) => (
+          <MobileLink key={item.path} item={item} active={isActive(path, item.path)} />
+        ))}
+        <button
           type="button"
-          aria-label="Start a request"
-          aria-current={currentPath === pingPath ? "page" : undefined}
-          onClick={() => navigate(pingPath)}
-          whileTap={{ scale: 0.92 }}
-          className="grid size-14 place-items-center rounded-full text-white shadow-[0_16px_30px_-12px_rgba(37,99,255,0.9)] outline-none focus-visible:ring-2 focus-visible:ring-ring/45 focus-visible:ring-offset-2"
-          style={{ background: "var(--grad-brand)" }}
+          onClick={() => setOpen(true)}
+          aria-label="More"
+          className="flex h-full flex-1 cursor-pointer flex-col items-center justify-center gap-1 rounded-2xl text-[11px] font-medium text-muted-foreground transition-colors active:scale-95"
         >
-          <Icon name="ping" size={22} />
-        </motion.button>
-      </div>
-      {right.map((item) => (
-        <Item key={item.path} {...item} />
-      ))}
-    </nav>
+          <Icon name="demo" size={21} />
+          <span className="tracking-tight">More</span>
+        </button>
+      </nav>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>More</DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-3 gap-2.5">
+            {rest.map((item) => {
+              const active = isActive(path, item.path);
+              return (
+                <button
+                  key={item.path}
+                  type="button"
+                  onClick={() => {
+                    navigate(item.path);
+                    setOpen(false);
+                  }}
+                  className={cn(
+                    "flex cursor-pointer flex-col items-center gap-2 rounded-2xl border border-border bg-card p-3.5 text-xs font-medium text-foreground shadow-[var(--shadow-soft)] transition-[transform,background-color] active:scale-95",
+                    active && "border-primary/30 bg-accent text-accent-foreground",
+                  )}
+                >
+                  <Icon name={item.icon} size={22} className={active ? "text-primary" : "text-muted-foreground"} />
+                  {item.label}
+                </button>
+              );
+            })}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

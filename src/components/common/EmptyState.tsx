@@ -1,60 +1,31 @@
 import type { ReactNode } from "react";
-import { Icon, type IconName } from "./Icon";
-import { Button } from "./Button";
+import { Icon, type IconName } from "@/components/common/Icon";
+import { cn } from "@/lib/utils";
 
-type Variant = "default" | "radar" | "map" | "ticket";
-
-type Props = {
-  icon?: IconName;
-  variant?: Variant;
-  title: string;
-  body?: string;
-  actions?: ReactNode;
-  actionLabel?: string;
-  onAction?: () => void;
-};
-
+/** Friendly empty/zero state with an optional primary action. */
 export function EmptyState({
-  icon = "ping",
-  variant = "default",
+  icon = "matches",
   title,
   body,
-  actions,
-  actionLabel,
-  onAction,
-}: Props) {
-  const shownIcon: IconName =
-    variant === "map"
-      ? "location"
-      : variant === "ticket"
-        ? "ticket"
-        : variant === "radar"
-          ? "ping"
-          : icon;
-
+  action,
+  className,
+}: {
+  icon?: IconName;
+  title: string;
+  body?: ReactNode;
+  action?: ReactNode;
+  className?: string;
+}) {
   return (
-    <div className="flex flex-col items-start gap-4 rounded-3xl border border-dashed border-border bg-card/50 p-7 sm:p-9">
-      <span className="grid size-14 place-items-center rounded-2xl bg-brand-tint text-primary shadow-soft">
-        <Icon name={shownIcon} size={24} />
+    <div className={cn("mx-auto flex max-w-md flex-col items-center gap-4 py-16 text-center", className)}>
+      <span className="grid size-14 place-items-center rounded-2xl bg-accent text-primary">
+        <Icon name={icon} size={26} />
       </span>
-      <div>
-        <h3 className="font-display text-xl font-medium text-foreground">
-          {title}
-        </h3>
-        {body && (
-          <p className="mt-1.5 max-w-prose text-[15px] leading-relaxed text-muted-foreground">
-            {body}
-          </p>
-        )}
+      <div className="space-y-1.5">
+        <h3 className="font-display text-xl font-semibold tracking-[-0.02em]">{title}</h3>
+        {body && <p className="text-sm leading-relaxed text-muted-foreground">{body}</p>}
       </div>
-      {(actions || (actionLabel && onAction)) && (
-        <div className="flex flex-wrap gap-2.5">
-          {actions}
-          {actionLabel && onAction && (
-            <Button onClick={onAction}>{actionLabel}</Button>
-          )}
-        </div>
-      )}
+      {action && <div className="flex flex-wrap items-center justify-center gap-2.5">{action}</div>}
     </div>
   );
 }
