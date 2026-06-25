@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 import { useApp } from "../app/providers";
 import { navigate } from "../app/navigation";
 import { Button } from "../components/common/Button";
@@ -6,12 +7,15 @@ import { Icon } from "../components/common/Icon";
 import { ALL_CATEGORIES, CATEGORY_META, DEMO_ORIGINS } from "../data/catalog";
 import type { BusinessCategory } from "../models";
 
-const STEPS = ["Your name", "Your interests", "Your location", "Preferences"];
+const STEPS = ["Your interests", "Your location", "Preferences"];
+
+const spring = { type: "spring" as const, stiffness: 100, damping: 20 };
+const slideUp = { initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 }, exit: { opacity: 0, y: -8 } };
 
 export function OnboardingPage() {
   const { activeUser, completeOnboarding } = useApp();
+  const reduced = useReducedMotion();
   const [step, setStep] = useState(0);
-  const [name, setName] = useState(activeUser?.name ?? "");
   const [categories, setCategories] = useState<BusinessCategory[]>([]);
   const [locationId, setLocationId] = useState(activeUser?.homeLocationId ?? "origin_school");
   const [studentDiscount, setStudentDiscount] = useState(false);
@@ -25,23 +29,20 @@ export function OnboardingPage() {
 
   const canAdvance = () => {
     switch (step) {
-      case 0: return name.trim().length > 0;
-      case 1: return categories.length > 0;
+      case 0: return categories.length > 0;
+      case 1: return true;
       case 2: return true;
-      case 3: return true;
       default: return false;
     }
   };
 
   const handleNext = () => {
     if (!canAdvance()) {
-      setError(step === 0 ? "Please enter your name." : "Please select at least one category.");
+      setError("Please select at least one category.");
       return;
     }
     setError("");
-    if (step < STEPS.length - 1) {
-      setStep((s) => s + 1);
-    }
+    if (step < STEPS.length - 1) setStep((s) => s + 1);
   };
 
   const handleFinish = (e: FormEvent) => {
@@ -51,7 +52,7 @@ export function OnboardingPage() {
       return;
     }
     completeOnboarding({
-      name: name.trim(),
+      name: activeUser.name,
       homeLocationId: locationId,
       preferences: {
         ...activeUser.preferences,
@@ -62,23 +63,29 @@ export function OnboardingPage() {
     navigate("/home");
   };
 
+  const anim = (reduced ? {} : slideUp);
+
   return (
-    <div className="auth-page">
-      <div className="auth-card auth-card--wide">
-        <div className="auth-card__brand">
-          <div className="auth-card__logo">
-            <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
-              <rect x="2" y="2" width="24" height="24" rx="8" fill="#0066cc" />
-              <path d="M8 14h12M14 8v12" stroke="white" strokeWidth="2.2" strokeLinecap="round" />
-            </svg>
+    <div className="onboarding-page">
+      <div className="onboarding-card">
+        <div className="onboarding-card__hero">
+          <div className="onboarding-card__brand">
+            <div className="onboarding-card__logo">
+              <svg width="24" height="24" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+                <rect x="2" y="2" width="24" height="24" rx="8" fill="white" />
+                <path d="M8 14h12M14 8v12" stroke="#0066cc" strokeWidth="2.2" strokeLinecap="round" />
+              </svg>
+            </div>
+            <div>
+              <h1 className="onboarding-card__title">Welcome to Lattice</h1>
+              <p className="onboarding-card__subtitle">
+                {activeUser.name}, let's get you set up
+              </p>
+            </div>
           </div>
-          <h1 className="auth-card__title">Welcome to Lattice</h1>
-          <p className="auth-card__subtitle">
-            Let's get you set up — step {step + 1} of {STEPS.length}
-          </p>
         </div>
 
-        {/* Steps indicator */}
+        {/* Steps */}
         <div className="onboarding-steps">
           {STEPS.map((label, i) => (
             <div
@@ -89,6 +96,7 @@ export function OnboardingPage() {
                 {i < step ? <Icon name="check" size={12} /> : i + 1}
               </span>
               <span className="onboarding-step__label">{label}</span>
+              {i < STEPS.length - 1 && <span className="onboarding-step__connector" />}
             </div>
           ))}
         </div>
@@ -100,82 +108,114 @@ export function OnboardingPage() {
           </div>
         )}
 
-        {/* Step 0: Name */}
-        {step === 0 && (
-          <div className="field">
-            <label className="field__label" htmlFor="onb-name">What should we call you?</label>
-            <input
-              id="onb-name"
-              className="text-input"
-              type="text"
-              placeholder="Your name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              autoFocus
-            />
-          </div>
-        )}
+        {/* Step 0: Categories */}
+        <AnimatePresence mode="wait">
+          {step === 0 && (
+            <motion.div key="step-0" {...anim} transition={spring}>
+              <p className="onboarding-card__hint">Pick the types of businesses you're most interested in.</p>
+              <div className="onboarding-categories">
+                {ALL_CATEGORIES.map((cat) => {
+                  const meta = CATEGORY_META[cat];
+                  const selected = categories.includes(cat);
+                  return (
+                    <motion.button
+                      key={cat}
+                      className={`onboarding-cat ${selected ? "onboarding-cat--on" : ""}`}
+                      onClick={() => toggleCategory(cat)}
+                      type="button"
+                      whileTap={reduced ? undefined : { scale: 0.97 }}
+                      layout
+                    >
+                      <span className="onboarding-cat__icon">
+                        <Icon name={meta.icon as any} size={20} />
+                      </span>
+                      <span className="onboarding-cat__label">{meta.label}</span>
+                      <span className="onboarding-cat__desc">{meta.description}</span>
+                      {selected && (
+                        <motion.span
+                          className="onboarding-cat__check"
+                          initial={reduced ? false : { scale: 0, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          transition={{ type: "spring", stiffness: 200, damping: 14 }}
+                        >
+                          <Icon name="check" size={14} />
+                        </motion.span>
+                      )}
+                    </motion.button>
+                  );
+                })}
+              </div>
+            </motion.div>
+          )}
 
-        {/* Step 1: Categories */}
-        {step === 1 && (
-          <div>
-            <p className="auth-card__hint">Pick the types of businesses you're most interested in.</p>
-            <div className="onboarding-categories">
-              {ALL_CATEGORIES.map((cat) => {
-                const meta = CATEGORY_META[cat];
-                const selected = categories.includes(cat);
-                return (
-                  <button
-                    key={cat}
-                    className={`select-card ${selected ? "select-card--on" : ""}`}
-                    onClick={() => toggleCategory(cat)}
+          {/* Step 1: Location */}
+          {step === 1 && (
+            <motion.div key="step-1" {...anim} transition={spring}>
+              <p className="onboarding-card__hint">Where are you usually looking from?</p>
+              <div className="onboarding-locations">
+                {DEMO_ORIGINS.map((origin) => (
+                  <motion.button
+                    key={origin.id}
+                    className={`onboarding-loc ${locationId === origin.id ? "onboarding-loc--on" : ""}`}
+                    onClick={() => setLocationId(origin.id)}
                     type="button"
+                    whileTap={reduced ? undefined : { scale: 0.97 }}
                   >
-                    <span className="select-card__icon">
-                      <Icon name={meta.icon as any} size={18} />
+                    <span className="onboarding-loc__icon">
+                      <Icon name="location" size={18} />
                     </span>
-                    <span className="select-card__label">{meta.label}</span>
-                    <span className="select-card__desc">{meta.description}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
+                    <span className="onboarding-loc__name">{origin.name}</span>
+                    {locationId === origin.id && (
+                      <motion.span
+                        className="onboarding-loc__check"
+                        initial={reduced ? false : { scale: 0, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ type: "spring", stiffness: 200, damping: 14 }}
+                      >
+                        <Icon name="check" size={14} />
+                      </motion.span>
+                    )}
+                  </motion.button>
+                ))}
+              </div>
+            </motion.div>
+          )}
 
-        {/* Step 2: Location */}
-        {step === 2 && (
-          <div>
-            <p className="auth-card__hint">Where are you usually looking from?</p>
-            <div className="chip-select" style={{ marginTop: "var(--space-3)" }}>
-              {DEMO_ORIGINS.map((origin) => (
-                <button
-                  key={origin.id}
-                  className={`chip ${locationId === origin.id ? "chip--on" : ""}`}
-                  onClick={() => setLocationId(origin.id)}
-                  type="button"
+          {/* Step 2: Preferences */}
+          {step === 2 && (
+            <motion.div key="step-2" {...anim} transition={spring}>
+              <p className="onboarding-card__hint">Any extra preferences? You can always change these later.</p>
+              <div className="onboarding-prefs">
+                <motion.label
+                  className={`onboarding-pref ${studentDiscount ? "onboarding-pref--on" : ""}`}
+                  whileTap={reduced ? undefined : { scale: 0.98 }}
                 >
-                  {origin.name}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Step 3: Preferences */}
-        {step === 3 && (
-          <div>
-            <p className="auth-card__hint">Any extra preferences? You can always change these later.</p>
-            <label className="onboarding-toggle" style={{ marginTop: "var(--space-3)" }}>
-              <input
-                type="checkbox"
-                checked={studentDiscount}
-                onChange={(e) => setStudentDiscount(e.target.checked)}
-              />
-              <span>I'm a student — show me student discounts</span>
-            </label>
-          </div>
-        )}
+                  <div className="onboarding-pref__row">
+                    <span className="onboarding-pref__box">
+                      {studentDiscount && (
+                        <motion.span
+                          className="onboarding-pref__check"
+                          initial={reduced ? false : { scale: 0, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          transition={{ type: "spring", stiffness: 200, damping: 14 }}
+                        >
+                          <Icon name="check" size={12} />
+                        </motion.span>
+                      )}
+                    </span>
+                    <span className="onboarding-pref__label">I'm a student — show me student discounts</span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={studentDiscount}
+                    onChange={(e) => setStudentDiscount(e.target.checked)}
+                    style={{ display: "none" }}
+                  />
+                </motion.label>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <div className="onboarding-actions">
           {step > 0 && (

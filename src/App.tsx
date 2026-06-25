@@ -6,11 +6,7 @@ import { isSupabaseConfigured } from "./services/supabaseClient";
 import { LoginPage } from "./pages/LoginPage";
 import { OnboardingPage } from "./pages/OnboardingPage";
 
-const AUTH_PATHS = ["/login", "/signup", "/onboarding"];
-
-function isAuthPath(path: string): boolean {
-  return AUTH_PATHS.includes(path);
-}
+const PUBLIC_AUTH_PATHS = ["/login", "/signup"];
 
 function Shell() {
   const { path } = useHashRoute();
@@ -35,6 +31,17 @@ function Shell() {
     return <iframe src="./lumio/index.html" title="Lattice landing page" className="landing-frame" />;
   }
 
+  // Authenticated users on login/signup get sent to the right place.
+  if (authState === "authenticated" && PUBLIC_AUTH_PATHS.includes(path)) {
+    navigate(needsOnboarding ? "/onboarding" : "/home");
+    return null;
+  }
+
+  // Login/signup pages — accessible without auth.
+  if (PUBLIC_AUTH_PATHS.includes(path)) {
+    return <>{getRouteElement(path)}</>;
+  }
+
   if (authState === "unauthenticated") {
     return <LoginPage />;
   }
@@ -42,13 +49,11 @@ function Shell() {
   // Authenticated below this point.
 
   if (needsOnboarding) {
-    // Allow staying on /onboarding; redirect anything else to it.
     if (path !== "/onboarding") navigate("/onboarding");
     return <OnboardingPage />;
   }
 
-  if (isAuthPath(path)) {
-    // Authenticated user on /login or /signup — send to home.
+  if (path === "/onboarding") {
     navigate("/home");
     return null;
   }
