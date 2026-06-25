@@ -4,6 +4,7 @@ import { navigate } from "../../app/navigation";
 import { Icon } from "../common/Icon";
 import { initials } from "../../utils/formatting";
 import { CATEGORY_META, DEMO_ORIGINS } from "../../data/catalog";
+import { isSupabaseConfigured } from "../../services/supabaseClient";
 
 const ROLE_LABELS: Record<string, string> = {
   customer: "Customer",
@@ -20,6 +21,7 @@ export function TopBar({ onOpenMenu }: { onOpenMenu: () => void }) {
     ownedBusinesses,
     activeBusinessId,
     setActiveBusinessId,
+    signOut,
   } = useApp();
   const [menuOpen, setMenuOpen] = useState(false);
   const [bizOpen, setBizOpen] = useState(false);
@@ -162,6 +164,21 @@ export function TopBar({ onOpenMenu }: { onOpenMenu: () => void }) {
                 {user.id === activeUserId && <Icon name="check" size={16} />}
               </button>
             ))}
+            {isSupabaseConfigured && (
+              <>
+                <div className="sidebar__group-label" style={{ padding: "var(--space-2) var(--space-3)" }}>
+                  Account
+                </div>
+                <button
+                  className="profile-switch__option"
+                  role="menuitem"
+                  onClick={() => { setMenuOpen(false); signOut(); navigate("/login"); }}
+                >
+                  <Icon name="close" size={16} />
+                  <span>Sign out</span>
+                </button>
+              </>
+            )}
           </div>
         )}
       </div>
