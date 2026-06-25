@@ -31,8 +31,10 @@ import {
 import { getMatchingOffers, getOriginPoint } from "../services/offerMatchingService";
 import { Button } from "../components/common/Button";
 import { Badge } from "../components/common/Badge";
-import { FormError } from "../components/common/FormError";
 import { Icon } from "../components/common/Icon";
+import { Progress } from "@/components/ui/progress";
+import { Textarea } from "@/components/ui/textarea";
+import { SPRING_SOFT } from "@/components/motion/tokens";
 import { CategorySelector } from "../components/ping/CategorySelector";
 import { NeedTypeSelector } from "../components/ping/NeedTypeSelector";
 import { BudgetSelector } from "../components/ping/BudgetSelector";
@@ -44,6 +46,7 @@ import {
 import { PreferenceChips } from "../components/ping/PreferenceChips";
 import { VerificationModal } from "../components/ping/VerificationModal";
 import { businessGrade, businessImageUrl } from "../utils/businessVisuals";
+import { cn } from "@/lib/utils";
 
 type Budget = { budgetMin?: number; budgetMax?: number };
 type LocationState = "seeded" | "requesting" | "granted" | "denied" | "unsupported";
@@ -82,16 +85,16 @@ function StudioSection({
 }) {
   return (
     <motion.section
-      className="studio-section"
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ type: "spring", stiffness: 100, damping: 20 }}
+      transition={SPRING_SOFT}
+      className="rounded-3xl border border-border bg-card p-5 shadow-soft"
     >
-      <div className="studio-section__head">
-        <h2>{title}</h2>
-      </div>
+      <h2 className="font-display mb-3.5 text-xl font-medium">{title}</h2>
       {children}
-      <FormError message={error} />
+      {error && (
+        <p className="mt-2.5 text-sm font-medium text-destructive">{error}</p>
+      )}
     </motion.section>
   );
 }
@@ -130,17 +133,25 @@ export function CreatePingPage() {
       preferences,
       optionalNote: note || undefined,
     }),
-    [activeUser.id, category, needType, budget, distanceKm, timeWindow, preferences, note]
+    [activeUser.id, category, needType, budget, distanceKm, timeWindow, preferences, note],
   );
 
   const validation = useMemo(
     () => validatePingRequest(draft, data.requests),
-    [draft, data.requests]
+    [draft, data.requests],
   );
   const quality = useMemo(
     () => getRequestQuality(draft, data.requests),
-    [draft, data.requests]
+    [draft, data.requests],
   );
+
+  const clarityPct = quality === "strong" ? 100 : quality === "weak" ? 76 : 40;
+  const clarityLabel =
+    quality === "strong"
+      ? "Strong & specific"
+      : quality === "weak"
+        ? "Ready to send"
+        : "Still shaping";
 
   const errorFor = (field: string): string | undefined =>
     validation.errors.find((e) => e.field === field)?.message;
@@ -186,30 +197,36 @@ export function CreatePingPage() {
       [...data.businesses]
         .sort((a, b) => measureDistance(origin, a.location) - measureDistance(origin, b.location))
         .slice(0, 5),
-    [data.businesses, origin]
+    [data.businesses, origin],
   );
 
-  const previewRows = liveRows.length > 0 ? liveRows : nearbyBusinesses.map((business) => ({
-    business,
-    offer: data.offers.find((offer) => offer.businessId === business.id) ?? data.offers[0],
-    distance: measureDistance(origin, business.location),
-    match: {
-      offerId: "",
-      businessId: business.id,
-      requestId: "preview",
-      score: Math.max(62, Math.round(92 - measureDistance(origin, business.location) * 4)),
-      scoreBreakdown: {
-        categoryScore: 0,
-        budgetScore: 0,
-        distanceScore: 0,
-        ratingScore: 0,
-        timeScore: 0,
-        verificationScore: 0,
-        preferenceScore: 0,
-      },
-      reasons: ["Close to you", "Popular locally"],
-    },
-  })).filter((row) => row.offer);
+  const previewRows =
+    liveRows.length > 0
+      ? liveRows
+      : nearbyBusinesses
+          .map((business) => ({
+            business,
+            offer:
+              data.offers.find((offer) => offer.businessId === business.id) ?? data.offers[0],
+            distance: measureDistance(origin, business.location),
+            match: {
+              offerId: "",
+              businessId: business.id,
+              requestId: "preview",
+              score: Math.max(62, Math.round(92 - measureDistance(origin, business.location) * 4)),
+              scoreBreakdown: {
+                categoryScore: 0,
+                budgetScore: 0,
+                distanceScore: 0,
+                ratingScore: 0,
+                timeScore: 0,
+                verificationScore: 0,
+                preferenceScore: 0,
+              },
+              reasons: ["Close to you", "Popular locally"],
+            },
+          }))
+          .filter((row) => row.offer);
 
   const timeLabel = (() => {
     if (!timeWindow.presetId) return undefined;
@@ -221,11 +238,13 @@ export function CreatePingPage() {
     return TIME_WINDOW_PRESETS.find((p) => p.id === timeWindow.presetId)?.label;
   })();
 
-  const sentenceCategory = category ? CATEGORY_META[category].label : "Select category";
-  const sentenceNeed = needType ? NEED_TYPE_LABELS[needType] : "Choose need";
-  const sentenceDistance = distanceKm !== undefined ? `Within ${distanceKm} km` : "Set distance";
-  const sentenceTime = timeLabel ? timeLabel : "Set time";
-  const sentenceBudget = budgetChosen ? budgetToLabel(budget) : "Set budget";
+  const slots = [
+    { label: "Category", value: category ? CATEGORY_META[category].label : "Select category", filled: !!category },
+    { label: "Need", value: needType ? NEED_TYPE_LABELS[needType] : "Choose need", filled: !!needType },
+    { label: "Distance", value: distanceKm !== undefined ? `Within ${distanceKm} km` : "Set distance", filled: distanceKm !== undefined },
+    { label: "Time", value: timeLabel ?? "Set time", filled: !!timeLabel },
+    { label: "Budget", value: budgetChosen ? budgetToLabel(budget) : "Set budget", filled: budgetChosen },
+  ];
 
   const selectedRow =
     previewRows.find((row) => row.business.id === selectedBusinessId) ?? previewRows[0];
@@ -242,7 +261,7 @@ export function CreatePingPage() {
         setLocationState("granted");
       },
       () => setLocationState("denied"),
-      { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 },
     );
   };
 
@@ -286,70 +305,91 @@ export function CreatePingPage() {
   };
 
   return (
-    <div className="ping-studio-page">
-      <section className="ping-studio-hero">
-        <div>
-          <span className="soft-kicker">New Request</span>
-          <h1>Make one good request. Let the best local options come to you.</h1>
-          <p>
-            Pick the basics, add your preferences, and Lattice previews nearby businesses as your request takes shape.
+    <div className="grid grid-cols-1 gap-6">
+      {/* Hero */}
+      <section className="grid grid-cols-1 gap-5 rounded-[28px] border border-border bg-card p-7 shadow-card sm:p-9 lg:grid-cols-[1fr_auto] lg:items-center">
+        <div className="min-w-0 max-w-2xl">
+          <span className="inline-flex items-center gap-2 text-sm font-semibold text-primary">
+            <Icon name="ping" size={15} /> New Request
+          </span>
+          <h1 className="font-display mt-2.5 text-[2rem] leading-[1.05] font-medium tracking-[-0.02em] text-balance sm:text-4xl">
+            Make one good request. Let the best local options come to you.
+          </h1>
+          <p className="mt-3 max-w-lg text-[15px] leading-relaxed text-muted-foreground sm:text-base">
+            Pick the basics, add your preferences, and Lattice previews nearby
+            businesses as your request takes shape.
           </p>
         </div>
-        <div className="studio-score-card">
-          <strong>{quality.score ?? 0}%</strong>
-          <span>request clarity</span>
-          <div>
-            <Badge tone={validation.valid ? "success" : "accent"}>
-              {validation.valid ? "Ready to send" : "Still shaping"}
-            </Badge>
+        <div className="flex w-full flex-col gap-2 rounded-2xl border border-border bg-secondary/40 p-5 lg:w-[240px]">
+          <span className="mono text-5xl leading-none font-extrabold text-primary">
+            {clarityPct}%
+          </span>
+          <span className="text-sm text-muted-foreground">request clarity</span>
+          <Progress value={clarityPct} className="mt-1" />
+          <div className="mt-1">
+            <Badge tone={validation.valid ? "success" : "accent"}>{clarityLabel}</Badge>
           </div>
         </div>
       </section>
 
-      <section className="ping-sentence-builder" aria-label="Request sentence preview">
-        <span className={`ping-sentence-builder__slot${category ? "" : " ping-sentence-builder__slot--empty"}`}>
-          <small>Category</small>
-          <strong>{sentenceCategory}</strong>
-        </span>
-        <span className={`ping-sentence-builder__slot${needType ? "" : " ping-sentence-builder__slot--empty"}`}>
-          <small>Need</small>
-          <strong>{sentenceNeed}</strong>
-        </span>
-        <span className={`ping-sentence-builder__slot${distanceKm !== undefined ? "" : " ping-sentence-builder__slot--empty"}`}>
-          <small>Distance</small>
-          <strong>{sentenceDistance}</strong>
-        </span>
-        <span className={`ping-sentence-builder__slot${timeLabel ? "" : " ping-sentence-builder__slot--empty"}`}>
-          <small>Time</small>
-          <strong>{sentenceTime}</strong>
-        </span>
-        <span className={`ping-sentence-builder__slot${budgetChosen ? "" : " ping-sentence-builder__slot--empty"}`}>
-          <small>Budget</small>
-          <strong>{sentenceBudget}</strong>
-        </span>
+      {/* Sentence builder */}
+      <section
+        className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5"
+        aria-label="Request sentence preview"
+      >
+        {slots.map((slot) => (
+          <div
+            key={slot.label}
+            className={cn(
+              "flex flex-col gap-0.5 rounded-2xl border p-3.5 transition-colors duration-200",
+              slot.filled
+                ? "border-primary/40 bg-brand-tint"
+                : "border-dashed border-border bg-card",
+            )}
+          >
+            <span className="text-[11px] font-bold tracking-wide text-muted-foreground uppercase">
+              {slot.label}
+            </span>
+            <motion.span
+              key={slot.value}
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              className={cn(
+                "truncate text-sm font-bold",
+                slot.filled ? "text-foreground" : "text-muted-foreground",
+              )}
+            >
+              {slot.value}
+            </motion.span>
+          </div>
+        ))}
       </section>
 
-      <div className="ping-studio-layout">
-        <section className="studio-form">
-          <div className="studio-location">
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(360px,420px)]">
+        {/* Form */}
+        <div className="grid gap-4">
+          <div className="flex items-center justify-between gap-3 rounded-3xl border border-border bg-card p-4 shadow-soft">
             <div>
-              <span>Starting point</span>
-              <strong>{originName}</strong>
+              <span className="text-xs font-semibold text-muted-foreground">
+                Starting point
+              </span>
+              <div className="font-bold text-foreground">{originName}</div>
             </div>
-            <button
-              type="button"
-              className="soft-location-btn"
+            <Button
+              variant="secondary"
+              size="sm"
               onClick={requestLocation}
               disabled={locationState === "requesting"}
+              iconLeft={<Icon name="location" size={15} />}
             >
-              <Icon name="location" size={15} />
               {locationState === "requesting" ? "Finding" : "Use location"}
-            </button>
+            </Button>
           </div>
 
           {(locationState === "denied" || locationState === "unsupported") && (
-            <p className="studio-note">
-              Location is not available, so Lattice is previewing from the downtown San Antonio demo origin.
+            <p className="rounded-2xl border border-border bg-card p-3.5 text-sm text-muted-foreground">
+              Location is not available, so Lattice is previewing from the
+              downtown San Antonio demo origin.
             </p>
           )}
 
@@ -361,11 +401,16 @@ export function CreatePingPage() {
             {category ? (
               <NeedTypeSelector category={category} value={needType} onChange={onNeedType} />
             ) : (
-              <p className="studio-empty">Choose a category to unlock more specific needs.</p>
+              <p className="text-sm text-muted-foreground">
+                Choose a category to unlock more specific needs.
+              </p>
             )}
           </StudioSection>
 
-          <StudioSection title="Budget and distance" error={errorFor("budget") ?? errorFor("distance")}>
+          <StudioSection
+            title="Budget and distance"
+            error={errorFor("budget") ?? errorFor("distance")}
+          >
             {needType ? (
               <BudgetSelector
                 needType={needType}
@@ -377,9 +422,15 @@ export function CreatePingPage() {
                 }}
               />
             ) : (
-              <p className="studio-empty">Choose a need first.</p>
+              <p className="text-sm text-muted-foreground">Choose a need first.</p>
             )}
-            <DistanceSelector value={distanceKm} onChange={setDistanceKm} originName={originName} />
+            <div className="mt-4">
+              <DistanceSelector
+                value={distanceKm}
+                onChange={setDistanceKm}
+                originName={originName}
+              />
+            </div>
           </StudioSection>
 
           <StudioSection title="When?" error={errorFor("time")}>
@@ -388,99 +439,154 @@ export function CreatePingPage() {
 
           <StudioSection title="Preferences">
             {category ? (
-              <PreferenceChips category={category} selected={preferences} onChange={setPreferences} />
+              <PreferenceChips
+                category={category}
+                selected={preferences}
+                onChange={setPreferences}
+              />
             ) : (
-              <p className="studio-empty">Preferences appear after category selection.</p>
+              <p className="text-sm text-muted-foreground">
+                Preferences appear after category selection.
+              </p>
             )}
           </StudioSection>
 
           <StudioSection title="Anything specific?" error={errorFor("note")}>
-            <textarea
-              className="text-input text-area"
+            <Textarea
               value={note}
               maxLength={NOTE_MAX}
               placeholder="Example: close to school, quiet table, good for three people"
               onChange={(e) => setNote(e.target.value)}
               aria-label="Optional note"
             />
-            <div className="char-count">
+            <div className="mt-1.5 text-right text-xs text-muted-foreground">
               {note.length}/{NOTE_MAX}
             </div>
           </StudioSection>
-        </section>
+        </div>
 
-        <aside className="studio-preview">
-          <div className="studio-preview__scene">
+        {/* Preview */}
+        <aside className="grid gap-3.5 lg:sticky lg:top-24">
+          <div className="relative h-[300px] overflow-hidden rounded-3xl border border-border bg-muted">
             {selectedRow && (
               <>
                 <img
                   src={businessImageUrl(selectedRow.business)}
                   alt={`${selectedRow.business.name} preview`}
+                  className="size-full object-cover"
                 />
-                <div className="studio-preview__floating-card">
-                  <Badge tone="accent">{businessGrade(selectedRow.business)}</Badge>
-                  <h2>{selectedRow.business.name}</h2>
-                  <p>{selectedRow.offer.title}</p>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent" />
+                <div className="absolute inset-x-3 bottom-3 grid gap-1.5 rounded-2xl bg-white/90 p-4 backdrop-blur-md">
                   <div>
-                    <strong>{selectedRow.match.score}% match</strong>
-                    <span>{formatDistance(selectedRow.distance)}</span>
+                    <Badge tone="accent">{businessGrade(selectedRow.business)}</Badge>
+                  </div>
+                  <h2 className="text-lg font-bold text-foreground">
+                    {selectedRow.business.name}
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedRow.offer.title}
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <strong className="text-primary">
+                      {selectedRow.match.score}% match
+                    </strong>
+                    <span className="text-sm text-muted-foreground">
+                      {formatDistance(selectedRow.distance)}
+                    </span>
                   </div>
                 </div>
               </>
             )}
           </div>
 
-          <div className="studio-summary">
-            <span>{category ? CATEGORY_META[category].label : "Category"}</span>
-            <span>{needType ? NEED_TYPE_LABELS[needType] : "Need"}</span>
-            <span>{budgetChosen ? budgetToLabel(budget) : "Budget"}</span>
-            <span>{timeLabel ?? "Time"}</span>
-            {preferences.map((id) => (
-              <span key={id}>{PREF_LABELS.get(id) ?? id}</span>
+          <div className="flex flex-wrap gap-1.5">
+            {[
+              category ? CATEGORY_META[category].label : "Category",
+              needType ? NEED_TYPE_LABELS[needType] : "Need",
+              budgetChosen ? budgetToLabel(budget) : "Budget",
+              timeLabel ?? "Time",
+              ...preferences.map((id) => PREF_LABELS.get(id) ?? id),
+            ].map((label, i) => (
+              <span
+                key={`${label}-${i}`}
+                className="inline-flex h-7 items-center rounded-full bg-brand-tint px-2.5 text-xs font-semibold text-primary"
+              >
+                {label}
+              </span>
             ))}
           </div>
 
-          <div className="studio-matches">
-            <div className="studio-matches__head">
+          <div className="rounded-3xl border border-border bg-card p-3.5 shadow-soft">
+            <div className="mb-2 flex items-start justify-between gap-2">
               <div>
-                <span>{liveRows.length ? "Live matches" : "Nearby now"}</span>
-                <h2>{previewRows.length} businesses in range</h2>
+                <span className="text-xs font-semibold text-muted-foreground">
+                  {liveRows.length ? "Live matches" : "Nearby now"}
+                </span>
+                <h2 className="font-display text-lg font-medium">
+                  {previewRows.length} businesses in range
+                </h2>
               </div>
               <Badge tone="neutral">{originName}</Badge>
             </div>
 
-            <AnimatePresence initial={false}>
-              {previewRows.map((row, index) => (
-                <motion.button
-                  key={`${row.business.id}-${row.offer.id}`}
-                  type="button"
-                  className={`studio-match ${selectedRow?.business.id === row.business.id ? "studio-match--on" : ""}`}
-                  onMouseEnter={() => setSelectedBusinessId(row.business.id)}
-                  onFocus={() => setSelectedBusinessId(row.business.id)}
-                  onClick={() => setSelectedBusinessId(row.business.id)}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -8 }}
-                  transition={{ delay: index * 0.025, duration: 0.18 }}
-                >
-                  <img src={businessImageUrl(row.business)} alt="" />
-                  <span>
-                    <strong>{row.business.name}</strong>
-                    <small>{row.offer.title}</small>
-                  </span>
-                  <span className="studio-match__price">{formatCurrency(row.offer.price)}</span>
-                </motion.button>
-              ))}
-            </AnimatePresence>
+            <div className="grid gap-1">
+              <AnimatePresence initial={false}>
+                {previewRows.map((row, index) => (
+                  <motion.button
+                    key={`${row.business.id}-${row.offer.id}`}
+                    type="button"
+                    onMouseEnter={() => setSelectedBusinessId(row.business.id)}
+                    onFocus={() => setSelectedBusinessId(row.business.id)}
+                    onClick={() => setSelectedBusinessId(row.business.id)}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ delay: index * 0.025, duration: 0.18 }}
+                    className={cn(
+                      "grid grid-cols-[44px_minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border p-2 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring/40",
+                      selectedRow?.business.id === row.business.id
+                        ? "border-primary bg-brand-tint"
+                        : "border-transparent hover:bg-muted",
+                    )}
+                  >
+                    <img
+                      src={businessImageUrl(row.business)}
+                      alt=""
+                      className="size-11 rounded-xl object-cover"
+                    />
+                    <span className="min-w-0">
+                      <strong className="block truncate text-sm font-semibold text-foreground">
+                        {row.business.name}
+                      </strong>
+                      <small className="block truncate text-xs text-muted-foreground">
+                        {row.offer.title}
+                      </small>
+                    </span>
+                    <span className="mono font-bold text-primary">
+                      {formatCurrency(row.offer.price)}
+                    </span>
+                  </motion.button>
+                ))}
+              </AnimatePresence>
+            </div>
           </div>
 
-          {errorFor("duplicate") && <FormError message={errorFor("duplicate")} />}
+          {errorFor("duplicate") && (
+            <p className="text-sm font-medium text-destructive">
+              {errorFor("duplicate")}
+            </p>
+          )}
 
-          <Button block size="lg" disabled={!validation.valid} onClick={() => setVerifying(true)}>
+          <Button
+            block
+            size="lg"
+            disabled={!validation.valid}
+            onClick={() => setVerifying(true)}
+          >
             Find matching offers
           </Button>
           {!validation.valid && (
-            <p className="builder-preview__hint">
+            <p className="text-center text-sm text-muted-foreground">
               Complete the required fields to send this request.
             </p>
           )}

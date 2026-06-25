@@ -2,6 +2,8 @@ import { AppProvider, useApp } from "./app/providers";
 import { useHashRoute, isLanding, navigate } from "./app/navigation";
 import { getRouteElement } from "./app/routes";
 import { AppLayout } from "./components/layout/AppLayout";
+import { MotionProvider } from "@/components/motion/MotionProvider";
+import { Toaster } from "@/components/ui/sonner";
 import { isSupabaseConfigured } from "./services/supabaseClient";
 import { LoginPage } from "./pages/LoginPage";
 import { OnboardingPage } from "./pages/OnboardingPage";
@@ -64,7 +66,10 @@ function Shell() {
 export default function App() {
   return (
     <AppProvider>
-      <Shell />
+      <MotionProvider>
+        <Shell />
+        <Toaster />
+      </MotionProvider>
     </AppProvider>
   );
 }

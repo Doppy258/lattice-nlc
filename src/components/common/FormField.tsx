@@ -1,5 +1,6 @@
 import type { InputHTMLAttributes, ReactNode } from "react";
-import { FormError } from "./FormError";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 
 type Props = {
   label: string;
@@ -8,18 +9,19 @@ type Props = {
   children?: ReactNode;
 } & InputHTMLAttributes<HTMLInputElement>;
 
+/** Labeled field. Public API unchanged; composed from shadcn label + input. */
 export function FormField({ label, hint, error, children, ...inputProps }: Props) {
   const id = inputProps.id ?? inputProps.name;
   return (
-    <div className="field">
-      <label className="field__label" htmlFor={id}>
-        {label}
-      </label>
-      {children ?? (
-        <input className="text-input" id={id} {...inputProps} />
+    <div className="flex flex-col gap-2">
+      <Label htmlFor={id}>{label}</Label>
+      {children ?? <Input id={id} aria-invalid={!!error} {...inputProps} />}
+      {hint && !error && (
+        <span className="text-xs text-muted-foreground">{hint}</span>
       )}
-      {hint && !error && <span className="field__hint">{hint}</span>}
-      {error && <FormError message={error} />}
+      {error && (
+        <span className="text-xs font-medium text-destructive">{error}</span>
+      )}
     </div>
   );
 }

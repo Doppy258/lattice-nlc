@@ -1,4 +1,6 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react";
+import { Button as UIButton } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 type Variant = "primary" | "secondary" | "ghost" | "danger";
 type Size = "sm" | "md" | "lg";
@@ -11,43 +13,36 @@ type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
   iconRight?: ReactNode;
 };
 
+const variantMap = {
+  primary: "default",
+  secondary: "secondary",
+  ghost: "ghost",
+  danger: "destructive",
+} as const;
+
+const sizeMap = { sm: "sm", md: "default", lg: "lg" } as const;
+
+/** App button. Public API unchanged; now rendered on the shadcn button primitive. */
 export function Button({
   variant = "primary",
   size = "md",
   block = false,
   iconLeft,
   iconRight,
-  className = "",
+  className,
   children,
   ...rest
 }: Props) {
-  const base =
-    "btn inline-flex items-center justify-center gap-2 rounded-full border text-sm font-bold transition disabled:pointer-events-none disabled:opacity-45";
-  const variants: Record<Variant, string> = {
-    primary: "btn--primary border-accent bg-accent text-white",
-    secondary: "btn--secondary border-blue-200 bg-white text-accent",
-    ghost: "btn--ghost border-transparent bg-transparent text-accent",
-    danger: "btn--danger border-red-200 bg-white text-red-600",
-  };
-  const sizes: Record<Size, string> = {
-    sm: "btn--sm min-h-9 px-3 text-[13px]",
-    md: "min-h-11 px-5",
-    lg: "btn--lg min-h-13 px-6 text-base",
-  };
-  const classes = [
-    base,
-    variants[variant],
-    sizes[size],
-    block ? "btn--block w-full" : "",
-    className,
-  ]
-    .filter(Boolean)
-    .join(" ");
   return (
-    <button className={classes} {...rest}>
+    <UIButton
+      variant={variantMap[variant]}
+      size={sizeMap[size]}
+      className={cn(block && "w-full", className)}
+      {...rest}
+    >
       {iconLeft}
       {children}
       {iconRight}
-    </button>
+    </UIButton>
   );
 }

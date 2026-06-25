@@ -1,6 +1,10 @@
-import { useEffect, type ReactNode } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { Icon } from "./Icon";
+import type { ReactNode } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 type Props = {
   open: boolean;
@@ -10,54 +14,29 @@ type Props = {
   footer?: ReactNode;
 };
 
-const spring = { type: "spring" as const, stiffness: 100, damping: 20 };
-
+/**
+ * App modal. Public API unchanged; now built on the Radix dialog primitive,
+ * so focus-trap, scroll-lock, and Escape-to-close come for free.
+ */
 export function Modal({ open, title, onClose, children, footer }: Props) {
-  const reduced = useReducedMotion();
-
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [open, onClose]);
-
   return (
-    <AnimatePresence>
-      {open && (
-        <motion.div
-          className="modal-overlay"
-          onMouseDown={onClose}
-          role="presentation"
-          initial={reduced ? false : { opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
-        >
-          <motion.div
-            className="modal"
-            role="dialog"
-            aria-modal="true"
-            aria-label={title}
-            onMouseDown={(e) => e.stopPropagation()}
-            initial={reduced ? false : { opacity: 0, y: 16, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 12, scale: 0.98 }}
-            transition={spring}
-          >
-            <div className="modal__header">
-              <h2 className="modal__title">{title}</h2>
-              <button className="modal__close" onClick={onClose} aria-label="Close dialog">
-                <Icon name="close" size={16} />
-              </button>
-            </div>
-            {children}
-            {footer && <div style={{ marginTop: "var(--space-5)" }}>{footer}</div>}
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        if (!next) onClose();
+      }}
+    >
+      <DialogContent aria-describedby={undefined}>
+        <DialogHeader>
+          <DialogTitle className="font-display text-[26px] font-medium tracking-[-0.01em]">
+            {title}
+          </DialogTitle>
+        </DialogHeader>
+        <div>{children}</div>
+        {footer && (
+          <div className="mt-1 flex flex-wrap justify-end gap-2">{footer}</div>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }

@@ -1,5 +1,6 @@
 import { Icon } from "../common/Icon";
 import { DISTANCE_OPTIONS_KM } from "../../data/catalog";
+import { chipClass } from "./chip";
 
 type Props = {
   value?: number;
@@ -11,7 +12,7 @@ type Props = {
 export function DistanceSelector({ value, onChange, originName }: Props) {
   return (
     <div>
-      <div className="chip-select" role="radiogroup" aria-label="Distance">
+      <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Distance">
         {DISTANCE_OPTIONS_KM.map((km) => {
           const selected = value === km;
           return (
@@ -20,7 +21,7 @@ export function DistanceSelector({ value, onChange, originName }: Props) {
               type="button"
               role="radio"
               aria-checked={selected}
-              className={`chip ${selected ? "chip--on" : ""}`}
+              className={chipClass(selected)}
               onClick={() => onChange(km)}
             >
               Within {km} km
@@ -28,7 +29,7 @@ export function DistanceSelector({ value, onChange, originName }: Props) {
           );
         })}
       </div>
-      <p className="field__hint">
+      <p className="mt-2.5 inline-flex items-center gap-1.5 text-xs text-muted-foreground">
         <Icon name="location" size={13} /> Measured from {originName}
       </p>
     </div>

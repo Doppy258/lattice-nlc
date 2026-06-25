@@ -1,5 +1,6 @@
 import type { BusinessCategory, NeedType } from "../../models";
 import { NEED_TYPES_BY_CATEGORY, NEED_TYPE_LABELS } from "../../data/catalog";
+import { chipClass } from "./chip";
 
 type Props = {
   category: BusinessCategory;
@@ -11,7 +12,7 @@ type Props = {
 export function NeedTypeSelector({ category, value, onChange }: Props) {
   const options = NEED_TYPES_BY_CATEGORY[category];
   return (
-    <div className="chip-select" role="radiogroup" aria-label="Need type">
+    <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Need type">
       {options.map((needType) => {
         const selected = value === needType;
         return (
@@ -20,7 +21,7 @@ export function NeedTypeSelector({ category, value, onChange }: Props) {
             type="button"
             role="radio"
             aria-checked={selected}
-            className={`chip ${selected ? "chip--on" : ""}`}
+            className={chipClass(selected)}
             onClick={() => onChange(needType)}
           >
             {NEED_TYPE_LABELS[needType]}

@@ -5,6 +5,9 @@ import {
   timeWindowForPreset,
   type TimeWindowPresetId,
 } from "../../utils/timeWindows";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { chipClass } from "./chip";
 
 export type TimeWindowValue = {
   presetId?: TimeWindowPresetId;
@@ -49,7 +52,7 @@ export function TimeWindowSelector({ value, onChange }: Props) {
 
   return (
     <div>
-      <div className="chip-select" role="radiogroup" aria-label="Time window">
+      <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Time window">
         {TIME_WINDOW_PRESETS.map((preset) => {
           const selected = value.presetId === preset.id;
           return (
@@ -58,7 +61,7 @@ export function TimeWindowSelector({ value, onChange }: Props) {
               type="button"
               role="radio"
               aria-checked={selected}
-              className={`chip ${selected ? "chip--on" : ""}`}
+              className={chipClass(selected)}
               onClick={() => choosePreset(preset.id)}
             >
               {preset.label}
@@ -68,34 +71,31 @@ export function TimeWindowSelector({ value, onChange }: Props) {
       </div>
 
       {value.presetId === "custom" && (
-        <div className="time-custom">
-          <label className="field">
-            <span className="field__label">Date</span>
-            <input
+        <div className="mt-3 grid gap-3 sm:grid-cols-3">
+          <div className="flex flex-col gap-1.5">
+            <Label>Date</Label>
+            <Input
               type="date"
-              className="text-input"
               value={date}
               onChange={(e) => updateCustom({ date: e.target.value })}
             />
-          </label>
-          <label className="field">
-            <span className="field__label">Start</span>
-            <input
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Label>Start</Label>
+            <Input
               type="time"
-              className="text-input"
               value={start}
               onChange={(e) => updateCustom({ start: e.target.value })}
             />
-          </label>
-          <label className="field">
-            <span className="field__label">End</span>
-            <input
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Label>End</Label>
+            <Input
               type="time"
-              className="text-input"
               value={end}
               onChange={(e) => updateCustom({ end: e.target.value })}
             />
-          </label>
+          </div>
         </div>
       )}
     </div>

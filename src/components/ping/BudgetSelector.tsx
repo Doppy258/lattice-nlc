@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { NeedType } from "../../models";
 import { budgetPresetsFor } from "../../data/catalog";
+import { chipClass } from "./chip";
 
 type Budget = { budgetMin?: number; budgetMax?: number };
 
@@ -17,7 +18,6 @@ export function BudgetSelector({ needType, budgetMin, budgetMax, onChange }: Pro
   const [custom, setCustom] = useState(false);
   const [customValue, setCustomValue] = useState("");
 
-  // Reset to preset mode whenever the need type (and thus the presets) changes.
   useEffect(() => {
     setCustom(false);
     setCustomValue("");
@@ -36,13 +36,13 @@ export function BudgetSelector({ needType, budgetMin, budgetMax, onChange }: Pro
   };
 
   return (
-    <div className="chip-select" role="group" aria-label="Budget">
+    <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Budget">
       {presets.map((preset) => (
         <button
           key={preset.label}
           type="button"
           aria-pressed={isPresetSelected(preset)}
-          className={`chip ${isPresetSelected(preset) ? "chip--on" : ""}`}
+          className={chipClass(isPresetSelected(preset))}
           onClick={() => {
             setCustom(false);
             onChange({ budgetMin: preset.min, budgetMax: preset.max });
@@ -54,7 +54,7 @@ export function BudgetSelector({ needType, budgetMin, budgetMax, onChange }: Pro
       <button
         type="button"
         aria-pressed={custom}
-        className={`chip ${custom ? "chip--on" : ""}`}
+        className={chipClass(custom)}
         onClick={() => {
           setCustom(true);
           applyCustom(customValue);
@@ -64,13 +64,13 @@ export function BudgetSelector({ needType, budgetMin, budgetMax, onChange }: Pro
       </button>
 
       {custom && (
-        <label className="budget-custom">
-          <span className="budget-custom__prefix">Up to $</span>
+        <label className="inline-flex h-10 items-center gap-1.5 rounded-full border border-input bg-card pr-1.5 pl-3.5 text-sm focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/30">
+          <span className="text-muted-foreground">Up to $</span>
           <input
             type="number"
             min={0}
             inputMode="decimal"
-            className="budget-custom__input"
+            className="w-16 bg-transparent text-foreground outline-none"
             value={customValue}
             placeholder="20"
             onChange={(e) => applyCustom(e.target.value)}

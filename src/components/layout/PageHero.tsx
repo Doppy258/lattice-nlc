@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { cn } from "@/lib/utils";
 
 type Variant = "split" | "command" | "compact";
 
@@ -11,6 +12,18 @@ type Props = {
   actions?: ReactNode;
 };
 
+function Kicker({ children }: { children: ReactNode }) {
+  return (
+    <span className="inline-flex items-center gap-2 text-sm font-semibold text-primary">
+      <span className="relative flex size-1.5">
+        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary/60" />
+        <span className="relative inline-flex size-1.5 rounded-full bg-primary" />
+      </span>
+      {children}
+    </span>
+  );
+}
+
 export function PageHero({
   variant = "split",
   kicker,
@@ -19,30 +32,36 @@ export function PageHero({
   aside,
   actions,
 }: Props) {
-  if (variant === "compact") {
-    return (
-      <header className="page-hero page-hero--compact">
-        <div>
-          {kicker && <span className="kicker">{kicker}</span>}
-          <h1 className="page-hero__title" style={{ fontSize: "var(--text-2xl)", marginTop: kicker ? "var(--space-2)" : 0 }}>
-            {title}
-          </h1>
-          {subtitle && <p className="page-hero__subtitle" style={{ fontSize: "var(--text-sm)", marginTop: "var(--space-1)" }}>{subtitle}</p>}
-        </div>
-        {actions && <div className="row">{actions}</div>}
-      </header>
-    );
-  }
+  const titleSize =
+    variant === "command"
+      ? "text-[2.4rem] leading-[1.02] sm:text-5xl lg:text-[3.5rem]"
+      : variant === "compact"
+        ? "text-2xl sm:text-[1.75rem]"
+        : "text-[2rem] leading-[1.05] sm:text-4xl lg:text-[2.85rem]";
 
   return (
-    <header className={`page-hero page-hero--${variant}`}>
-      <div>
-        {kicker && <span className="kicker">{kicker}</span>}
-        <h1 className="page-hero__title">{title}</h1>
-        {subtitle && <p className="page-hero__subtitle">{subtitle}</p>}
-        {actions && <div className="row" style={{ marginTop: "var(--space-4)" }}>{actions}</div>}
+    <header className="mb-7 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+      <div className="max-w-2xl">
+        {kicker && <Kicker>{kicker}</Kicker>}
+        <h1
+          className={cn(
+            "font-display font-medium tracking-[-0.02em] text-balance text-foreground",
+            kicker ? "mt-2.5" : "",
+            titleSize,
+          )}
+        >
+          {title}
+        </h1>
+        {subtitle && (
+          <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-muted-foreground sm:text-base">
+            {subtitle}
+          </p>
+        )}
+        {actions && (
+          <div className="mt-5 flex flex-wrap items-center gap-2.5">{actions}</div>
+        )}
       </div>
-      {aside && <div className="page-hero__aside">{aside}</div>}
+      {aside && <div className="shrink-0">{aside}</div>}
     </header>
   );
 }
