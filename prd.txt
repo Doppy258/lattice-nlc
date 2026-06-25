@@ -1,16 +1,16 @@
-PRD: Ping
+PRD: Lattice
 1. Product Overview
 Product Name
-Ping
+Lattice
 One-Line Description
-Ping helps users find local offers by creating structured requests, then matching them with nearby small
+Lattice helps users find local offers by creating structured requests, then matching them with nearby small
 businesses that fit their budget, timing, distance, and preferences.
 Core Concept
-Users do not scroll endlessly through local business listings. They create a structured “Ping” describing what
+Users do not scroll endlessly through local business listings. They create a structured “Lattice” describing what
 they need, and the app matches them with relevant local business offers.
 Example:
 “I need lunch after school, under $15, within 3 km, open between 3:30 PM and 5:00 PM.”
-Ping returns ranked local business offers, explains why each offer matched, lets users claim/save offers,
+Lattice returns ranked local business offers, explains why each offer matched, lets users claim/save offers,
 verifies redemption, then unlocks reviews and personal ranking.
 Competition Goal
 Build a standalone application for the FBLA Coding & Programming event that demonstrates strong
@@ -27,7 +27,7 @@ Small local businesses struggle to reach nearby customers at the exact moment th
 to buy. They may have slow hours, unused appointments, expiring inventory, or student discounts that
 customers never discover.
 Product Opportunity
-Ping creates a two-sided local discovery tool:
+Lattice creates a two-sided local discovery tool:
 1.
 2.
 3.
@@ -114,10 +114,10 @@ See data storage and reports
 See clear UX rationale
 4. Product Positioning
 Positioning Statement
-Ping is a local offer-matching app that helps users discover and support small businesses by turning specific
+Lattice is a local offer-matching app that helps users discover and support small businesses by turning specific
 user needs into verified, claimable local offers.
-What Makes Ping Different
-Most business discovery tools are built around browsing listings. Ping is built around structured demand.
+What Makes Lattice Different
+Most business discovery tools are built around browsing listings. Lattice is built around structured demand.
 The user does not start with:
 “Show me all restaurants near me.”
 The user starts with:
@@ -125,10 +125,10 @@ The user starts with:
 “I need lunch under $15 after school.”
 The product then matches that need with real local offers.
 Main User Benefit
-Ping saves users time and money by turning a specific need into a short ranked list of local offers they can
+Lattice saves users time and money by turning a specific need into a short ranked list of local offers they can
 claim immediately.
 Main Business Benefit
-Ping helps small businesses reach customers with timely offers and gives them analytics on views, claims,
+Lattice helps small businesses reach customers with timely offers and gives them analytics on views, claims,
 redemptions, reviews, and customer interest.
 5. Product Principles
 1. Structured, Not Chaotic
@@ -179,7 +179,7 @@ Product Metrics
 •
 •
 •
-User can create a valid Ping request in under 60 seconds.
+User can create a valid Lattice request in under 60 seconds.
 User can claim an offer in under 3 clicks after viewing matches.
 Business can create an offer in under 90 seconds.
 Reports update after claims, redemptions, and reviews.
@@ -231,7 +231,7 @@ Must-Have Features
 22.
 User login/mock profile selector
 Home dashboard
-Structured Ping request builder
+Structured Lattice request builder
 Semantic input validation
 OfferRank intelligent matching engine
 Matched offers results page
@@ -414,7 +414,7 @@ Dashboard supports filtering by offer/date.
 9. Information Architecture
 Main User Navigation
 Use a left sidebar on desktop and bottom tab bar on mobile.
-Pages: 1. Home 2. Create Ping 3. Matches 4. Explore 5. Saved 6. Claims 7. Rankings 8. Reports 9. Help
+Pages: 1. Home 2. Create Lattice 3. Matches 4. Explore 5. Saved 6. Claims 7. Rankings 8. Reports 9. Help
 Business Navigation
 Pages: 1. Business Dashboard 2. Create Offer 3. Offers 4. Redeem Claim 5. Reviews 6. Analytics 7. Business
 Profile
@@ -424,7 +424,7 @@ Pages: 1. Demo Controls 2. Reset Data 3. Seed Data Viewer
 10. Full User UI Specification
 10.1 Home Page
 Purpose
-Give the user an immediate action: create a Ping or browse active offers.
+Give the user an immediate action: create a Lattice or browse active offers.
 Layout
 Top section:
 •
@@ -433,7 +433,7 @@ Top section:
 •
 Greeting
 Location context
-Main CTA: “Create a Ping”
+Main CTA: “Create a Lattice”
 Secondary CTA: “Browse Offers”
 Cards:
 •
@@ -452,11 +452,11 @@ What do you need nearby?
 Subtext:
 Match with local businesses based on your budget, timing, distance, and preferences.
 Main button:
-Create a Ping
+Create a Lattice
 Secondary button:
 Explore Businesses
 10
-10.2 Create Ping Page
+10.2 Create Lattice Page
 Purpose
 Let users create a structured local request.
 Design Style
@@ -713,7 +713,7 @@ Optional
 Live Preview Card
 Example:
 Title:
-Your Ping
+Your Lattice
 Body:
 Lunch after school
 Under $15
@@ -765,7 +765,7 @@ existing deals.
 Time invalid:
 End time must be after start time.
 Duplicate request:
-You already created a similar Ping recently. Try editing that request or wait before creating
+You already created a similar Lattice recently. Try editing that request or wait before creating
 another.
 16
 10.3 Verification Step
@@ -933,7 +933,7 @@ Redemption instructions
 Button to add to active claims
 Button to view business
 Example:
-Claim code: PING-8421
+Claim code: Lattice-8421
 Show this code at FreshBowl Cafe before 5:00 PM.
 Claim Statuses
 •
@@ -1248,7 +1248,7 @@ Business rating
 Category
 25
 Empty state:
-You have not saved anything yet. Explore local businesses or create a Ping to find offers.
+You have not saved anything yet. Explore local businesses or create a Lattice to find offers.
 10.12 User Reports Page
 Purpose
 Show customizable user data analysis.
@@ -1437,7 +1437,7 @@ Validation:
 •
 •
 •
-Code format must match PING-####.
+Code format must match Lattice-####.
 Claim must exist.
 Claim must belong to business offer.
 Claim must be active.
@@ -1591,7 +1591,7 @@ verificationRequired: boolean;
 active: boolean;
 createdAt: string;
 };
-PingRequest
+LatticeRequest
 export type NeedType =
 | "lunch"
 | "cafeStudySpot"
@@ -1613,7 +1613,7 @@ export type NeedType =
 | "escapeRoom"
 | "localEvent"
 | "groupHangout";
-export type PingRequest = {
+export type LatticeRequest = {
 id: string;
 userId: string;
 category: BusinessCategory;
@@ -1701,7 +1701,7 @@ updatedAt: string;
 13. Algorithms and Logic
 13.1 OfferRank Matching Algorithm
 Purpose
-Rank offers by how well they fit a Ping request.
+Rank offers by how well they fit a Lattice request.
 Formula
 Score =
 0.25 times category score
@@ -1838,10 +1838,10 @@ Haircuts usually require a higher budget. Try $20 to $30 or browse existing deal
 13.3 Claim Code Generation
 Format:
 •
-PING-####
+Lattice-####
 Example:
 •
-PING-8421
+Lattice-8421
 Rules:
 •
 •
@@ -1960,7 +1960,7 @@ models/
 User.ts
 Business.ts
 Offer.ts
-PingRequest.ts
+LatticeRequest.ts
 Claim.ts
 Review.ts
 Ranking.ts
@@ -2004,7 +2004,7 @@ Modal.tsx
 EmptyState.tsx
 HelpTooltip.tsx
 FormError.tsx
-ping/
+Lattice/
 CategorySelector.tsx
 NeedTypeSelector.tsx
 BudgetSelector.tsx
@@ -2031,7 +2031,7 @@ RatingDistributionChart.tsx
 ReportFilters.tsx
 pages/
 HomePage.tsx
-CreatePingPage.tsx
+CreateLatticePage.tsx
 43
 MatchesPage.tsx
 ExplorePage.tsx
@@ -2059,7 +2059,7 @@ Functions:
 •
 •
 •
-validatePingRequest(request)
+validateLatticeRequest(request)
 validateBudgetForNeedType(needType, budgetMax)
 validateTimeWindow(start, end)
 validateOptionalNote(note)
@@ -2361,7 +2361,7 @@ Reduced motion option if animations exist
 Accessible names for buttons
 19. Error and Empty States
 Invalid Request
-This Ping needs a valid budget, distance, and time window before we can match offers.
+This Lattice needs a valid budget, distance, and time window before we can match offers.
 Low Budget
 Your budget is below the typical minimum for this request type. Try a higher range or browse
 existing deals.
@@ -2403,12 +2403,12 @@ Demo Flow
 17.
 18.
 19.
-Introduce Ping and problem.
+Introduce Lattice and problem.
 Show home page.
-Create a Ping for lunch under $15 within 3 km after school.
+Create a Lattice for lunch under $15 within 3 km after school.
 Show structured inputs and live preview.
 Try invalid budget for haircut to demonstrate semantic validation.
-Submit valid Ping.
+Submit valid Lattice.
 Complete mock verification.
 Show OfferRank results.
 Explain match score and reasons.
@@ -2465,7 +2465,7 @@ Acceptance criteria:
 •
 •
 User journey is easy to explain.
-Create Ping flow has clear steps.
+Create Lattice flow has clear steps.
 Interface has consistent layout.
 Help tooltips exist.
 Accessibility features are present.
@@ -2525,7 +2525,7 @@ Why did you choose this idea?
 Because the prompt asks us to help users discover and support small local businesses. We wanted to go
 beyond a static directory and create a tool that matches real customer needs with timely local offers.
 How is this different from Google Maps?
-Google Maps is built around searching for places. Ping is built around structured local requests and offer
+Google Maps is built around searching for places. Lattice is built around structured local requests and offer
 matching. Users describe what they need, and the app ranks claimable offers based on fit, budget, distance,
 timing, ratings, and preferences.
 What is the intelligent feature?
@@ -2590,7 +2590,7 @@ Phase 3: User App
 9.
 10.
 Home page.
-Create Ping page.
+Create Lattice page.
 Verification modal.
 Matches page.
 Offer cards.
@@ -2639,7 +2639,7 @@ Final QA.
 24. Final MVP Checklist
 Before submission, the app must support:
 •
-Create structured Ping request
+Create structured Lattice request
 55
 •
 •
@@ -2690,7 +2690,7 @@ Clean visual design
 Help/instructions available
 Accessibility basics included
 25. Final Product Summary
-Ping is a structured local offer-matching app for small businesses. Users create a specific request, the app
+Lattice is a structured local offer-matching app for small businesses. Users create a specific request, the app
 validates it, ranks local offers using OfferRank, allows users to claim verified offers, and turns redemptions
 into trusted reviews, personal rankings, and reports. Businesses can publish offers, redeem claim codes,
 and analyze customer engagement.
