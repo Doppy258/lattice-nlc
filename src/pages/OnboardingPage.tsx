@@ -2,10 +2,13 @@ import { useState, type FormEvent } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 import { useApp } from "../app/providers";
 import { navigate } from "../app/navigation";
-import { Button } from "../components/common/Button";
-import { Icon } from "../components/common/Icon";
+import { Button } from "@/components/common/Button";
+import { Icon } from "@/components/common/Icon";
+import { BrandLockup } from "@/components/layout/LatticeMark";
+import { AuthError, AuthShell } from "./authShared";
 import { ALL_CATEGORIES, CATEGORY_META, DEMO_ORIGINS } from "../data/catalog";
 import type { BusinessCategory } from "../models";
+import { cn } from "@/lib/utils";
 
 const STEPS = ["Your interests", "Your location", "Preferences"];
 
@@ -22,17 +25,15 @@ export function OnboardingPage() {
   const [error, setError] = useState("");
 
   const toggleCategory = (cat: BusinessCategory) => {
-    setCategories((prev) =>
-      prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
-    );
+    setCategories((prev) => (prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]));
   };
 
   const canAdvance = () => {
     switch (step) {
-      case 0: return categories.length > 0;
-      case 1: return true;
-      case 2: return true;
-      default: return false;
+      case 0:
+        return categories.length > 0;
+      default:
+        return true;
     }
   };
 
@@ -63,83 +64,92 @@ export function OnboardingPage() {
     navigate("/home");
   };
 
-  const anim = (reduced ? {} : slideUp);
+  const anim = reduced ? {} : slideUp;
 
   return (
-    <div className="onboarding-page">
-      <div className="onboarding-card">
-        <div className="onboarding-card__hero">
-          <div className="onboarding-card__brand">
-            <div className="onboarding-card__logo">
-              <svg width="24" height="24" viewBox="0 0 28 28" fill="none" aria-hidden="true">
-                <rect x="2" y="2" width="24" height="24" rx="8" fill="white" />
-                <path d="M8 14h12M14 8v12" stroke="#0066cc" strokeWidth="2.2" strokeLinecap="round" />
-              </svg>
-            </div>
-            <div>
-              <h1 className="onboarding-card__title">Welcome to Lattice</h1>
-              <p className="onboarding-card__subtitle">
-                {activeUser.name}, let's get you set up
-              </p>
-            </div>
-          </div>
-        </div>
+    <AuthShell wide>
+      <div className="flex items-center gap-3">
+        <BrandLockup size={38} />
+      </div>
+      <h1 className="mt-5 font-display text-[26px] font-semibold tracking-[-0.035em]">
+        Welcome to <span className="font-accent font-normal text-primary">Lattice</span>
+      </h1>
+      <p className="mt-1 text-[14px] text-muted-foreground">
+        {activeUser.name}, let's tune Lattice to what you need.
+      </p>
 
-        {/* Steps */}
-        <div className="onboarding-steps">
-          {STEPS.map((label, i) => (
-            <div
-              key={label}
-              className={`onboarding-step ${i === step ? "onboarding-step--active" : ""} ${i < step ? "onboarding-step--done" : ""}`}
-            >
-              <span className="onboarding-step__dot">
-                {i < step ? <Icon name="check" size={12} /> : i + 1}
+      {/* Step indicator */}
+      <div className="mt-6 flex items-center gap-2">
+        {STEPS.map((label, i) => {
+          const active = i === step;
+          const done = i < step;
+          return (
+            <div key={label} className="flex flex-1 items-center gap-2">
+              <span
+                className={cn(
+                  "grid size-7 shrink-0 place-items-center rounded-full text-[12px] font-semibold transition-colors",
+                  done
+                    ? "bg-primary text-white"
+                    : active
+                      ? "bg-[var(--brand-tint)] text-[var(--primary-strong)] ring-2 ring-primary/30"
+                      : "bg-muted text-muted-foreground",
+                )}
+              >
+                {done ? <Icon name="check" size={13} /> : i + 1}
               </span>
-              <span className="onboarding-step__label">{label}</span>
-              {i < STEPS.length - 1 && <span className="onboarding-step__connector" />}
+              <span className={cn("hidden text-[13px] font-medium sm:block", active ? "text-foreground" : "text-muted-foreground")}>
+                {label}
+              </span>
+              {i < STEPS.length - 1 && <span className="h-px flex-1 bg-border" />}
             </div>
-          ))}
+          );
+        })}
+      </div>
+
+      {error && (
+        <div className="mt-5">
+          <AuthError message={error} />
         </div>
+      )}
 
-        {error && (
-          <div className="auth-error" style={{ marginBottom: "var(--space-4)" }}>
-            <Icon name="alert" size={15} />
-            <span>{error}</span>
-          </div>
-        )}
-
-        {/* Step 0: Categories */}
+      <div className="mt-5 min-h-[230px]">
         <AnimatePresence mode="wait">
           {step === 0 && (
             <motion.div key="step-0" {...anim} transition={spring}>
-              <p className="onboarding-card__hint">Pick the types of businesses you're most interested in.</p>
-              <div className="onboarding-categories">
+              <p className="mb-3 text-[14px] text-muted-foreground">
+                Pick the kinds of businesses you're most interested in.
+              </p>
+              <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
                 {ALL_CATEGORIES.map((cat) => {
                   const meta = CATEGORY_META[cat];
                   const selected = categories.includes(cat);
                   return (
                     <motion.button
                       key={cat}
-                      className={`onboarding-cat ${selected ? "onboarding-cat--on" : ""}`}
-                      onClick={() => toggleCategory(cat)}
                       type="button"
+                      onClick={() => toggleCategory(cat)}
                       whileTap={reduced ? undefined : { scale: 0.97 }}
-                      layout
+                      className={cn(
+                        "relative flex cursor-pointer flex-col items-start gap-1.5 rounded-2xl border p-3.5 text-left transition-colors",
+                        selected
+                          ? "border-primary/40 bg-[var(--tint-blue)] ring-1 ring-inset ring-primary/20"
+                          : "border-border bg-card hover:border-[var(--input)]",
+                      )}
                     >
-                      <span className="onboarding-cat__icon">
-                        <Icon name={meta.icon as any} size={20} />
+                      <span
+                        className={cn(
+                          "grid size-9 place-items-center rounded-xl",
+                          selected ? "bg-primary text-white" : "bg-accent text-primary",
+                        )}
+                      >
+                        <Icon name={meta.icon as never} size={18} />
                       </span>
-                      <span className="onboarding-cat__label">{meta.label}</span>
-                      <span className="onboarding-cat__desc">{meta.description}</span>
+                      <span className="text-[14px] font-semibold tracking-[-0.01em]">{meta.label}</span>
+                      <span className="text-[11px] leading-snug text-muted-foreground">{meta.description}</span>
                       {selected && (
-                        <motion.span
-                          className="onboarding-cat__check"
-                          initial={reduced ? false : { scale: 0, opacity: 0 }}
-                          animate={{ scale: 1, opacity: 1 }}
-                          transition={{ type: "spring", stiffness: 200, damping: 14 }}
-                        >
-                          <Icon name="check" size={14} />
-                        </motion.span>
+                        <span className="absolute right-2.5 top-2.5 grid size-5 place-items-center rounded-full bg-primary text-white">
+                          <Icon name="check" size={12} />
+                        </span>
                       )}
                     </motion.button>
                   );
@@ -148,93 +158,90 @@ export function OnboardingPage() {
             </motion.div>
           )}
 
-          {/* Step 1: Location */}
           {step === 1 && (
             <motion.div key="step-1" {...anim} transition={spring}>
-              <p className="onboarding-card__hint">Where are you usually looking from?</p>
-              <div className="onboarding-locations">
-                {DEMO_ORIGINS.map((origin) => (
-                  <motion.button
-                    key={origin.id}
-                    className={`onboarding-loc ${locationId === origin.id ? "onboarding-loc--on" : ""}`}
-                    onClick={() => setLocationId(origin.id)}
-                    type="button"
-                    whileTap={reduced ? undefined : { scale: 0.97 }}
-                  >
-                    <span className="onboarding-loc__icon">
-                      <Icon name="location" size={18} />
-                    </span>
-                    <span className="onboarding-loc__name">{origin.name}</span>
-                    {locationId === origin.id && (
-                      <motion.span
-                        className="onboarding-loc__check"
-                        initial={reduced ? false : { scale: 0, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        transition={{ type: "spring", stiffness: 200, damping: 14 }}
-                      >
-                        <Icon name="check" size={14} />
-                      </motion.span>
-                    )}
-                  </motion.button>
-                ))}
+              <p className="mb-3 text-[14px] text-muted-foreground">Where are you usually searching from?</p>
+              <div className="space-y-2.5">
+                {DEMO_ORIGINS.map((origin) => {
+                  const selected = locationId === origin.id;
+                  return (
+                    <motion.button
+                      key={origin.id}
+                      type="button"
+                      onClick={() => setLocationId(origin.id)}
+                      whileTap={reduced ? undefined : { scale: 0.99 }}
+                      className={cn(
+                        "flex w-full cursor-pointer items-center gap-3 rounded-2xl border p-4 text-left transition-colors",
+                        selected
+                          ? "border-primary/40 bg-[var(--tint-blue)] ring-1 ring-inset ring-primary/20"
+                          : "border-border bg-card hover:border-[var(--input)]",
+                      )}
+                    >
+                      <span className={cn("grid size-10 place-items-center rounded-xl", selected ? "bg-primary text-white" : "bg-accent text-primary")}>
+                        <Icon name="location" size={18} />
+                      </span>
+                      <span className="flex-1 text-[15px] font-semibold">{origin.name}</span>
+                      {selected && <Icon name="check" size={18} className="text-primary" />}
+                    </motion.button>
+                  );
+                })}
               </div>
             </motion.div>
           )}
 
-          {/* Step 2: Preferences */}
           {step === 2 && (
             <motion.div key="step-2" {...anim} transition={spring}>
-              <p className="onboarding-card__hint">Any extra preferences? You can always change these later.</p>
-              <div className="onboarding-prefs">
-                <motion.label
-                  className={`onboarding-pref ${studentDiscount ? "onboarding-pref--on" : ""}`}
-                  whileTap={reduced ? undefined : { scale: 0.98 }}
+              <p className="mb-3 text-[14px] text-muted-foreground">Any extra preferences? You can change these anytime.</p>
+              <motion.label
+                whileTap={reduced ? undefined : { scale: 0.99 }}
+                className={cn(
+                  "flex cursor-pointer items-center gap-3 rounded-2xl border p-4 transition-colors",
+                  studentDiscount
+                    ? "border-primary/40 bg-[var(--tint-blue)] ring-1 ring-inset ring-primary/20"
+                    : "border-border bg-card hover:border-[var(--input)]",
+                )}
+              >
+                <span
+                  className={cn(
+                    "grid size-6 shrink-0 place-items-center rounded-md border transition-colors",
+                    studentDiscount ? "border-primary bg-primary text-white" : "border-input bg-card",
+                  )}
                 >
-                  <div className="onboarding-pref__row">
-                    <span className="onboarding-pref__box">
-                      {studentDiscount && (
-                        <motion.span
-                          className="onboarding-pref__check"
-                          initial={reduced ? false : { scale: 0, opacity: 0 }}
-                          animate={{ scale: 1, opacity: 1 }}
-                          transition={{ type: "spring", stiffness: 200, damping: 14 }}
-                        >
-                          <Icon name="check" size={12} />
-                        </motion.span>
-                      )}
-                    </span>
-                    <span className="onboarding-pref__label">I'm a student — show me student discounts</span>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={studentDiscount}
-                    onChange={(e) => setStudentDiscount(e.target.checked)}
-                    style={{ display: "none" }}
-                  />
-                </motion.label>
-              </div>
+                  {studentDiscount && <Icon name="check" size={14} />}
+                </span>
+                <span className="flex items-center gap-2 text-[15px] font-medium">
+                  <Icon name="education" size={17} className="text-primary" />
+                  I'm a student — prioritise student discounts
+                </span>
+                <input
+                  type="checkbox"
+                  checked={studentDiscount}
+                  onChange={(e) => setStudentDiscount(e.target.checked)}
+                  className="sr-only"
+                />
+              </motion.label>
             </motion.div>
           )}
         </AnimatePresence>
-
-        <div className="onboarding-actions">
-          {step > 0 && (
-            <Button variant="ghost" onClick={() => { setStep((s) => s - 1); setError(""); }}>
-              Back
-            </Button>
-          )}
-          <div style={{ flex: 1 }} />
-          {step < STEPS.length - 1 ? (
-            <Button onClick={handleNext}>
-              Continue
-            </Button>
-          ) : (
-            <Button onClick={handleFinish}>
-              Get started
-            </Button>
-          )}
-        </div>
       </div>
-    </div>
+
+      <div className="mt-6 flex items-center gap-3">
+        {step > 0 && (
+          <Button variant="ghost" onClick={() => { setStep((s) => s - 1); setError(""); }}>
+            Back
+          </Button>
+        )}
+        <div className="flex-1" />
+        {step < STEPS.length - 1 ? (
+          <Button variant="brand" iconRight={<Icon name="arrow" size={16} />} onClick={handleNext}>
+            Continue
+          </Button>
+        ) : (
+          <Button variant="brand" iconRight={<Icon name="arrow" size={16} />} onClick={handleFinish}>
+            Get started
+          </Button>
+        )}
+      </div>
+    </AuthShell>
   );
 }

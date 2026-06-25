@@ -29,10 +29,10 @@ function Shell() {
 
   if (authState === "loading") {
     return (
-      <div className="auth-page">
-        <div className="auth-loading">
-          <div className="auth-loading__spinner" />
-          <p>Loading…</p>
+      <div className="grid min-h-dvh place-items-center bg-background">
+        <div className="flex flex-col items-center gap-4 text-muted-foreground">
+          <div className="size-9 animate-spin rounded-full border-[3px] border-[var(--border)] border-t-primary" />
+          <p className="text-sm font-medium">Loading…</p>
         </div>
       </div>
     );

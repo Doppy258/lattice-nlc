@@ -1,8 +1,11 @@
 import { useState, useRef, useEffect, type FormEvent } from "react";
 import { useApp } from "../app/providers";
 import { navigate } from "../app/navigation";
-import { Icon } from "../components/common/Icon";
-import { Button } from "../components/common/Button";
+import { Button } from "@/components/common/Button";
+import { FormField } from "@/components/common/FormField";
+import { Input } from "@/components/ui/input";
+import { BrandLockup } from "@/components/layout/LatticeMark";
+import { AuthError, AuthShell } from "./authShared";
 
 declare global {
   interface Window {
@@ -27,7 +30,7 @@ export function SignupPage() {
   const [submitting, setSubmitting] = useState(false);
   const recaptchaRef = useRef<HTMLDivElement>(null);
   const [recaptchaToken, setRecaptchaToken] = useState("");
-  const [recaptchaReady, setRecaptchaReady] = useState(false);
+  const [, setRecaptchaReady] = useState(false);
 
   useEffect(() => {
     if (!RECAPTCHA_SITE_KEY || !recaptchaRef.current) return;
@@ -84,98 +87,80 @@ export function SignupPage() {
   };
 
   return (
-    <div className="auth-page">
-      <div className="auth-card">
-        <div className="auth-card__brand">
-          <div className="auth-card__logo">
-            <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
-              <rect x="2" y="2" width="24" height="24" rx="8" fill="#0066cc" />
-              <path d="M8 14h12M14 8v12" stroke="white" strokeWidth="2.2" strokeLinecap="round" />
-            </svg>
-          </div>
-          <h1 className="auth-card__title">Lattice</h1>
-          <p className="auth-card__subtitle">Create your account</p>
-        </div>
+    <AuthShell>
+      <div className="flex flex-col items-center text-center">
+        <BrandLockup size={42} />
+        <h1 className="mt-6 font-display text-[27px] font-semibold tracking-[-0.035em]">
+          Create your <span className="font-accent font-normal text-primary">account</span>
+        </h1>
+        <p className="mt-1.5 text-[14px] text-muted-foreground">
+          Join Lattice and get matched with local offers.
+        </p>
+      </div>
 
-        <form onSubmit={handleSubmit} className="auth-card__form">
-          {error && (
-            <div className="auth-error">
-              <Icon name="alert" size={15} />
-              <span>{error}</span>
-            </div>
-          )}
-
-          <div className="field">
-            <label className="field__label" htmlFor="signup-name">Display name</label>
-            <input
-              id="signup-name"
-              className="text-input"
-              type="text"
-              placeholder="Your name"
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              autoComplete="name"
-              autoFocus
-            />
-          </div>
-
-          <div className="field">
-            <label className="field__label" htmlFor="signup-email">Email</label>
-            <input
-              id="signup-email"
-              className="text-input"
-              type="email"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              autoComplete="email"
-            />
-          </div>
-
-          <div className="field">
-            <label className="field__label" htmlFor="signup-password">Password</label>
-            <input
+      <form onSubmit={handleSubmit} className="mt-7 space-y-4">
+        {error && <AuthError message={error} />}
+        <FormField label="Display name" htmlFor="signup-name">
+          <Input
+            id="signup-name"
+            type="text"
+            placeholder="Your name"
+            value={displayName}
+            onChange={(e) => setDisplayName(e.target.value)}
+            autoComplete="name"
+            autoFocus
+          />
+        </FormField>
+        <FormField label="Email" htmlFor="signup-email">
+          <Input
+            id="signup-email"
+            type="email"
+            placeholder="you@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            autoComplete="email"
+          />
+        </FormField>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FormField label="Password" htmlFor="signup-password">
+            <Input
               id="signup-password"
-              className="text-input"
               type="password"
-              placeholder="At least 6 characters"
+              placeholder="6+ characters"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               autoComplete="new-password"
             />
-          </div>
-
-          <div className="field">
-            <label className="field__label" htmlFor="signup-confirm">Confirm password</label>
-            <input
+          </FormField>
+          <FormField label="Confirm" htmlFor="signup-confirm">
+            <Input
               id="signup-confirm"
-              className="text-input"
               type="password"
-              placeholder="Repeat your password"
+              placeholder="Repeat password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               autoComplete="new-password"
             />
-          </div>
+          </FormField>
+        </div>
 
-          {RECAPTCHA_SITE_KEY && (
-            <div className="field">
-              <div ref={recaptchaRef} className="recaptcha-wrapper" />
-            </div>
-          )}
+        {RECAPTCHA_SITE_KEY && <div ref={recaptchaRef} className="recaptcha-wrapper" />}
 
-          <Button type="submit" block size="lg" disabled={submitting}>
-            {submitting ? "Creating account…" : "Create account"}
-          </Button>
-        </form>
+        <Button type="submit" variant="brand" block size="lg" disabled={submitting}>
+          {submitting ? "Creating account…" : "Create account"}
+        </Button>
+      </form>
 
-        <p className="auth-card__switch">
-          Already have an account?{" "}
-          <button className="auth-link" onClick={() => navigate("/login")}>
-            Sign in
-          </button>
-        </p>
-      </div>
-    </div>
+      <p className="mt-6 text-center text-[14px] text-muted-foreground">
+        Already have an account?{" "}
+        <button
+          type="button"
+          onClick={() => navigate("/login")}
+          className="cursor-pointer font-semibold text-primary transition-colors hover:text-[var(--primary-strong)]"
+        >
+          Sign in
+        </button>
+      </p>
+    </AuthShell>
   );
 }
