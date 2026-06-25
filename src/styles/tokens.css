@@ -1,73 +1,150 @@
+/* ============================================================================
+   Lattice design tokens — "Airy Premium" (blue + white)
+
+   Two layers:
+   1. Canonical brand / semantic / motion tokens used by the redesigned UI.
+   2. A legacy bridge: the old variable names (used by the shrinking app.css and
+      not-yet-migrated screens) repointed onto the new palette so nothing breaks
+      mid-migration. The bridge is removed as app.css is retired.
+   ========================================================================== */
 :root {
-  /* App redesign palette: blue/white product surfaces */
-  --ink: #1d1d1f;
-  --ink-soft: rgba(29, 29, 31, 0.72);
-  --paper: #f5f5f7;
-  --canvas: #ffffff;
-  --surface: #ffffff;
-  --surface-pearl: #fafafc;
-  --surface-2: rgba(29, 29, 31, 0.035);
-  --surface-3: rgba(29, 29, 31, 0.065);
-  --surface-dark: #272729;
+  /* ---- Brand ---- */
+  --brand: var(--primary);
+  --brand-strong: var(--primary-strong);
+  --brand-soft: rgba(37, 99, 255, 0.08);
+  --brand-tint: #e7efff;
+  --brand-contrast: #ffffff;
+  --brand-azure: #4f8bff;
+  --brand-sky: #8fb6ff;
 
-  --accent: #0066cc;
-  --accent-focus: #0071e3;
-  --accent-on-dark: #2997ff;
-  --accent-2: #0071e3;
-  --accent-3: #2997ff;
-  --accent-strong: #004f9f;
-  --accent-soft: rgba(0, 102, 204, 0.08);
-  --accent-ring: rgba(0, 113, 227, 0.22);
+  /* ---- Semantic ---- */
+  --success: #15835a;
+  --success-foreground: #ffffff;
+  --success-tint: #e7f6ef;
+  --warning: #9a6206;
+  --warning-foreground: #ffffff;
+  --warning-tint: #fbf1dc;
+  --danger: #d1453b;
+  --danger-foreground: #ffffff;
+  --danger-tint: #fbe9e7;
+
+  /* ---- Match score gauge ---- */
+  --match-low: #93a3bb;
+  --match-mid: #4f8bff;
+  --match-high: #2563ff;
+
+  /* ========================================================================
+     BENTO — gradients, tile geometry/elevation, micro-chart palette
+     ====================================================================== */
+  --grad-brand: linear-gradient(135deg, #4f8bff 0%, #2563ff 52%, #1745d6 100%);
+  --grad-brand-soft: linear-gradient(135deg, #eef4ff 0%, #dbe8ff 100%);
+  --grad-mesh:
+    radial-gradient(120% 120% at 0% 0%, rgba(79, 139, 255, 0.13), transparent 60%),
+    radial-gradient(120% 120% at 100% 100%, rgba(37, 99, 255, 0.09), transparent 55%);
+  --grad-sheen: linear-gradient(115deg, transparent 0%, rgba(255, 255, 255, 0.55) 45%, transparent 60%);
+
+  --tile-radius: 22px;
+  --tile-radius-lg: 28px;
+  --tile-gap: 18px;
+
+  --tile-shadow: 0 1px 2px rgba(13, 30, 73, 0.05), 0 10px 28px -18px rgba(13, 30, 73, 0.2);
+  --tile-shadow-lift: 0 8px 18px -6px rgba(13, 30, 73, 0.1), 0 30px 60px -28px rgba(37, 99, 255, 0.28);
+  --tile-ring: inset 0 0 0 1px rgba(13, 30, 73, 0.06);
+  --tile-ring-brand: inset 0 0 0 1px rgba(37, 99, 255, 0.2);
+
+  --spark-line: #2563ff;
+  --spark-fill: rgba(37, 99, 255, 0.12);
+  --spark-up: #15835a;
+  --spark-down: #d1453b;
+  --spark-grid: rgba(10, 18, 32, 0.05);
+
+  /* ---- Glass ---- */
+  --surface-glass: rgba(255, 255, 255, 0.72);
+  --surface-glass-strong: rgba(255, 255, 255, 0.9);
+  --glass-blur-amt: blur(22px) saturate(1.4);
+
+  /* ---- Motion ---- */
+  --motion-fast: 140ms;
+  --motion-base: 240ms;
+  --motion-slow: 420ms;
+  --ease-out: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.2, 0.64, 1);
+
+  /* ---- Layout ---- */
+  --sidebar-w: 84px;
+  --topbar-h: 68px;
+  --content-max: 1480px;
+
+  /* ========================================================================
+     LEGACY BRIDGE — old names → new palette (retired with app.css)
+     ====================================================================== */
+  --ink: var(--foreground);
+  --ink-soft: color-mix(in oklab, var(--foreground) 78%, transparent);
+  --paper: var(--background);
+  --canvas: var(--card);
+  --surface: var(--card);
+  --surface-pearl: #f6f9fd;
+  --surface-2: rgba(11, 21, 36, 0.035);
+  --surface-3: rgba(11, 21, 36, 0.065);
+  --surface-dark: #0e131f;
+
+  --accent: var(--primary);
+  --accent-focus: #1a6ce0;
+  --accent-on-dark: #4d92ff;
+  --accent-2: #1a6ce0;
+  --accent-3: #4d92ff;
+  --accent-strong: var(--brand-strong);
+  --accent-soft: var(--brand-soft);
+  --accent-ring: rgba(15, 95, 204, 0.28);
   --accent-contrast: #ffffff;
-  --accent-gradient: #0066cc;
-  --accent-gradient-soft: rgba(0, 102, 204, 0.08);
+  --accent-gradient: var(--primary);
+  --accent-gradient-soft: var(--brand-soft);
 
-  --blue: #0066cc;
-  --blue-soft: rgba(0, 102, 204, 0.08);
-  --green: #168653;
-  --yellow: #a86400;
+  --blue: var(--primary);
+  --blue-soft: var(--brand-soft);
+  --green: var(--success);
+  --yellow: var(--warning);
   --mint: #2d7f72;
 
-  --text: rgba(29, 29, 31, 0.88);
-  --text-muted: rgba(29, 29, 31, 0.58);
-  --text-faint: rgba(29, 29, 31, 0.42);
+  --text: var(--foreground);
+  --text-muted: var(--muted-foreground);
+  --text-faint: color-mix(in oklab, var(--foreground) 48%, transparent);
   --text-on-accent: #ffffff;
 
-  --line: rgba(29, 29, 31, 0.09);
-  --line-strong: rgba(29, 29, 31, 0.16);
+  --line: var(--border);
+  --line-strong: color-mix(in oklab, var(--foreground) 16%, transparent);
 
-  --success: #168653;
-  --success-soft: #edf8f2;
-  --warning: #a86400;
-  --warning-soft: #fff6df;
-  --error: #c93d32;
-  --error-soft: #fdecea;
-  --neutral-soft: rgba(29, 29, 31, 0.045);
+  --success-soft: var(--success-tint);
+  --warning-soft: var(--warning-tint);
+  --error: var(--danger);
+  --error-soft: var(--danger-tint);
+  --neutral-soft: rgba(11, 21, 36, 0.045);
 
-  --glass-bg: rgba(245, 245, 247, 0.82);
-  --glass-bg-strong: rgba(255, 255, 255, 0.94);
-  --glass-blur: blur(20px) saturate(1.15);
-  --glass-border: rgba(255, 255, 255, 0.45);
+  --glass-bg: var(--surface-glass);
+  --glass-bg-strong: var(--surface-glass-strong);
+  --glass-blur: var(--glass-blur-amt);
+  --glass-border: rgba(255, 255, 255, 0.55);
   --glass-inset: inset 0 1px 0 rgba(255, 255, 255, 0.65);
 
   --font-sans: "Geist Variable", "Geist", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-serif: var(--font-sans);
+  --font-serif: "Space Grotesk Variable", "Geist Variable", system-ui, sans-serif;
   --font-mono: "Geist Mono Variable", "Geist Mono", ui-monospace, monospace;
 
   --text-xs: 11px;
   --text-sm: 13px;
-  --text-base: 17px;
+  --text-base: 16px;
   --text-lg: 17px;
   --text-xl: 20px;
   --text-2xl: 28px;
   --text-3xl: 36px;
   --text-display: clamp(2.4rem, 4.4vw, 3.75rem);
 
-  --radius-sm: 8px;
-  --radius-md: 11px;
-  --radius-lg: 18px;
-  --radius-xl: 24px;
-  --radius-bento: 28px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 26px;
+  --radius-bento: 30px;
   --radius-pill: 999px;
 
   --space-1: 4px;
@@ -81,25 +158,24 @@
   --space-12: 48px;
   --space-16: 64px;
 
-  --shadow-sm: 0 1px 2px rgba(29, 29, 31, 0.04);
-  --shadow-md: 0 12px 28px rgba(0, 102, 204, 0.06);
-  --shadow-lg: 0 22px 48px -20px rgba(0, 31, 71, 0.18);
-  --shadow-diffusion: 0 18px 44px -28px rgba(0, 31, 71, 0.18);
+  --shadow-sm: 0 1px 2px rgba(15, 35, 75, 0.05);
+  --shadow-md: 0 1px 2px rgba(15, 35, 75, 0.05), 0 14px 38px -22px rgba(15, 35, 75, 0.22);
+  --shadow-lg: 0 4px 10px rgba(15, 35, 75, 0.06), 0 30px 60px -28px rgba(15, 35, 75, 0.3);
+  --shadow-diffusion: 0 18px 44px -28px rgba(15, 35, 75, 0.22);
   --glow: 0 0 0 4px var(--accent-ring);
-  --glow-strong: 0 10px 24px rgba(0, 102, 204, 0.16);
+  --glow-strong: 0 16px 40px -16px rgba(15, 95, 204, 0.42);
 
-  --sidebar-w: 232px;
-  --topbar-h: 64px;
-  --content-max: 1400px;
-
-  --transition: 220ms cubic-bezier(0.16, 1, 0.3, 1);
-  --transition-fast: 140ms cubic-bezier(0.16, 1, 0.3, 1);
-  --spring: cubic-bezier(0.34, 1.2, 0.64, 1);
+  --transition: 240ms var(--ease-out-expo);
+  --transition-fast: 140ms var(--ease-out-expo);
+  --spring: var(--ease-spring);
 }
 
 @media (prefers-reduced-motion: reduce) {
   :root {
     --transition: 0ms;
     --transition-fast: 0ms;
+    --motion-fast: 0ms;
+    --motion-base: 0ms;
+    --motion-slow: 0ms;
   }
 }

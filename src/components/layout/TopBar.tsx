@@ -1,9 +1,16 @@
-import { useEffect, useRef, useState } from "react";
+import { Check, ChevronDown, MapPin, Menu, Store } from "lucide-react";
 import { useApp } from "../../app/providers";
 import { navigate } from "../../app/navigation";
-import { Icon } from "../common/Icon";
 import { initials } from "../../utils/formatting";
 import { CATEGORY_META, DEMO_ORIGINS } from "../../data/catalog";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const ROLE_LABELS: Record<string, string> = {
   customer: "Customer",
@@ -21,33 +28,15 @@ export function TopBar({ onOpenMenu }: { onOpenMenu: () => void }) {
     activeBusinessId,
     setActiveBusinessId,
   } = useApp();
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [bizOpen, setBizOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  const bizRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const onClick = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setMenuOpen(false);
-      if (bizRef.current && !bizRef.current.contains(e.target as Node)) setBizOpen(false);
-    };
-    document.addEventListener("mousedown", onClick);
-    return () => document.removeEventListener("mousedown", onClick);
-  }, []);
 
   const originName =
-    DEMO_ORIGINS.find((o) => o.id === activeUser.homeLocationId)?.name ?? "San Antonio";
+    DEMO_ORIGINS.find((o) => o.id === activeUser.homeLocationId)?.name ??
+    "San Antonio";
 
   const switchUser = (id: string) => {
     setActiveUserId(id);
-    setMenuOpen(false);
     const role = data.users.find((u) => u.id === id)?.role;
     navigate(role === "businessOwner" ? "/business" : "/home");
-  };
-
-  const switchBusiness = (id: string) => {
-    setActiveBusinessId(id);
-    setBizOpen(false);
   };
 
   const showBizSwitch =
@@ -56,115 +45,108 @@ export function TopBar({ onOpenMenu }: { onOpenMenu: () => void }) {
   const activeBusiness = ownedBusinesses.find((b) => b.id === activeBusinessId);
 
   return (
-    <header className="topbar">
-      <button className="btn btn--ghost btn--sm topbar__menu-btn" onClick={onOpenMenu} aria-label="Open menu">
-        <Icon name="offers" size={18} />
+    <header className="sticky top-0 z-30 flex h-[68px] items-center gap-2.5 border-b border-border/70 bg-[var(--surface-glass)] px-4 backdrop-blur-xl sm:px-8 lg:px-10">
+      <button
+        onClick={onOpenMenu}
+        aria-label="Open menu"
+        className="grid size-10 shrink-0 place-items-center rounded-full border border-border bg-card text-foreground outline-none transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring/45 lg:hidden"
+      >
+        <Menu className="size-5" strokeWidth={1.8} />
       </button>
 
-      <div className="topbar__location">
-        <Icon name="location" size={16} />
+      <div className="hidden h-10 items-center gap-2 rounded-full border border-border bg-card/70 px-3.5 text-sm font-medium text-foreground sm:inline-flex">
+        <MapPin className="size-4 text-primary" strokeWidth={1.9} />
         <span>{originName}</span>
       </div>
 
       {showBizSwitch && (
-        <div className="profile-switch biz-switch" ref={bizRef}>
-          <button
-            className="profile-switch__btn"
-            onClick={() => setBizOpen((v) => !v)}
-            aria-haspopup="menu"
-            aria-expanded={bizOpen}
-          >
-            <span className="profile-switch__avatar">
-              <Icon name="store" size={15} />
-            </span>
-            <span style={{ textAlign: "left" }}>
-              <span className="profile-switch__name" style={{ display: "block" }}>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="inline-flex h-10 items-center gap-2 rounded-full border border-border bg-card/80 pr-2.5 pl-2 outline-none transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring/45">
+              <span className="grid size-7 place-items-center rounded-full bg-brand-tint text-primary">
+                <Store className="size-4" strokeWidth={1.9} />
+              </span>
+              <span className="hidden max-w-[140px] truncate text-left text-sm font-semibold sm:block">
                 {activeBusiness?.name ?? "Select business"}
               </span>
-              <span className="profile-switch__role">
-                {ownedBusinesses.length} business{ownedBusinesses.length === 1 ? "" : "es"}
-              </span>
-            </span>
-            <Icon name="chevron" size={14} />
-          </button>
-
-          {bizOpen && (
-            <div className="profile-switch__menu biz-switch__menu" role="menu">
-              <div
-                className="sidebar__group-label"
-                style={{ padding: "var(--space-2) var(--space-3)" }}
+              <ChevronDown className="size-4 text-muted-foreground" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="w-72">
+            <DropdownMenuLabel>Managing</DropdownMenuLabel>
+            {ownedBusinesses.map((biz) => (
+              <DropdownMenuItem
+                key={biz.id}
+                className="gap-2.5 py-2"
+                onSelect={() => setActiveBusinessId(biz.id)}
               >
-                Managing
-              </div>
-              {ownedBusinesses.map((biz) => (
-                <button
-                  key={biz.id}
-                  className="profile-switch__option"
-                  role="menuitemradio"
-                  aria-checked={biz.id === activeBusinessId}
-                  onClick={() => switchBusiness(biz.id)}
-                >
-                  <span style={{ flex: 1 }}>
-                    <span className="profile-switch__name" style={{ display: "block" }}>
-                      {biz.name}
-                    </span>
-                    <span className="profile-switch__role">
-                      {CATEGORY_META[biz.category].label}
-                    </span>
+                <span className="grid size-8 shrink-0 place-items-center rounded-full bg-brand-tint text-primary">
+                  <Store className="size-4" strokeWidth={1.9} />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-semibold">
+                    {biz.name}
                   </span>
-                  {biz.id === activeBusinessId && <Icon name="check" size={16} />}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+                  <span className="block text-xs text-muted-foreground">
+                    {CATEGORY_META[biz.category].label}
+                  </span>
+                </span>
+                {biz.id === activeBusinessId && (
+                  <Check className="size-4 shrink-0 text-primary" />
+                )}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
       )}
 
-      <div className="topbar__spacer" />
+      <div className="flex-1" />
 
-      <div className="profile-switch" ref={ref}>
-        <button
-          className="profile-switch__btn"
-          onClick={() => setMenuOpen((v) => !v)}
-          aria-haspopup="menu"
-          aria-expanded={menuOpen}
-        >
-          <span className="profile-switch__avatar">{initials(activeUser.name)}</span>
-          <span style={{ textAlign: "left" }}>
-            <span className="profile-switch__name" style={{ display: "block" }}>
-              {activeUser.name}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button className="inline-flex h-11 items-center gap-2.5 rounded-full border border-border bg-card/80 py-1 pr-2.5 pl-1 outline-none transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring/45">
+            <Avatar className="size-9">
+              <AvatarFallback>{initials(activeUser.name)}</AvatarFallback>
+            </Avatar>
+            <span className="hidden text-left leading-tight sm:block">
+              <span className="block max-w-[150px] truncate text-sm font-semibold">
+                {activeUser.name}
+              </span>
+              <span className="block text-xs text-muted-foreground">
+                {ROLE_LABELS[activeUser.role]}
+              </span>
             </span>
-            <span className="profile-switch__role">{ROLE_LABELS[activeUser.role]}</span>
-          </span>
-          <Icon name="chevron" size={14} />
-        </button>
-
-        {menuOpen && (
-          <div className="profile-switch__menu" role="menu">
-            <div className="sidebar__group-label" style={{ padding: "var(--space-2) var(--space-3)" }}>
-              Switch profile
-            </div>
-            {data.users.map((user) => (
-              <button
-                key={user.id}
-                className="profile-switch__option"
-                role="menuitemradio"
-                aria-checked={user.id === activeUserId}
-                onClick={() => switchUser(user.id)}
-              >
-                <span className="profile-switch__avatar">{initials(user.name)}</span>
-                <span style={{ flex: 1 }}>
-                  <span className="profile-switch__name" style={{ display: "block" }}>
-                    {user.name}
-                  </span>
-                  <span className="profile-switch__role">{ROLE_LABELS[user.role]}</span>
+            <ChevronDown className="size-4 text-muted-foreground" />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-72">
+          <DropdownMenuLabel>Switch profile</DropdownMenuLabel>
+          {data.users.map((user) => (
+            <DropdownMenuItem
+              key={user.id}
+              className="gap-2.5 py-2"
+              onSelect={() => switchUser(user.id)}
+            >
+              <Avatar className="size-8">
+                <AvatarFallback className="text-[11px]">
+                  {initials(user.name)}
+                </AvatarFallback>
+              </Avatar>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-sm font-semibold">
+                  {user.name}
                 </span>
-                {user.id === activeUserId && <Icon name="check" size={16} />}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
+                <span className="block text-xs text-muted-foreground">
+                  {ROLE_LABELS[user.role]}
+                </span>
+              </span>
+              {user.id === activeUserId && (
+                <Check className="size-4 shrink-0 text-primary" />
+              )}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
     </header>
   );
 }

@@ -2,6 +2,8 @@ import { AppProvider } from "./app/providers";
 import { useHashRoute, isLanding } from "./app/navigation";
 import { getRouteElement } from "./app/routes";
 import { AppLayout } from "./components/layout/AppLayout";
+import { MotionProvider } from "@/components/motion/MotionProvider";
+import { Toaster } from "@/components/ui/sonner";
 
 /**
  * Root shell. The marketing landing page (an iframe over the prebuilt static
@@ -22,7 +24,10 @@ function Shell() {
 export default function App() {
   return (
     <AppProvider>
-      <Shell />
+      <MotionProvider>
+        <Shell />
+        <Toaster />
+      </MotionProvider>
     </AppProvider>
   );
 }

@@ -1,4 +1,4 @@
-import { Icon } from "../common/Icon";
+import { Check } from "lucide-react";
 
 type Props = {
   reasons: string[];
@@ -8,12 +8,19 @@ type Props = {
 export function MatchReasons({ reasons }: Props) {
   if (reasons.length === 0) return null;
   return (
-    <div className="match-reasons">
-      <span className="match-reasons__title">Why this matched</span>
-      <ul className="match-reasons__list">
+    <div>
+      <span className="text-[13px] font-semibold text-muted-foreground">
+        Why this matched
+      </span>
+      <ul className="mt-2 grid gap-1.5">
         {reasons.map((reason) => (
-          <li key={reason} className="match-reasons__item">
-            <Icon name="check" size={14} className="match-reasons__check" />
+          <li
+            key={reason}
+            className="flex items-start gap-2 text-sm text-foreground"
+          >
+            <span className="mt-0.5 grid size-4 shrink-0 place-items-center rounded-full bg-brand-tint text-primary">
+              <Check className="size-3" strokeWidth={2.6} />
+            </span>
             <span>{reason}</span>
           </li>
         ))}

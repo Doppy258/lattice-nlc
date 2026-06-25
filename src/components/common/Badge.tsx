@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Badge as UIBadge } from "@/components/ui/badge";
 
 type Tone = "neutral" | "accent" | "success" | "warning" | "error";
 
@@ -8,18 +9,20 @@ type Props = {
   children: ReactNode;
 };
 
+const toneMap = {
+  neutral: "secondary",
+  accent: "default",
+  success: "success",
+  warning: "warning",
+  error: "destructive",
+} as const;
+
+/** App pill badge. Public API unchanged; rendered on the shadcn badge primitive. */
 export function Badge({ tone = "neutral", dot = false, children }: Props) {
-  const toneClass: Record<Tone, string> = {
-    neutral: "badge--neutral border-slate-200 bg-slate-50 text-slate-600",
-    accent: "badge--accent border-blue-200 bg-blue-50 text-blue-700",
-    success: "badge--success border-emerald-200 bg-emerald-50 text-emerald-700",
-    warning: "badge--warning border-amber-200 bg-amber-50 text-amber-700",
-    error: "badge--error border-red-200 bg-red-50 text-red-700",
-  };
   return (
-    <span className={`badge inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-bold ${toneClass[tone]}`}>
-      {dot && <span className="badge__dot" />}
+    <UIBadge variant={toneMap[tone]}>
+      {dot && <span className="size-1.5 rounded-full bg-current" />}
       {children}
-    </span>
+    </UIBadge>
   );
 }

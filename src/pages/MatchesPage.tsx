@@ -14,6 +14,7 @@ import { Icon } from "../components/common/Icon";
 import { EmptyState } from "../components/common/EmptyState";
 import { OfferCard } from "../components/offers/OfferCard";
 import { ClaimResultModal } from "../components/offers/ClaimResultModal";
+import { cn } from "@/lib/utils";
 
 type SortKey =
   | "bestMatch"
@@ -39,6 +40,8 @@ const FILTERS: { id: string; label: string }[] = [
   { id: "saved", label: "Saved" },
 ];
 
+const GRID = "grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3";
+
 export function MatchesPage() {
   const { data, activeUser } = useApp();
   const interactions = useOfferInteractions();
@@ -56,7 +59,7 @@ export function MatchesPage() {
 
   const matches = useMemo<MatchResult[]>(
     () => (request ? getMatchingOffers(request, data.offers, data.businesses, activeUser) : []),
-    [request, data.offers, data.businesses, activeUser]
+    [request, data.offers, data.businesses, activeUser],
   );
 
   const nearMisses = useMemo<MatchResult[]>(() => {
@@ -97,7 +100,7 @@ export function MatchesPage() {
       return true;
     });
 
-    const sorters: Record<SortKey, (a: typeof filtered[number], b: typeof filtered[number]) => number> = {
+    const sorters: Record<SortKey, (a: (typeof filtered)[number], b: (typeof filtered)[number]) => number> = {
       bestMatch: (a, b) => b.match.score - a.match.score,
       highestRating: (a, b) => b.business.ratingAverage - a.business.ratingAverage,
       closest: (a, b) => a.distance - b.distance,
@@ -127,7 +130,7 @@ export function MatchesPage() {
     NEED_TYPE_LABELS[request.needType],
     request.budgetMax !== undefined ? `under $${request.budgetMax}` : "any budget",
     `within ${request.distanceKm} km`,
-  ].join(" - ");
+  ].join(" · ");
 
   const [top, ...rest] = visible;
 
@@ -140,14 +143,22 @@ export function MatchesPage() {
         subtitle={summary}
         aside={
           matches.length > 0 ? (
-            <div className="page-hero__stat-pill">
-              <strong>{visible.length}</strong>
-              <span>of {matches.length} matches</span>
+            <div className="inline-flex items-center gap-2.5 rounded-full border border-border bg-card px-4 py-2.5 shadow-soft">
+              <strong className="mono text-2xl font-extrabold text-primary">
+                {visible.length}
+              </strong>
+              <span className="text-[13px] text-muted-foreground">
+                of {matches.length} matches
+              </span>
             </div>
           ) : undefined
         }
         actions={
-          <Button variant="secondary" onClick={() => navigate("/create-ping")} iconLeft={<Icon name="ping" size={16} />}>
+          <Button
+            variant="secondary"
+            onClick={() => navigate("/create-ping")}
+            iconLeft={<Icon name="ping" size={16} />}
+          >
             Edit request
           </Button>
         }
@@ -159,17 +170,25 @@ export function MatchesPage() {
           activeSegment={sortKey}
           onSegmentChange={(id) => setSortKey(id as SortKey)}
         >
-          {FILTERS.map((f) => (
-            <button
-              key={f.id}
-              type="button"
-              className={`chip ${activeFilters.includes(f.id) ? "chip--on" : ""}`}
-              aria-pressed={activeFilters.includes(f.id)}
-              onClick={() => toggleFilter(f.id)}
-            >
-              {f.label}
-            </button>
-          ))}
+          {FILTERS.map((f) => {
+            const on = activeFilters.includes(f.id);
+            return (
+              <button
+                key={f.id}
+                type="button"
+                aria-pressed={on}
+                onClick={() => toggleFilter(f.id)}
+                className={cn(
+                  "inline-flex h-9 items-center rounded-full border px-3.5 text-[13px] font-semibold transition-colors duration-200",
+                  on
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground",
+                )}
+              >
+                {f.label}
+              </button>
+            );
+          })}
         </FilterBar>
       )}
 
@@ -182,7 +201,7 @@ export function MatchesPage() {
           onAction={() => navigate("/create-ping")}
         />
       ) : (
-        <div className="offer-grid">
+        <div className={GRID}>
           {top && (
             <OfferCard
               key={top.offer.id}
@@ -216,9 +235,11 @@ export function MatchesPage() {
       )}
 
       {matches.length === 0 && nearMisses.length > 0 && (
-        <section className="near-misses">
-          <h2 className="section-title">Similar offers nearby</h2>
-          <div className="offer-grid">
+        <section className="mt-9">
+          <h2 className="font-display mb-4 text-2xl font-medium">
+            Similar offers nearby
+          </h2>
+          <div className={GRID}>
             {nearMisses.map((match) => {
               const offer = offerById.get(match.offerId)!;
               const business = bizById.get(match.businessId)!;
