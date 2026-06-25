@@ -17,6 +17,9 @@ import { BusinessReviewsPage } from "../pages/BusinessReviewsPage";
 import { BusinessAnalyticsPage } from "../pages/BusinessAnalyticsPage";
 import { BusinessProfilePage } from "../pages/BusinessProfilePage";
 import { DemoControlsPage } from "../pages/DemoControlsPage";
+import { LoginPage } from "../pages/LoginPage";
+import { SignupPage } from "../pages/SignupPage";
+import { OnboardingPage } from "../pages/OnboardingPage";
 
 export type NavItem = { path: string; label: string; icon: IconName };
 
@@ -75,6 +78,9 @@ const ELEMENTS: Record<string, ReactNode> = {
   "/business/analytics": <BusinessAnalyticsPage />,
   "/business/profile": <BusinessProfilePage />,
   "/demo": <DemoControlsPage />,
+  "/login": <LoginPage />,
+  "/signup": <SignupPage />,
+  "/onboarding": <OnboardingPage />,
 };
 
 /** Resolves a route element, defaulting to Home for unknown paths. */

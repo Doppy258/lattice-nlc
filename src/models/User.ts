@@ -21,4 +21,6 @@ export type User = {
   verified: boolean;
   createdAt: string;
   preferences: UserPreferences;
+  /** Whether the user has completed the post-signup onboarding flow. */
+  onboardingComplete?: boolean;
 };

@@ -1,4 +1,4 @@
-import { Check, ChevronDown, MapPin, Menu, Store } from "lucide-react";
+import { Check, ChevronDown, LogOut, MapPin, Menu, Store } from "lucide-react";
 import { useApp } from "../../app/providers";
 import { navigate } from "../../app/navigation";
 import { initials } from "../../utils/formatting";
@@ -9,8 +9,10 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { isSupabaseConfigured } from "../../services/supabaseClient";
 
 const ROLE_LABELS: Record<string, string> = {
   customer: "Customer",
@@ -27,6 +29,7 @@ export function TopBar({ onOpenMenu }: { onOpenMenu: () => void }) {
     ownedBusinesses,
     activeBusinessId,
     setActiveBusinessId,
+    signOut,
   } = useApp();
 
   const originName =
@@ -145,8 +148,25 @@ export function TopBar({ onOpenMenu }: { onOpenMenu: () => void }) {
               )}
             </DropdownMenuItem>
           ))}
+          {isSupabaseConfigured && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel>Account</DropdownMenuLabel>
+              <DropdownMenuItem
+                className="gap-2.5 py-2"
+                onSelect={() => {
+                  signOut();
+                  navigate("/login");
+                }}
+              >
+                <LogOut className="size-4" strokeWidth={1.9} />
+                <span>Sign out</span>
+              </DropdownMenuItem>
+            </>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
+
     </header>
   );
 }
