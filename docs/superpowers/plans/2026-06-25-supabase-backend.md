@@ -18,7 +18,7 @@
 - **IDs:** persisted rows use DB-generated `uuid`; do NOT use the client `createId()` for persisted entities. `profiles.id` equals `auth.users.id`.
 - **Reads are `to authenticated`** (the app is behind login), never `anon`. Other users' emails/preferences must never be readable — display names come from the `public_profiles` view.
 - **Secrets:** the service-role key is server-only (CLI/scripts/`.env` git-ignored). The browser keeps using only the anon key.
-- **RPC error contract:** functions `raise exception '<CODE>'` with the exact CODE tokens in Task 12's table; repositories map CODE → the existing user-facing message strings.
+- **RPC error contract:** functions `raise exception '<CODE>'`; the CODE tokens are listed per-RPC in Tasks 4–5 and mapped to user-facing messages in `src/repositories/errors.ts` (Task 7).
 - **Prerequisite for DB tasks:** Docker Desktop running + Supabase CLI installed (`supabase --version` ≥ 1.200). DB tests run against the local stack (`supabase start`).
 - **TDD:** every task is red → green → commit. DB tasks use pgTAP via `supabase test db`; client tasks use Vitest.
 
@@ -1264,3 +1264,386 @@ Expected: PASS — hydrate + claimRepo + requestRepo tests green.
 git add src/repositories/index.ts src/repositories/index.test.ts
 git commit -m "feat(client): repositories + hydrateAppData over Supabase"
 ```
+
+---
+
+### Task 9: Provider hydrate-then-mirror + wire the live writes + retire localStorage
+
+**Files:**
+- Modify: `src/app/providers.tsx` (full data-layer rewrite), `src/components/domain/useClaim.ts`, `src/pages/CreateLatticePage.tsx` (`onVerified`), `src/pages/OnboardingPage.tsx` (`completeOnboarding` call), `src/services/storageService.ts` (trim domain persistence)
+
+**Interfaces:**
+- Consumes: `hydrateAppData`, `claimRepo`, `requestRepo`, `profileRepo` (Task 8).
+- Produces: the `useApp()` context now hydrates from Supabase and mutates via repos; `completeOnboarding` is `async`. The `data.*` read contract is unchanged, so HomePage/MatchesPage/CreateLatticePage need no read changes.
+
+**Gate for this task:** `npm test` (unchanged green) + `npx tsc --noEmit` (clean typecheck). End-to-end behavior is verified in Task 10.
+
+- [ ] **Step 1: Rewrite `src/app/providers.tsx`**
+
+Replace the entire file with:
+```tsx
+import {
+  createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode,
+} from "react";
+import type { Session } from "@supabase/supabase-js";
+import { toast } from "sonner";
+import type { AppData, User, UserPreferences } from "../models";
+import {
+  loadActiveBusinessId, saveActiveBusinessId,
+} from "../services/storageService";
+import {
+  signIn as authSignIn, signUp as authSignUp, signOut as authSignOut, getSession, listenAuth,
+} from "../services/authService";
+import { expireOldClaims } from "../services/claimService";
+import { getUserById } from "../services/userService";
+import { isSupabaseConfigured, supabase } from "../services/supabaseClient";
+import { hydrateAppData, profileRepo } from "../repositories";
+
+type DataUpdater = AppData | ((prev: AppData) => AppData);
+export type AuthState = "loading" | "unauthenticated" | "authenticated";
+
+const DEFAULT_PREFS: UserPreferences = {
+  preferredCategories: [], maxDefaultDistanceKm: 3, studentDiscountPreferred: false,
+  accessibilityNeeds: [], savedBusinessIds: [], savedOfferIds: [],
+};
+const EMPTY_DATA: AppData = {
+  users: [], businesses: [], offers: [], requests: [], claims: [], reviews: [],
+  rankings: [], savedBusinesses: [], savedOffers: [],
+};
+const GUEST_USER: User = {
+  id: "", name: "", email: "", role: "customer", homeLocationId: "origin_school",
+  verified: false, createdAt: "", preferences: DEFAULT_PREFS, onboardingComplete: false,
+};
+
+type AppContextValue = {
+  data: AppData;
+  activeUserId: string;
+  activeUser: User;
+  setActiveUserId: (id: string) => void;
+  setData: (updater: DataUpdater) => void;
+  refetch: () => Promise<void>;
+  ownedBusinesses: import("../models").Business[];
+  activeBusinessId: string | null;
+  activeBusiness: import("../models").Business | null;
+  setActiveBusinessId: (id: string) => void;
+  authState: AuthState;
+  session: Session | null;
+  signIn: (email: string, password: string) => Promise<string | null>;
+  signUp: (email: string, password: string, displayName: string, recaptchaToken: string) => Promise<string | null>;
+  signOut: () => Promise<void>;
+  completeOnboarding: (updates: Partial<User>) => Promise<void>;
+};
+
+const AppContext = createContext<AppContextValue | null>(null);
+
+export function AppProvider({ children }: { children: ReactNode }) {
+  const [data, setDataState] = useState<AppData>(EMPTY_DATA);
+  const [activeUserId, setActiveUserIdState] = useState<string>("");
+  const [activeBusinessId, setActiveBusinessIdState] = useState<string | null>(() => loadActiveBusinessId());
+  const [session, setSession] = useState<Session | null>(null);
+  const [authState, setAuthState] = useState<AuthState>("loading");
+
+  useEffect(() => { saveActiveBusinessId(activeBusinessId); }, [activeBusinessId]);
+
+  const hydrate = useCallback(async (userId: string) => {
+    if (!supabase) return;
+    const fresh = await hydrateAppData(supabase, userId);
+    setDataState({ ...fresh, claims: expireOldClaims(fresh.claims) });
+  }, []);
+
+  const handleSession = useCallback(async (s: Session | null) => {
+    setSession(s);
+    if (s?.user) {
+      setActiveUserIdState(s.user.id);
+      try { await hydrate(s.user.id); }
+      catch (e) { toast.error("Could not load your data. Please refresh."); console.error(e); }
+      setAuthState("authenticated");
+    } else {
+      setActiveUserIdState("");
+      setDataState(EMPTY_DATA);
+      setAuthState("unauthenticated");
+    }
+  }, [hydrate]);
+
+  useEffect(() => {
+    if (!isSupabaseConfigured) { setAuthState("unauthenticated"); return; }
+    getSession().then((s) => handleSession(s));
+    const unsub = listenAuth((s) => handleSession(s));
+    return unsub;
+  }, [handleSession]);
+
+  const setData = useCallback((updater: DataUpdater) => {
+    setDataState((prev) => (typeof updater === "function" ? updater(prev) : updater));
+  }, []);
+  const refetch = useCallback(async () => { if (activeUserId) await hydrate(activeUserId); }, [activeUserId, hydrate]);
+  const setActiveUserId = useCallback((id: string) => setActiveUserIdState(id), []);
+  const setActiveBusinessId = useCallback((id: string) => setActiveBusinessIdState(id), []);
+
+  const activeUser = useMemo(
+    () => getUserById(activeUserId, data.users) ?? data.users[0] ?? GUEST_USER,
+    [activeUserId, data.users],
+  );
+  const ownedBusinesses = useMemo(
+    () => data.businesses.filter((b) => b.ownerUserId === activeUser.id),
+    [data.businesses, activeUser.id],
+  );
+  useEffect(() => {
+    const valid = activeBusinessId && ownedBusinesses.some((b) => b.id === activeBusinessId);
+    if (!valid) setActiveBusinessIdState(ownedBusinesses[0]?.id ?? null);
+  }, [ownedBusinesses, activeBusinessId]);
+  const activeBusiness = useMemo(
+    () => ownedBusinesses.find((b) => b.id === activeBusinessId) ?? null,
+    [ownedBusinesses, activeBusinessId],
+  );
+
+  const signIn = useCallback(async (email: string, password: string): Promise<string | null> => {
+    const { session: s, error } = await authSignIn(email, password);
+    if (error) return error.message;
+    if (s) await handleSession(s);
+    return null;
+  }, [handleSession]);
+
+  const signUp = useCallback(async (email: string, password: string, displayName: string, recaptchaToken: string): Promise<string | null> => {
+    const { session: s, error } = await authSignUp(email, password, displayName, recaptchaToken);
+    if (error) return error.message;
+    if (s) await handleSession(s);
+    return null;
+  }, [handleSession]);
+
+  const signOutAction = useCallback(async () => {
+    await authSignOut();
+    setSession(null); setActiveUserIdState(""); setDataState(EMPTY_DATA); setAuthState("unauthenticated");
+  }, []);
+
+  const completeOnboarding = useCallback(async (updates: Partial<User>) => {
+    if (!activeUserId) return;
+    const mergedPrefs = { ...(activeUser.preferences), ...(updates.preferences ?? {}) };
+    try {
+      const updated = await profileRepo.updateSelf(activeUserId, {
+        name: updates.name ?? activeUser.name,
+        home_location_id: updates.homeLocationId ?? activeUser.homeLocationId,
+        preferences: mergedPrefs,
+        onboarding_complete: true,
+      });
+      setDataState((prev) => ({ ...prev, users: prev.users.map((u) => (u.id === activeUserId ? updated : u)) }));
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not save your preferences.");
+    }
+  }, [activeUserId, activeUser]);
+
+  const value = useMemo<AppContextValue>(() => ({
+    data, activeUserId, activeUser, setActiveUserId, setData, refetch,
+    ownedBusinesses, activeBusinessId, activeBusiness, setActiveBusinessId,
+    authState, session, signIn, signUp, signOut: signOutAction, completeOnboarding,
+  }), [data, activeUserId, activeUser, setActiveUserId, setData, refetch, ownedBusinesses,
+       activeBusinessId, activeBusiness, setActiveBusinessId, authState, session, signIn, signUp, signOutAction, completeOnboarding]);
+
+  return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
+}
+
+export function useApp(): AppContextValue {
+  const ctx = useContext(AppContext);
+  if (!ctx) throw new Error("useApp must be used within an AppProvider");
+  return ctx;
+}
+```
+
+- [ ] **Step 2: Make `useClaim` claim through the repository**
+
+Replace the body of `src/components/domain/useClaim.ts` with:
+```ts
+import { useState } from "react";
+import { toast } from "sonner";
+import { useApp } from "@/app/providers";
+import { claimRepo } from "@/repositories";
+import type { Business, Claim, Offer } from "@/models";
+
+export type ClaimResult = { claim: Claim; offer: Offer; business: Business };
+
+export function useClaim() {
+  const { activeUser, data, setData } = useApp();
+  const [result, setResult] = useState<ClaimResult | null>(null);
+  const [pending, setPending] = useState(false);
+
+  async function claim(offer: Offer, requestId?: string) {
+    if (pending) return;
+    setPending(true);
+    try {
+      const created = await claimRepo.create(offer.id);
+      const business = data.businesses.find((b) => b.id === offer.businessId);
+      setData((prev) => ({
+        ...prev,
+        claims: [...prev.claims, created],
+        offers: prev.offers.map((o) => (o.id === offer.id ? { ...o, currentClaims: o.currentClaims + 1 } : o)),
+        requests: requestId ? prev.requests.map((r) => (r.id === requestId ? { ...r, status: "matched" } : r)) : prev.requests,
+      }));
+      if (business) setResult({ claim: created, offer, business });
+      toast.success("Offer claimed!", { description: `Your code is ${created.claimCode}` });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not claim this offer.");
+    } finally {
+      setPending(false);
+    }
+  }
+
+  return { claim, pending, result, clearResult: () => setResult(null) };
+}
+```
+Note: `claim` is now `async`. Existing call-sites in HomePage/MatchesPage call `claim(offer)` without awaiting — that still works (fire-and-forget). No call-site change required, but `useClaim()` now also returns `pending` if you want to disable the button.
+
+- [ ] **Step 3: Submit requests through the repository in `CreateLatticePage.tsx`**
+
+In `src/pages/CreateLatticePage.tsx`, replace the `onVerified` function (currently lines ~177–196, the one that builds `req` with `createId("request")` and calls `setData((d) => ({ ...d, requests: [...d.requests, req] }))`) with:
+```tsx
+  async function onVerified() {
+    try {
+      const created = await requestRepo.submit({
+        category: category!, needType: needType!, distanceKm: distanceKm!,
+        timeStart: timeStart!, timeEnd: timeEnd!, budgetMin, budgetMax,
+        preferences, optionalNote: note || undefined, verifiedHuman: true,
+      });
+      setData((d) => ({ ...d, requests: [...d.requests, created] }));
+      navigate(`/matches?request=${created.id}`);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not submit your request.");
+    }
+  }
+```
+Add these imports at the top of the file (and remove the now-unused `createId` import if present):
+```tsx
+import { toast } from "sonner";
+import { requestRepo } from "@/repositories";
+```
+If `PingRequest`/`createId` were imported only for the removed code, delete those now-unused imports (TypeScript will flag them in the Step 6 typecheck).
+
+- [ ] **Step 4: Await onboarding persistence in `OnboardingPage.tsx`**
+
+In `src/pages/OnboardingPage.tsx`, find the handler that calls `completeOnboarding(...)` (the final-step "finish" action). Make that handler `async` and `await completeOnboarding(...)` before any `navigate(...)`, so the profile write lands before leaving the page. Example shape:
+```tsx
+  async function finish() {
+    await completeOnboarding({
+      homeLocationId: locationId,
+      preferences: { preferredCategories: categories, studentDiscountPreferred: studentDiscount },
+    });
+    navigate("/home");
+  }
+```
+(Use the page's existing local state variable names for categories/location/etc.; only the `async`/`await` and the call are mandated here.)
+
+- [ ] **Step 5: Trim `storageService.ts` to session-only helpers**
+
+In `src/services/storageService.ts`, delete `emptyData`, `loadData`, `saveData`, `resetDemoData`, `getCollection`, `updateCollection`, `loadActiveUserId`, `saveActiveUserId`, and the `STORAGE_KEY`/`ACTIVE_USER_KEY` constants and the `buildSeedData` import. Keep only `hasStorage`, `loadActiveBusinessId`, and `saveActiveBusinessId` (the owner's currently-managed business is still a local UI preference). The resulting file:
+```ts
+const ACTIVE_BUSINESS_KEY = "lattice.activeBusinessId.v1";
+
+function hasStorage(): boolean {
+  try { return typeof window !== "undefined" && !!window.localStorage; } catch { return false; }
+}
+
+/** The business an owner is currently managing. */
+export function loadActiveBusinessId(): string | null {
+  if (!hasStorage()) return null;
+  return window.localStorage.getItem(ACTIVE_BUSINESS_KEY);
+}
+
+export function saveActiveBusinessId(businessId: string | null): void {
+  if (!hasStorage()) return;
+  if (businessId) window.localStorage.setItem(ACTIVE_BUSINESS_KEY, businessId);
+  else window.localStorage.removeItem(ACTIVE_BUSINESS_KEY);
+}
+```
+Then `grep -rn "resetDemo\|loadData\|saveData\|loadActiveUserId\|getCollection\|updateCollection" src/` and fix every remaining reference (e.g. remove a "Reset demo data" control in `TopBar.tsx`/menus if present — `resetDemo` no longer exists on the context). The app must compile with no references to the removed exports.
+
+- [ ] **Step 6: Verify tests + typecheck**
+
+Run: `npm test`
+Expected: PASS — all Vitest suites still green.
+
+Run: `npx tsc --noEmit`
+Expected: no type errors. Fix any unused-import or signature errors surfaced by the refactor.
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add src/app/providers.tsx src/components/domain/useClaim.ts src/pages/CreateLatticePage.tsx src/pages/OnboardingPage.tsx src/services/storageService.ts
+git commit -m "feat(client): hydrate from Supabase; claims/requests/onboarding via repos; drop localStorage data plane"
+```
+
+---
+
+## Phase C — Apply & verify
+
+### Task 10: Apply to Supabase + end-to-end verification
+
+**Files:** none (operational). Uses `.env` (git-ignored).
+
+**Interfaces:** consumes everything above.
+
+- [ ] **Step 1: Point the client env at a Supabase instance**
+
+For **local** verification, set `.env` (git-ignored) from `supabase status` output:
+```
+VITE_SUPABASE_URL=http://127.0.0.1:54321
+VITE_SUPABASE_ANON_KEY=<local anon key from `supabase status`>
+```
+For **hosted**, use the project URL + anon key from the Supabase dashboard.
+
+- [ ] **Step 2: Apply schema + seed**
+
+Local: `supabase db reset` (applies all migrations + `seed.sql`, including demo users).
+Hosted:
+```bash
+supabase link --project-ref nzasnhmpcyxsgwpdxwni
+supabase db push                       # applies migrations
+SUPABASE_URL=<url> SUPABASE_SERVICE_ROLE_KEY=<service-role> node scripts/seed-auth-users.mjs
+# then run the CONTENT half of supabase/seed.sql (businesses/offers/claims/reviews) via the
+# dashboard SQL editor or: psql "<hosted connection string>" -f supabase/seed.sql
+```
+
+- [ ] **Step 3: Run the full DB test suite**
+
+Run: `supabase test db`
+Expected: PASS — all five pgTAP files green (schema, RLS, trigger, claims RPC, requests/reviews RPC).
+
+- [ ] **Step 4: Manual end-to-end walkthrough**
+
+Run: `npm run dev`. Then:
+1. Sign in as `demo.customer@lattice.test` / `Demo1234!`. Expect the Home/Matches pages to show the **seeded** FreshBowl/Inkwell businesses and offers (proving reads come from Supabase, not localStorage).
+2. Open another browser/profile, sign in as `demo.owner@lattice.test` / `Demo1234!`. Confirm the owner sees the same businesses (shared multi-user state).
+3. As the customer, claim an offer → expect a `PING-####` toast. Reload the page → the claim **persists** (it's in the DB).
+4. In devtools, attempt `await window.supabase?.from('claims').insert({...})` (or via the network tab) → expect an RLS/permission error (direct claim writes are blocked).
+5. Create a Lattice request via `/create` → completes the verification gate → lands on `/matches`; reload → request persists.
+6. Clear localStorage and reload → app still loads all data from Supabase (no seed/localStorage fallback remains).
+
+- [ ] **Step 5: Final commit (docs/notes only, if any)**
+
+```bash
+git add -A
+git commit -m "chore: backend verification notes" --allow-empty
+```
+
+---
+
+## Self-Review
+
+**1. Spec coverage** — every spec section maps to a task:
+- §4 schema → Task 1. §5 RLS + `public_profiles` → Task 2. §7 trigger/profiles/demo accounts → Tasks 3, 6. §6 RPCs → Tasks 4, 5. §8 client hydrate-then-mirror → Tasks 7–9. §10 seed/ops → Tasks 6, 10. §11 testing → pgTAP (Tasks 1–5) + Vitest (Tasks 7–8) + manual checklist (Task 10). §9 bot-protection → explicitly deferred (slice 1.5), no task — matches spec §12(c).
+- Deferred-by-design (no task, matches spec non-goals): `saved_*`, `rankings`, server-side reports. Logged in Global Constraints + Task 6 scope note (representative seed, not full catalog).
+
+**2. Placeholder scan** — no "TBD/TODO/handle edge cases" steps; every code step contains complete code; every command states expected output.
+
+**3. Type consistency** — RPC names/params are identical across Phase A definitions, repository calls (Task 8), and tests: `create_claim(p_offer_id)`, `redeem_claim(p_code)`, `submit_request(p_category,p_need_type,…)`, `create_review(p_claim_id,p_rating,p_text,p_tags)`. Error CODE tokens raised in SQL (Tasks 4–5) match the `MESSAGES` keys in `errors.ts` (Task 7). Mapper output field names match `src/models/` exactly (verified against `User/Business/Offer/Claim/Review/PingRequest`). `hydrateAppData`/repo signatures in Task 8 match their consumers in Task 9.
+
+---
+
+## Execution Handoff
+
+**Plan complete and saved to `docs/superpowers/plans/2026-06-25-supabase-backend.md`. Two execution options:**
+
+**1. Subagent-Driven (recommended)** — I dispatch a fresh subagent per task, review between tasks, fast iteration. REQUIRED SUB-SKILL: superpowers:subagent-driven-development.
+
+**2. Inline Execution** — Execute tasks in this session using superpowers:executing-plans, batch execution with checkpoints for review.
+
+**Note on prerequisites:** Phase A/C need Docker + the Supabase CLI on this machine; Phase B (Vitest, mappers, repos, client refactor) runs without them. If Docker/CLI isn't available here, we can implement and unit-test Phase B now and hand the SQL/migration steps to you to apply.
+
+**Which approach?**
