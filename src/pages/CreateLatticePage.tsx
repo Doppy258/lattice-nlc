@@ -11,6 +11,7 @@ import { FormField } from "@/components/common/FormField";
 import { PageHeader } from "@/components/common/PageHeader";
 import { Icon, type IconName } from "@/components/common/Icon";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -34,6 +35,7 @@ import {
   budgetPresetsFor,
 } from "@/data/catalog";
 import { customTimeWindow, timeWindowForPreset, type TimeWindowPresetId } from "@/utils/timeWindows";
+import { NOTE_MAX } from "@/utils/constants";
 import { createId } from "@/utils/ids";
 import { upsertRequest } from "@/services/dbService";
 import { formatTimeRange } from "@/utils/formatting";
@@ -355,13 +357,7 @@ export function CreateLatticePage() {
             <span className="text-muted-foreground/50">—</span>
             Request
           </span>
-          {category && (
-            <Badge tone={QUALITY[quality].tone} dot>
-              {QUALITY[quality].label}
-            </Badge>
-          )}
         </div>
-      <Card variant="solid" className="p-6 sm:p-8">
         <AnimatePresence>
           {category && (
             <motion.div
@@ -380,7 +376,7 @@ export function CreateLatticePage() {
         </AnimatePresence>
 
         {/* Mad-libs sentence — blanks reveal after a business type is picked */}
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-3 font-display text-[21px] leading-[1.65] tracking-[-0.01em] text-foreground sm:text-[25px]">
+        <div className="mt-7 flex flex-wrap items-center gap-x-2 gap-y-3 font-display text-[22px] leading-[1.7] tracking-[-0.015em] text-foreground sm:text-[26px]">
           <motion.span
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
@@ -388,8 +384,6 @@ export function CreateLatticePage() {
           >
             I'm looking for
           </motion.span>
-        <div className="mt-7 flex flex-wrap items-center gap-x-2 gap-y-3 font-display text-[22px] leading-[1.7] tracking-[-0.015em] text-foreground sm:text-[26px]">
-          <span>I'm looking for</span>
           <Blank
             placeholder="a business type"
             value={category ? CATEGORY_META[category].label : undefined}
@@ -524,13 +518,12 @@ export function CreateLatticePage() {
               </motion.span>
             )}
           </AnimatePresence>
+          {!category && (
+            <span className="ml-2 text-[16px] leading-relaxed text-muted-foreground">
+              Choose a business type to begin.
+            </span>
+          )}
         </div>
-
-        {!category && (
-          <p className="mt-4 max-w-md text-[14px] leading-relaxed text-muted-foreground">
-            Choose a business type to begin. Each blank you fill sharpens your matches.
-          </p>
-        )}
 
         <AnimatePresence>
           {category && (
@@ -682,25 +675,6 @@ export function CreateLatticePage() {
                 </motion.p>
               )}
             </AnimatePresence>
-              <ChipGroup>
-                {availablePrefs.map((pref) => (
-                  <ToggleChip
-                    key={pref.id}
-                    active={preferences.includes(pref.id)}
-                    onClick={() => togglePref(pref.id)}
-                    icon={preferences.includes(pref.id) ? <Icon name="check" size={14} /> : undefined}
-                  >
-                    {pref.label}
-                  </ToggleChip>
-                ))}
-              </ChipGroup>
-            </div>
-
-            {errors.duplicate && (
-              <p className="mt-6 rounded-xl bg-[var(--danger-tint)] px-3 py-2 text-[13px] font-medium text-[var(--danger)]">
-                {errors.duplicate}
-              </p>
-            )}
 
             {/* Footer */}
             <motion.div
@@ -708,14 +682,14 @@ export function CreateLatticePage() {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1], delay: 0.3 }}
-              className="mt-7 flex flex-col gap-3 border-t border-border pt-5 sm:flex-row sm:items-center sm:justify-between">
-            <div className="mt-8 flex flex-col gap-4 border-t border-border/70 pt-6 sm:flex-row sm:items-center sm:justify-between">
+              className="mt-7 flex flex-col gap-3 border-t border-border pt-5 sm:flex-row sm:items-center sm:justify-between"
+            >
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Icon name="matches" size={16} className="text-primary" />
                 <span>Estimated matches</span>
-                <span className="mono text-[17px] font-semibold text-foreground">{estMatches ?? "—"}</span>
+                <span className="mono text-base font-semibold text-foreground">{estMatches ?? "—"}</span>
               </div>
-              <div className="flex flex-col gap-1.5 sm:items-end">
+              <motion.div whileTap={validation.valid ? { scale: 0.97 } : undefined}>
                 <Button
                   variant="brand"
                   size="lg"
@@ -725,24 +699,6 @@ export function CreateLatticePage() {
                 >
                   Find matching offers
                 </Button>
-                {!validation.valid && (
-                  <p className="text-[12px] text-muted-foreground sm:text-right">
-                    Fill in every blank to match.
-                  </p>
-                )}
-              </div>
-            </div>
-          </>
-              <motion.div whileTap={validation.valid ? { scale: 0.97 } : undefined}>
-              <Button
-                variant="brand"
-                size="lg"
-                disabled={!validation.valid}
-                onClick={() => setVerifyOpen(true)}
-                iconRight={<Icon name="arrow" size={18} />}
-              >
-                Find matching offers
-              </Button>
               </motion.div>
             </motion.div>
             <AnimatePresence>
