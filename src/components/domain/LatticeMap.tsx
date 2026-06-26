@@ -27,10 +27,12 @@ export function LatticeMap({
   userLocation,
   businesses,
   radiusKm,
+  onBusinessClick,
 }: {
   userLocation: GeoPoint | null;
   businesses: MapBusiness[];
   radiusKm?: number;
+  onBusinessClick?: (businessId: string) => void;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
@@ -74,9 +76,12 @@ export function LatticeMap({
     }
 
     for (const b of businesses) {
-      L.marker([b.location.lat, b.location.lng], { icon: BIZ_ICON })
+      const marker = L.marker([b.location.lat, b.location.lng], { icon: BIZ_ICON })
         .addTo(group)
-        .bindPopup(b.name);
+        .bindPopup(`<strong>${b.name}</strong><br/><span style="font-size:12px;color:#2563eb;cursor:pointer">View business →</span>`);
+      if (onBusinessClick) {
+        marker.on("click", () => onBusinessClick(b.id));
+      }
     }
 
     const map = mapRef.current;

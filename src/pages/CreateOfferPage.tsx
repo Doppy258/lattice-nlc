@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef } from "react";
 import { useApp } from "@/app/providers";
 import { useHashRoute, navigate } from "@/app/navigation";
 import { toast } from "sonner";
@@ -15,6 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select } from "@/components/ui/select";
 import { OfferCard } from "@/components/domain/OfferCard";
 import { upsertOffer } from "@/services/dbService";
+import { cn } from "@/lib/utils";
 import {
   createOffer,
   updateOffer,
@@ -98,6 +99,21 @@ export function CreateOfferPage() {
   const [redemptionWindowMinutes, setRedemptionWindowMinutes] = useState<number>(
     () => existing?.redemptionWindowMinutes ?? 5,
   );
+  const [imageUrl, setImageUrl] = useState<string | undefined>(() => existing?.imageUrl);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setImageUrl(reader.result as string);
+    reader.readAsDataURL(file);
+  }
+
+  function clearImage() {
+    setImageUrl(undefined);
+    if (fileRef.current) fileRef.current.value = "";
+  }
 
   const input: OfferInput = useMemo(
     () => ({
@@ -118,6 +134,7 @@ export function CreateOfferPage() {
       verificationRequired,
       oneTimePerUser,
       redemptionWindowMinutes,
+      imageUrl,
     }),
     [
       title,
@@ -137,6 +154,7 @@ export function CreateOfferPage() {
       verificationRequired,
       oneTimePerUser,
       redemptionWindowMinutes,
+      imageUrl,
     ],
   );
 
@@ -472,6 +490,50 @@ export function CreateOfferPage() {
                 Requires verification
               </ToggleChip>
             </ChipGroup>
+          </FormField>
+
+          <FormField label="Offer image" hint="Optional. Upload a photo to make your offer stand out.">
+            <div className="flex items-center gap-3">
+              {imageUrl ? (
+                <div className="relative size-20 shrink-0 overflow-hidden rounded-xl">
+                  <img
+                    src={imageUrl}
+                    alt="Offer preview"
+                    className="size-full object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={clearImage}
+                    className="absolute right-0.5 top-0.5 grid size-5 cursor-pointer place-items-center rounded-full bg-black/50 text-white text-[11px] hover:bg-black/70"
+                  >
+                    ×
+                  </button>
+                </div>
+              ) : (
+                <div
+                  onClick={() => fileRef.current?.click()}
+                  className="flex size-20 shrink-0 cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-border bg-muted/30 text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
+                >
+                  <Icon name="store" size={22} />
+                </div>
+              )}
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="hidden"
+              />
+              {!imageUrl && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => fileRef.current?.click()}
+                >
+                  Browse…
+                </Button>
+              )}
+            </div>
           </FormField>
 
           <div className="space-y-2 pt-1">
