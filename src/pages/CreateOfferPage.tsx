@@ -235,8 +235,9 @@ export function CreateOfferPage() {
                 min={0}
                 step={0.01}
                 inputMode="decimal"
-                value={price}
-                onChange={(e) => setPrice(Number(e.target.value))}
+                placeholder="0.00"
+                value={price === 0 ? "" : price}
+                onChange={(e) => setPrice(e.target.value === "" ? 0 : Number(e.target.value))}
                 aria-invalid={!!errors.price}
               />
             </FormField>
