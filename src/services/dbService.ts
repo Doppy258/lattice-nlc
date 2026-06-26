@@ -312,9 +312,22 @@ export async function upsertOffers(offers: Offer[]): Promise<void> {
   await supabase.from("offers").upsert(offers.map(offerToRow), { onConflict: "id" });
 }
 
-export async function deleteOffer(offerId: string): Promise<void> {
-  if (!supabase) return;
-  await supabase.from("offers").delete().eq("id", offerId);
+export async function deleteOffer(offerId: string): Promise<string | null> {
+  if (!supabase) return null;
+  // Remove dependents in FK order so an owner can delete an offer even after
+  // customers have claimed/reviewed it. Reviews reference both offers
+  // (reviews.offer_id) and claims (reviews.claim_id), so they must go first —
+  // otherwise deleting the claims trips reviews_claim_id_fkey.
+  const { error: reviewsError } = await supabase.from("reviews").delete().eq("offer_id", offerId);
+  if (reviewsError) return reviewsError.message;
+  // Saved-offer bookmarks (FK: saved_offers.offer_id -> offers.id).
+  const { error: savedError } = await supabase.from("saved_offers").delete().eq("offer_id", offerId);
+  if (savedError) return savedError.message;
+  // Claims (FK: claims.offer_id -> offers.id).
+  const { error: claimsError } = await supabase.from("claims").delete().eq("offer_id", offerId);
+  if (claimsError) return claimsError.message;
+  const { error } = await supabase.from("offers").delete().eq("id", offerId);
+  return error?.message ?? null;
 }
 
 // ── Claims ───────────────────────────────────────────────────

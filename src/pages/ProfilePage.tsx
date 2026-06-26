@@ -15,13 +15,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select } from "@/components/ui/select";
 import { Reveal } from "@/components/motion/Reveal";
 import { BusinessImage } from "@/components/domain/BusinessImage";
+import { BusinessHoursEditor } from "@/components/domain/BusinessHoursEditor";
 import { CATEGORY_META } from "@/data/catalog";
 import { formatRating } from "@/utils/formatting";
-import type { Business } from "@/models";
+import type { Business, BusinessHours } from "@/models";
 import { uploadBusinessImage, type BusinessImageKind } from "@/services/imageService";
 import { toast } from "sonner";
 
-const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const PRICE_LEVELS: Array<1 | 2 | 3 | 4> = [1, 2, 3, 4];
 const TAG_SUGGESTIONS = [
   "Student favorite",
@@ -33,13 +33,6 @@ const TAG_SUGGESTIONS = [
   "Vegetarian options",
   "Quiet",
 ];
-
-function fmtTime(hhmm: string): string {
-  const [h, m] = hhmm.split(":").map(Number);
-  const period = h >= 12 ? "PM" : "AM";
-  const hr = h % 12 === 0 ? 12 : h % 12;
-  return m === 0 ? `${hr} ${period}` : `${hr}:${String(m).padStart(2, "0")} ${period}`;
-}
 
 export function ProfilePage() {
   const { activeBusiness } = useApp();
@@ -69,6 +62,7 @@ function ProfileEditor({ business }: { business: Business }) {
   const [address, setAddress] = useState(business.address);
   const [priceLevel, setPriceLevel] = useState<1 | 2 | 3 | 4>(business.priceLevel);
   const [tags, setTags] = useState<string[]>(business.tags);
+  const [hours, setHours] = useState<BusinessHours[]>(business.hours);
   const [imageUrl, setImageUrl] = useState<string | undefined>(business.imageUrl);
   const [bannerUrl, setBannerUrl] = useState<string | undefined>(business.bannerUrl);
   const [uploading, setUploading] = useState<BusinessImageKind | null>(null);
@@ -78,7 +72,6 @@ function ProfileEditor({ business }: { business: Business }) {
 
   const meta = CATEGORY_META[business.category];
   const tagOptions = Array.from(new Set([...business.tags, ...TAG_SUGGESTIONS]));
-  const today = new Date().getDay();
 
   function toggleTag(tag: string) {
     setTags((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]));
@@ -111,7 +104,7 @@ function ProfileEditor({ business }: { business: Business }) {
       ...d,
       businesses: d.businesses.map((b) =>
         b.id === business.id
-          ? { ...b, name, description, address, priceLevel, tags, imageUrl, bannerUrl }
+          ? { ...b, name, description, address, priceLevel, tags, hours, imageUrl, bannerUrl }
           : b,
       ),
     }));
@@ -287,28 +280,15 @@ function ProfileEditor({ business }: { business: Business }) {
         </Card>
 
         <Card variant="solid" className="space-y-3 p-5 sm:p-6">
-          <h3 className="inline-flex items-center gap-2 font-display text-lg font-semibold tracking-[-0.02em]">
-            <Icon name="clock" size={17} className="text-primary" /> Hours
-          </h3>
-          <ul className="space-y-1.5 text-sm">
-            {DAYS.map((day, i) => {
-              const h = business.hours.find((x) => x.dayOfWeek === i);
-              const isToday = i === today;
-              return (
-                <li
-                  key={day}
-                  className={`flex items-center justify-between rounded-lg px-2.5 py-1.5 ${isToday ? "bg-[var(--tint-blue)]" : ""}`}
-                >
-                  <span className={isToday ? "font-semibold text-foreground" : "text-muted-foreground"}>
-                    {day}
-                  </span>
-                  <span className={isToday ? "font-semibold text-foreground" : "text-muted-foreground"}>
-                    {h ? `${fmtTime(h.openTime)} – ${fmtTime(h.closeTime)}` : "Closed"}
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
+          <div>
+            <h3 className="inline-flex items-center gap-2 font-display text-lg font-semibold tracking-[-0.02em]">
+              <Icon name="clock" size={17} className="text-primary" /> Hours
+            </h3>
+            <p className="mt-0.5 text-[13px] text-muted-foreground">
+              Saved with the rest of your profile.
+            </p>
+          </div>
+          <BusinessHoursEditor value={hours} onChange={setHours} />
         </Card>
       </div>
     </div>

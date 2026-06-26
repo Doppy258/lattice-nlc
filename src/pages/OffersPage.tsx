@@ -18,6 +18,7 @@ import {
   deleteOffer,
   type OfferStatus,
 } from "@/services/offerService";
+import { deleteOffer as deleteOfferFromDb } from "@/services/dbService";
 import { remainingRedemptions } from "@/services/redemptionService";
 import { OFFER_TYPE_LABELS } from "@/data/catalog";
 import { formatCurrency, relativeTime } from "@/utils/formatting";
@@ -77,9 +78,18 @@ export function OffersPage() {
     toast.success(o.active ? "Offer paused" : "Offer resumed");
   }
 
-  function handleDelete(o: Offer) {
+  async function handleDelete(o: Offer) {
     if (o.currentClaims > 0 && !window.confirm("This offer has active claims. Delete anyway?")) return;
-    setData((d) => ({ ...d, offers: deleteOffer(o.id, d.offers) }));
+    setData((d) => ({
+      ...d,
+      offers: deleteOffer(o.id, d.offers),
+      claims: d.claims.filter((c) => c.offerId !== o.id),
+    }));
+    const error = await deleteOfferFromDb(o.id);
+    if (error) {
+      toast.error(`Couldn't delete offer: ${error}`);
+      return;
+    }
     toast.success("Offer deleted");
   }
 

@@ -70,24 +70,40 @@ export function QrScanModal({
       onClose();
     };
 
-    const decode = (constraints: MediaStreamConstraints) => {
-      const video = videoRef.current;
-      if (!video) return Promise.reject(new Error("video element not ready"));
-      return reader.decodeFromConstraints(constraints, video, (result, _err, controls) => {
+    // On first open the dialog's portal may not have mounted the <video> yet;
+    // wait for it (rather than failing) so the camera starts on the first try.
+    const waitForVideo = async (): Promise<HTMLVideoElement | null> => {
+      for (let i = 0; i < 60; i++) {
+        if (cancelled) return null;
+        const el = videoRef.current;
+        if (el && el.isConnected) return el;
+        await new Promise((r) => requestAnimationFrame(() => r(null)));
+      }
+      return videoRef.current;
+    };
+
+    const decode = (constraints: MediaStreamConstraints, video: HTMLVideoElement) =>
+      reader.decodeFromConstraints(constraints, video, (result, _err, controls) => {
         controlsRef.current = controls;
         if (result) handleResult(result.getText(), controls);
       });
-    };
 
     (async () => {
+      const video = await waitForVideo();
+      if (cancelled) return;
+      if (!video) {
+        setStatus("error");
+        setErrorMsg(friendlyCameraError(null));
+        return;
+      }
       try {
         // Prefer the rear camera on phones; fall back to any camera on laptops.
-        controlsRef.current = await decode({ video: { facingMode: "environment" } });
+        controlsRef.current = await decode({ video: { facingMode: "environment" } }, video);
         if (!cancelled) setStatus("scanning");
       } catch (first) {
         if (isRetryableConstraint(first)) {
           try {
-            controlsRef.current = await decode({ video: true });
+            controlsRef.current = await decode({ video: true }, video);
             if (!cancelled) setStatus("scanning");
             return;
           } catch (second) {
