@@ -8,7 +8,6 @@ import { Card } from "@/components/common/Card";
 import { EmptyState } from "@/components/common/EmptyState";
 import { Icon } from "@/components/common/Icon";
 import { PageHeader } from "@/components/common/PageHeader";
-import { StatTile } from "@/components/common/StatTile";
 import { SegmentedControl } from "@/components/common/SegmentedControl";
 import { Progress } from "@/components/ui/progress";
 import { Stagger, StaggerItem } from "@/components/motion/Reveal";
@@ -24,14 +23,6 @@ import { formatCurrency, relativeTime } from "@/utils/formatting";
 import type { Offer } from "@/models";
 
 type Filter = "all" | OfferStatus;
-
-const FILTERS: { value: Filter; label: string }[] = [
-  { value: "all", label: "All" },
-  { value: "active", label: "Active" },
-  { value: "paused", label: "Paused" },
-  { value: "expired", label: "Expired" },
-  { value: "full", label: "Full" },
-];
 
 const STATUS: Record<OfferStatus, { tone: BadgeTone; label: string }> = {
   active: { tone: "success", label: "Active" },
@@ -60,9 +51,23 @@ export function OffersPage() {
   }
 
   const offers = getOwnerOffers(activeBusiness.id, data.offers);
-  const activeCount = offers.filter((o) => classifyOffer(o) === "active").length;
+  const statusCounts = offers.reduce<Record<OfferStatus, number>>(
+    (counts, offer) => {
+      counts[classifyOffer(offer)] += 1;
+      return counts;
+    },
+    { active: 0, paused: 0, expired: 0, full: 0 },
+  );
+  const activeCount = statusCounts.active;
   const totalClaims = offers.reduce((sum, o) => sum + o.currentClaims, 0);
   const totalViews = offers.reduce((sum, o) => sum + o.views, 0);
+  const filterOptions: { value: Filter; label: string }[] = [
+    { value: "all", label: `All (${offers.length})` },
+    { value: "active", label: `Active (${statusCounts.active})` },
+    { value: "paused", label: `Paused (${statusCounts.paused})` },
+    { value: "expired", label: `Expired (${statusCounts.expired})` },
+    { value: "full", label: `Full (${statusCounts.full})` },
+  ];
 
   const filtered = filter === "all" ? offers : offers.filter((o) => classifyOffer(o) === filter);
 
@@ -90,14 +95,14 @@ export function OffersPage() {
         }
       />
 
-      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-        <StatTile label="Total offers" value={offers.length} icon={<Icon name="offers" size={17} />} tone="blue" />
-        <StatTile label="Active" value={activeCount} icon={<Icon name="check" size={17} />} tone="mint" />
-        <StatTile label="Total claims" value={totalClaims} icon={<Icon name="claims" size={17} />} tone="violet" />
-        <StatTile label="Total views" value={totalViews} icon={<Icon name="analytics" size={17} />} tone="amber" />
+      <div className="rounded-[var(--tile-radius)] border border-border bg-card/75 px-4 py-3 text-sm text-muted-foreground shadow-[var(--shadow-soft)]">
+        <span className="font-semibold text-foreground">{activeCount}</span> active of{" "}
+        <span className="font-semibold text-foreground">{offers.length}</span> offers, with{" "}
+        <span className="font-semibold text-foreground">{totalClaims}</span> total claims and{" "}
+        <span className="font-semibold text-foreground">{totalViews}</span> views.
       </div>
 
-      <SegmentedControl options={FILTERS} value={filter} onChange={setFilter} />
+      <SegmentedControl options={filterOptions} value={filter} onChange={setFilter} />
 
       {filtered.length === 0 ? (
         <EmptyState

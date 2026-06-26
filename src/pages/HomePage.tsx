@@ -5,7 +5,7 @@ import { Button } from "@/components/common/Button";
 import { Icon } from "@/components/common/Icon";
 import { Badge } from "@/components/common/Badge";
 import { PageHero } from "@/components/common/PageHeader";
-import { StatTile } from "@/components/common/StatTile";
+import { InsightSummary } from "@/components/common/InsightSummary";
 import { EmptyState } from "@/components/common/EmptyState";
 import { Stagger, StaggerItem } from "@/components/motion/Reveal";
 import { OfferCard } from "@/components/domain/OfferCard";
@@ -84,6 +84,7 @@ export function HomePage() {
 
   const myClaims = data.claims.filter((c) => c.userId === activeUser.id);
   const activeClaimCount = myClaims.filter((c) => c.status === "active").length;
+  const redeemedClaimCount = myClaims.filter((c) => c.status === "redeemed").length;
   const savedCount =
     activeUser.preferences.savedBusinessIds.length + activeUser.preferences.savedOfferIds.length;
   const estimatedSaved = useMemo(() => {
@@ -118,6 +119,33 @@ export function HomePage() {
             </Button>
           </>
         }
+        aside={
+          <InsightSummary
+            title="Today on Lattice"
+            columns="three"
+            className="w-full bg-card/55 shadow-none lg:w-[420px]"
+            items={[
+              {
+                label: "Claims",
+                value: activeClaimCount,
+                detail: activeClaimCount === 1 ? "Ready to redeem" : "Active now",
+              },
+              {
+                label: "Saved",
+                value: savedCount,
+                detail:
+                  redeemedClaimCount > 0
+                    ? `${formatCurrency(estimatedSaved)} saved from visits`
+                    : "Places and offers",
+              },
+              {
+                label: "Live offers",
+                value: activeOffers.length,
+                detail: "Live now",
+              },
+            ]}
+          />
+        }
       />
 
       {latestRequest && (
@@ -144,21 +172,6 @@ export function HomePage() {
           </span>
         </button>
       )}
-
-      <Stagger className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StaggerItem>
-          <StatTile tone="blue" label="Active claims" value={activeClaimCount} icon={<Icon name="claims" size={17} />} sub="Ready to redeem" />
-        </StaggerItem>
-        <StaggerItem>
-          <StatTile tone="mint" label="Est. saved" value={formatCurrency(estimatedSaved)} icon={<Icon name="reports" size={17} />} sub="From redeemed offers" />
-        </StaggerItem>
-        <StaggerItem>
-          <StatTile tone="violet" label="Saved places" value={savedCount} icon={<Icon name="saved" size={17} />} sub="Businesses & offers" />
-        </StaggerItem>
-        <StaggerItem>
-          <StatTile tone="amber" label="Offers nearby" value={activeOffers.length} icon={<Icon name="ticket" size={17} />} sub="Active right now" />
-        </StaggerItem>
-      </Stagger>
 
       <section className="space-y-4">
         <div className="flex items-end justify-between gap-4">

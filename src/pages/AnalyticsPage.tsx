@@ -3,10 +3,9 @@ import { navigate } from "@/app/navigation";
 import { Button } from "@/components/common/Button";
 import { Card } from "@/components/common/Card";
 import { Icon } from "@/components/common/Icon";
-import { StatTile } from "@/components/common/StatTile";
+import { InsightSummary } from "@/components/common/InsightSummary";
 import { EmptyState } from "@/components/common/EmptyState";
 import { PageHeader } from "@/components/common/PageHeader";
-import { Stagger, StaggerItem } from "@/components/motion/Reveal";
 import { BarColumns, BarList } from "@/components/charts/Charts";
 import { getBusinessReport } from "@/services/reportService";
 import { formatCurrency, formatPercent, formatRating } from "@/utils/formatting";
@@ -63,20 +62,31 @@ export function AnalyticsPage() {
         subtitle={`How customers move from discovery to redemption at ${activeBusiness.name} — conversion, loyalty, revenue, and what they're saying.`}
       />
 
-      <Stagger className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StaggerItem>
-          <StatTile tone="blue" label="Conversion rate" value={formatPercent(report.conversionRate)} icon={<Icon name="rankings" size={17} />} sub="Views → redeemed" />
-        </StaggerItem>
-        <StaggerItem>
-          <StatTile tone="violet" label="Repeat customers" value={report.repeatCustomers} icon={<Icon name="matches" size={17} />} sub="Redeemed more than once" />
-        </StaggerItem>
-        <StaggerItem>
-          <StatTile tone="mint" label="Revenue influenced" value={formatCurrency(report.revenueInfluenced)} icon={<Icon name="reports" size={17} />} sub="From redemptions" />
-        </StaggerItem>
-        <StaggerItem>
-          <StatTile tone="amber" label="Review score" value={`${formatRating(report.averageRating)}★`} icon={<Icon name="star" size={17} />} sub={`${report.reviewCount} reviews`} />
-        </StaggerItem>
-      </Stagger>
+      <InsightSummary
+        title="Performance summary"
+        items={[
+          {
+            label: "Conversion",
+            value: formatPercent(report.conversionRate),
+            detail: "Views to redeemed",
+          },
+          {
+            label: "Repeat guests",
+            value: report.repeatCustomers,
+            detail: "Redeemed more than once",
+          },
+          {
+            label: "Revenue",
+            value: formatCurrency(report.revenueInfluenced),
+            detail: "Influenced by redemptions",
+          },
+          {
+            label: "Review score",
+            value: `${formatRating(report.averageRating)}★`,
+            detail: `${report.reviewCount} reviews`,
+          },
+        ]}
+      />
 
       <ChartCard title="Conversion funnel" sub="Where customers drop off between seeing an offer and redeeming it">
         <BarList data={funnel} color="var(--primary)" />

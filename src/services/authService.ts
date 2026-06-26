@@ -19,6 +19,13 @@ const DEFAULT_METADATA = {
 /** Build a User from a Supabase Auth session's metadata (no public users table needed). */
 export function userFromSession(s: Session): User {
   const m = s.user.user_metadata ?? {};
+  const onboarded =
+    m.onboarded === true ||
+    m.onboarded === "true" ||
+    m.onboarded === 1 ||
+    m.onboarding_complete === true ||
+    m.onboarding_complete === "true" ||
+    m.onboarding_complete === 1;
   return {
     id: s.user.id,
     name: m.name ?? s.user.email?.split("@")[0] ?? "User",
@@ -35,7 +42,7 @@ export function userFromSession(s: Session): User {
       savedBusinessIds: m.savedBusinessIds ?? [],
       savedOfferIds: m.savedOfferIds ?? [],
     },
-    onboarded: m.onboarded ?? false,
+    onboarded,
   };
 }
 
@@ -120,14 +127,33 @@ export function listenAuth(callback: (session: Session | null) => void): () => v
 }
 
 /** Save onboarding preferences to Supabase Auth metadata so they survive page reload. */
-export async function saveOnboardingMetadata(updates: Partial<User>): Promise<void> {
-  if (!supabase) return;
-  await supabase.auth.updateUser({
+export async function saveOnboardingMetadata(
+  updates: Partial<User>
+): Promise<{ session: Session | null; error: AuthError | null }> {
+  if (!supabase) return { session: null, error: null };
+
+  const metadata = {
+    onboarded: true,
+    ...(updates.role ? { role: updates.role } : {}),
+    ...(updates.homeLocationId ? { homeLocationId: updates.homeLocationId } : {}),
+    ...(updates.preferences ?? {}),
+  };
+
+  const { data, error } = await supabase.auth.updateUser({
     data: {
-      onboarded: true,
-      role: updates.role,
-      homeLocationId: updates.homeLocationId,
-      ...(updates.preferences ?? {}),
+      ...metadata,
     },
   });
+
+  if (error) {
+    console.error("Supabase onboarding metadata error:", error);
+    return { session: null, error: { message: error.message } };
+  }
+
+  const { data: sessionData } = await supabase.auth.getSession();
+  const session = sessionData.session && data.user
+    ? { ...sessionData.session, user: data.user }
+    : sessionData.session;
+
+  return { session, error: null };
 }

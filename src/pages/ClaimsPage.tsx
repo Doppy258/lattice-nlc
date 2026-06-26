@@ -6,7 +6,6 @@ import { Badge, type BadgeTone } from "@/components/common/Badge";
 import { Card } from "@/components/common/Card";
 import { Icon } from "@/components/common/Icon";
 import { EmptyState } from "@/components/common/EmptyState";
-import { StatTile } from "@/components/common/StatTile";
 import { SegmentedControl } from "@/components/common/SegmentedControl";
 import { PageHeader } from "@/components/common/PageHeader";
 import { Modal } from "@/components/common/Modal";
@@ -45,6 +44,7 @@ export function ClaimsPage() {
   const counts = {
     active: myClaims.filter((c) => c.status === "active").length,
     redeemed: myClaims.filter((c) => c.status === "redeemed").length,
+    past: myClaims.filter((c) => c.status === "expired" || c.status === "cancelled").length,
     saved: calculateEstimatedSavings(myClaims, data.offers),
   };
 
@@ -74,10 +74,10 @@ export function ClaimsPage() {
         subtitle="Every offer you've claimed lives here. Show an active code at the business to redeem it, then leave a verified review."
       />
 
-      <div className="grid grid-cols-3 gap-4">
-        <StatTile tone="blue" label="Active" value={counts.active} icon={<Icon name="claims" size={17} />} sub="Ready to redeem" />
-        <StatTile tone="mint" label="Redeemed" value={counts.redeemed} icon={<Icon name="check" size={17} />} sub="Visits made" />
-        <StatTile tone="amber" label="Est. saved" value={formatCurrency(counts.saved)} icon={<Icon name="reports" size={17} />} sub="From redeemed offers" />
+      <div className="rounded-[var(--tile-radius)] border border-border bg-card/75 px-4 py-3 text-sm text-muted-foreground shadow-[var(--shadow-soft)]">
+        <span className="font-semibold text-foreground">{counts.active}</span> active,{" "}
+        <span className="font-semibold text-foreground">{counts.redeemed}</span> redeemed, and{" "}
+        <span className="font-semibold text-foreground">{formatCurrency(counts.saved)}</span> saved from completed visits.
       </div>
 
       <SegmentedControl
@@ -87,7 +87,7 @@ export function ClaimsPage() {
           { value: "all", label: `All (${myClaims.length})` },
           { value: "active", label: `Active (${counts.active})` },
           { value: "redeemed", label: `Redeemed (${counts.redeemed})` },
-          { value: "expired", label: "Past" },
+          { value: "expired", label: `Past (${counts.past})` },
         ]}
       />
 

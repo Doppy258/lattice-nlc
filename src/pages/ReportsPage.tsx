@@ -5,10 +5,9 @@ import { Button } from "@/components/common/Button";
 import { Card } from "@/components/common/Card";
 import { Icon } from "@/components/common/Icon";
 import { EmptyState } from "@/components/common/EmptyState";
-import { StatTile } from "@/components/common/StatTile";
+import { InsightSummary } from "@/components/common/InsightSummary";
 import { PageHeader } from "@/components/common/PageHeader";
 import { Select } from "@/components/ui/select";
-import { Stagger, StaggerItem } from "@/components/motion/Reveal";
 import { BarColumns, BarList, Donut } from "@/components/charts/Charts";
 import { getUserReport } from "@/services/reportService";
 import { ALL_CATEGORIES, CATEGORY_META } from "@/data/catalog";
@@ -91,20 +90,23 @@ export function ReportsPage() {
         }
       />
 
-      <Stagger className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StaggerItem>
-          <StatTile tone="mint" label="Est. saved" value={formatCurrency(report.estimatedSavings)} icon={<Icon name="reports" size={17} />} sub={`${report.totalRedeemed} redeemed`} />
-        </StaggerItem>
-        <StaggerItem>
-          <StatTile tone="blue" label="Claimed" value={report.totalClaimed} icon={<Icon name="claims" size={17} />} sub="Total offers claimed" />
-        </StaggerItem>
-        <StaggerItem>
-          <StatTile tone="violet" label="Businesses" value={report.businessesSupported} icon={<Icon name="store" size={17} />} sub="Supported locally" />
-        </StaggerItem>
-        <StaggerItem>
-          <StatTile tone="amber" label="Reviews" value={report.reviewsSubmitted} icon={<Icon name="reviews" size={17} />} sub={report.averageRatingGiven > 0 ? `${report.averageRatingGiven}★ avg given` : "None yet"} />
-        </StaggerItem>
-      </Stagger>
+      <InsightSummary
+        title="Report summary"
+        items={[
+          {
+            label: "Est. saved",
+            value: formatCurrency(report.estimatedSavings),
+            detail: `${report.totalRedeemed} redeemed`,
+          },
+          { label: "Claimed", value: report.totalClaimed, detail: "Total offers" },
+          { label: "Businesses", value: report.businessesSupported, detail: "Supported locally" },
+          {
+            label: "Reviews",
+            value: report.reviewsSubmitted,
+            detail: report.averageRatingGiven > 0 ? `${report.averageRatingGiven}★ avg given` : "None yet",
+          },
+        ]}
+      />
 
       <div className="grid gap-4 lg:grid-cols-2">
         <ChartCard title="Claims by category" sub="Where you use Lattice most">

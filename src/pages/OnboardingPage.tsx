@@ -9,7 +9,6 @@ import { AuthError, AuthShell } from "./authShared";
 import {
   ALL_CATEGORIES,
   CATEGORY_META,
-  DEMO_ORIGINS,
   DISTANCE_OPTIONS_KM,
 } from "../data/catalog";
 import type { BusinessCategory } from "../models";
@@ -18,9 +17,24 @@ import { cn } from "@/lib/utils";
 type StepMeta = { label: string; icon: string; use: string };
 const STEPS: StepMeta[] = [
   { label: "Interests", icon: "explore", use: "Picks the offers we feature for you on your home feed." },
-  { label: "Location", icon: "location", use: "Sets the anchor we measure every offer's distance from." },
+  { label: "Accessibility", icon: "saved", use: "Helps us prioritise venues that fit how you want to spend time." },
   { label: "Preferences", icon: "saved", use: "Pre-fills your search radius and deals when you create a Lattice." },
 ];
+
+const ACCESSIBILITY_OPTIONS = [
+  {
+    id: "wheelchairAccessible",
+    label: "Wheelchair accessible",
+    description: "Prioritise venues with step-free access.",
+    icon: "check",
+  },
+  {
+    id: "quiet",
+    label: "Quiet environment",
+    description: "Prefer calmer spots for studying or focused time.",
+    icon: "saved",
+  },
+] as const;
 
 const spring = { type: "spring" as const, stiffness: 100, damping: 20 };
 const slideUp = { initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 }, exit: { opacity: 0, y: -8 } };
@@ -32,17 +46,26 @@ export function OnboardingPage() {
   const [categories, setCategories] = useState<BusinessCategory[]>(
     activeUser?.preferences?.preferredCategories ?? [],
   );
-  const [locationId, setLocationId] = useState(activeUser?.homeLocationId ?? "origin_school");
+  const [accessibilityNeeds, setAccessibilityNeeds] = useState<string[]>(
+    activeUser?.preferences?.accessibilityNeeds ?? [],
+  );
   const [radiusKm, setRadiusKm] = useState<number>(activeUser?.preferences?.maxDefaultDistanceKm ?? 5);
   const [studentDiscount, setStudentDiscount] = useState(
     activeUser?.preferences?.studentDiscountPreferred ?? false,
   );
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const firstName = activeUser.name.split(" ")[0];
 
   const toggleCategory = (cat: BusinessCategory) => {
     setCategories((prev) => (prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]));
+  };
+
+  const toggleAccessibilityNeed = (need: string) => {
+    setAccessibilityNeeds((prev) => (
+      prev.includes(need) ? prev.filter((item) => item !== need) : [...prev, need]
+    ));
   };
 
   const canAdvance = () => (step === 0 ? categories.length > 0 : true);
@@ -56,28 +79,34 @@ export function OnboardingPage() {
     if (step < STEPS.length - 1) setStep((s) => s + 1);
   };
 
-  const handleFinish = (e: FormEvent) => {
+  const handleFinish = async (e: FormEvent) => {
     e.preventDefault();
     if (categories.length === 0) {
       setStep(0);
       setError("Pick at least one interest so we can tailor your matches.");
       return;
     }
-    completeOnboarding({
+    setSubmitting(true);
+    const err = await completeOnboarding({
       name: activeUser.name,
-      homeLocationId: locationId,
+      homeLocationId: activeUser.homeLocationId || "origin_school",
       preferences: {
         ...activeUser.preferences,
         preferredCategories: categories,
+        accessibilityNeeds,
         maxDefaultDistanceKm: radiusKm,
         studentDiscountPreferred: studentDiscount,
       },
     });
+    setSubmitting(false);
+    if (err) {
+      setError(err);
+      return;
+    }
     navigate("/home");
   };
 
   const anim = reduced ? {} : slideUp;
-  const originName = DEMO_ORIGINS.find((o) => o.id === locationId)?.name ?? DEMO_ORIGINS[0].name;
 
   return (
     <AuthShell wide>
@@ -185,16 +214,38 @@ export function OnboardingPage() {
           {step === 1 && (
             <motion.div key="step-1" {...anim} transition={spring}>
               <p className="mb-3 text-[14px] font-medium text-foreground">
-                Where are you usually searching from?
+                Any venue needs we should remember?
               </p>
               <div className="space-y-2.5">
-                {DEMO_ORIGINS.map((origin) => {
-                  const selected = locationId === origin.id;
+                <motion.button
+                  type="button"
+                  onClick={() => setAccessibilityNeeds([])}
+                  whileTap={reduced ? undefined : { scale: 0.99 }}
+                  aria-pressed={accessibilityNeeds.length === 0}
+                  className={cn(
+                    "flex w-full cursor-pointer items-center gap-3 rounded-2xl border p-4 text-left transition-colors",
+                    accessibilityNeeds.length === 0
+                      ? "border-primary/40 bg-[var(--tint-blue)] ring-1 ring-inset ring-primary/20"
+                      : "border-border bg-card hover:border-[var(--input)]",
+                  )}
+                >
+                  <span className={cn("grid size-10 place-items-center rounded-xl", accessibilityNeeds.length === 0 ? "bg-primary text-white" : "bg-accent text-primary")}>
+                    <Icon name="check" size={18} />
+                  </span>
+                  <span className="flex-1">
+                    <span className="block text-[15px] font-semibold">No special needs</span>
+                    <span className="block text-[12px] text-muted-foreground">Show me the best overall matches.</span>
+                  </span>
+                  {accessibilityNeeds.length === 0 && <Icon name="check" size={18} className="text-primary" />}
+                </motion.button>
+
+                {ACCESSIBILITY_OPTIONS.map((option) => {
+                  const selected = accessibilityNeeds.includes(option.id);
                   return (
                     <motion.button
-                      key={origin.id}
+                      key={option.id}
                       type="button"
-                      onClick={() => setLocationId(origin.id)}
+                      onClick={() => toggleAccessibilityNeed(option.id)}
                       whileTap={reduced ? undefined : { scale: 0.99 }}
                       aria-pressed={selected}
                       className={cn(
@@ -205,9 +256,12 @@ export function OnboardingPage() {
                       )}
                     >
                       <span className={cn("grid size-10 place-items-center rounded-xl", selected ? "bg-primary text-white" : "bg-accent text-primary")}>
-                        <Icon name="location" size={18} />
+                        <Icon name={option.icon} size={18} />
                       </span>
-                      <span className="flex-1 text-[15px] font-semibold">{origin.name}</span>
+                      <span className="flex-1">
+                        <span className="block text-[15px] font-semibold">{option.label}</span>
+                        <span className="block text-[12px] text-muted-foreground">{option.description}</span>
+                      </span>
                       {selected && <Icon name="check" size={18} className="text-primary" />}
                     </motion.button>
                   );
@@ -220,7 +274,7 @@ export function OnboardingPage() {
             <motion.div key="step-2" {...anim} transition={spring} className="space-y-5">
               <div>
                 <p className="mb-3 text-[14px] font-medium text-foreground">
-                  Default search radius <span className="text-muted-foreground">from {originName}</span>
+                  Default match radius
                 </p>
                 <div className="flex flex-wrap gap-2.5">
                   {DISTANCE_OPTIONS_KM.map((km) => {
@@ -294,8 +348,8 @@ export function OnboardingPage() {
             Continue
           </Button>
         ) : (
-          <Button variant="brand" iconRight={<Icon name="arrow" size={16} />} onClick={handleFinish}>
-            Get started
+          <Button variant="brand" iconRight={<Icon name="arrow" size={16} />} onClick={handleFinish} disabled={submitting}>
+            {submitting ? "Saving…" : "Get started"}
           </Button>
         )}
       </div>

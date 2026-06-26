@@ -30,13 +30,13 @@ export function LatticeMark({ className, size = 40 }: { className?: string; size
   return <LatticeGlyph className={cn("block", className)} size={size} />;
 }
 
-/** Mark + wordmark lockup for headers. The "tice" is set in the serif accent. */
+/** Mark + wordmark lockup for headers. */
 export function BrandLockup({ size = 34, className }: { size?: number; className?: string }) {
   return (
     <span className={cn("flex items-center gap-2.5", className)}>
       <LatticeMark size={size} />
       <span className="text-[19px] font-semibold leading-none tracking-[-0.03em] text-foreground">
-        Lat<span className="font-accent text-[21px] text-primary">tice</span>
+        Lattice
       </span>
     </span>
   );

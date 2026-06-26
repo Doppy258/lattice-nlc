@@ -64,6 +64,11 @@ function Shell() {
     return <OnboardingPage />;
   }
 
+  if (authState === "authenticated" && path === "/onboarding") {
+    navigate("/home");
+    return null;
+  }
+
   // Authenticated and onboarded — render the app shell + routed page.
   return (
     <AppLayout>

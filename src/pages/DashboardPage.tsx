@@ -5,7 +5,7 @@ import { Card } from "@/components/common/Card";
 import { Icon, type IconName } from "@/components/common/Icon";
 import { Badge } from "@/components/common/Badge";
 import { PageHero } from "@/components/common/PageHeader";
-import { StatTile } from "@/components/common/StatTile";
+import { InsightSummary } from "@/components/common/InsightSummary";
 import { EmptyState } from "@/components/common/EmptyState";
 import { Stagger, StaggerItem } from "@/components/motion/Reveal";
 import { BarColumns } from "@/components/charts/Charts";
@@ -113,32 +113,19 @@ export function DashboardPage() {
         }
       />
 
-      <Stagger className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StaggerItem>
-          <StatTile tone="blue" label="Offer views" value={report.offerViews} icon={<Icon name="analytics" size={17} />} sub="Across all offers" />
-        </StaggerItem>
-        <StaggerItem>
-          <StatTile tone="violet" label="Claims" value={report.claims} icon={<Icon name="claims" size={17} />} sub={`${report.redemptions} redeemed`} />
-        </StaggerItem>
-        <StaggerItem>
-          <StatTile tone="mint" label="Redemptions" value={report.redemptions} icon={<Icon name="redeem" size={17} />} sub="Codes scanned in-store" />
-        </StaggerItem>
-        <StaggerItem>
-          <StatTile tone="amber" label="Conversion" value={formatPercent(report.conversionRate)} icon={<Icon name="rankings" size={17} />} sub="Views → redeemed" />
-        </StaggerItem>
-        <StaggerItem>
-          <StatTile tone="amber" label="Avg rating" value={`${formatRating(report.averageRating)}★`} icon={<Icon name="star" size={17} />} sub={`${report.reviewCount} reviews`} />
-        </StaggerItem>
-        <StaggerItem>
-          <StatTile tone="mint" label="Revenue influenced" value={formatCurrency(report.revenueInfluenced)} icon={<Icon name="reports" size={17} />} sub="From redemptions" />
-        </StaggerItem>
-        <StaggerItem>
-          <StatTile tone="violet" label="Repeat customers" value={report.repeatCustomers} icon={<Icon name="matches" size={17} />} sub="Returning guests" />
-        </StaggerItem>
-        <StaggerItem>
-          <StatTile tone="blue" label="Active offers" value={activeOffers.length} icon={<Icon name="offers" size={17} />} sub="Live right now" />
-        </StaggerItem>
-      </Stagger>
+      <InsightSummary
+        title="Performance summary"
+        items={[
+          { label: "Offer views", value: report.offerViews, detail: "Across all offers" },
+          { label: "Claims", value: report.claims, detail: `${report.redemptions} redeemed` },
+          { label: "Redemptions", value: report.redemptions, detail: "Codes scanned in-store" },
+          { label: "Conversion", value: formatPercent(report.conversionRate), detail: "Views to redeemed" },
+          { label: "Avg rating", value: `${formatRating(report.averageRating)}★`, detail: `${report.reviewCount} reviews` },
+          { label: "Revenue", value: formatCurrency(report.revenueInfluenced), detail: "Influenced by visits" },
+          { label: "Repeat guests", value: report.repeatCustomers, detail: "Returning customers" },
+          { label: "Active offers", value: activeOffers.length, detail: "Live right now" },
+        ]}
+      />
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Panel title="Claims over time" sub="Monthly claim volume on your offers" icon="analytics">

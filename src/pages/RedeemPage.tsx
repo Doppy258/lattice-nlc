@@ -5,7 +5,7 @@ import { Button } from "@/components/common/Button";
 import { Card } from "@/components/common/Card";
 import { Icon } from "@/components/common/Icon";
 import { EmptyState } from "@/components/common/EmptyState";
-import { StatTile } from "@/components/common/StatTile";
+import { InsightSummary } from "@/components/common/InsightSummary";
 import { PageHeader } from "@/components/common/PageHeader";
 import { FormField } from "@/components/common/FormField";
 import { Input } from "@/components/ui/input";
@@ -163,22 +163,23 @@ export function RedeemPage() {
           </Card>
         </Reveal>
 
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-1">
-          <StatTile
-            tone="blue"
-            label="Awaiting redemption"
-            value={awaiting.length}
-            icon={<Icon name="ticket" size={17} />}
-            sub="Active claims for this storefront"
-          />
-          <StatTile
-            tone="mint"
-            label="Redeemed all-time"
-            value={redeemed.length}
-            icon={<Icon name="check" size={17} />}
-            sub="Codes cashed in to date"
-          />
-        </div>
+        <InsightSummary
+          title="Redemption queue"
+          columns="one"
+          className="self-start lg:sticky lg:top-24"
+          items={[
+            {
+              label: "Awaiting",
+              value: awaiting.length,
+              detail: "Active claims for this storefront",
+            },
+            {
+              label: "Redeemed",
+              value: redeemed.length,
+              detail: "Codes cashed in to date",
+            },
+          ]}
+        />
       </div>
 
       {recent.length === 0 ? (

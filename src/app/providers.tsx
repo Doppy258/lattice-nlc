@@ -53,7 +53,7 @@ type AppContextValue = {
   signIn: (email: string, password: string) => Promise<string | null>;
   signUp: (email: string, password: string, displayName: string, recaptchaToken: string) => Promise<string | null>;
   signOut: () => Promise<void>;
-  completeOnboarding: (updates: Partial<User>) => void;
+  completeOnboarding: (updates: Partial<User>) => Promise<string | null>;
 };
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -88,6 +88,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [dataLoaded, setDataLoaded] = useState(false);
 
   const dataRef = useRef<AppData>(EMPTY_DATA);
+  const locallyOnboardedUserIdsRef = useRef(new Set<string>());
   dataRef.current = data;
 
   // Load empty data on mount — no Supabase queries until auth
@@ -108,7 +109,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setSession(s);
     if (s?.user) {
       loadDataFromSupabase().then((dbData) => {
-        const user = userFromSession(s);
+        const sessionUser = userFromSession(s);
+        const existingUser = getUserById(sessionUser.id, dataRef.current.users);
+        const hasLocalOnboarding = locallyOnboardedUserIdsRef.current.has(sessionUser.id);
+        const shouldPreserveOnboarding =
+          sessionUser.onboarded || existingUser?.onboarded || hasLocalOnboarding;
+        const user = shouldPreserveOnboarding
+          ? {
+              ...sessionUser,
+              ...existingUser,
+              preferences: {
+                ...sessionUser.preferences,
+                ...(existingUser?.preferences ?? {}),
+              },
+              onboarded: true,
+            }
+          : sessionUser;
         const baseData = dbData ?? dataRef.current;
         const merged = { ...baseData, users: [user] };
         dataRef.current = merged;
@@ -193,22 +209,46 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setActiveUserIdState("");
   }, []);
 
-  const completeOnboarding = useCallback((updates: Partial<User>) => {
+  const completeOnboarding = useCallback(async (updates: Partial<User>): Promise<string | null> => {
+    const previousUser = activeUser;
+    const targetUserId = activeUserId || activeUser.id;
+    locallyOnboardedUserIdsRef.current.add(targetUserId);
+    const nextUser: User = {
+      ...activeUser,
+      ...updates,
+      preferences: { ...activeUser.preferences, ...(updates.preferences ?? {}) },
+      onboarded: true,
+    };
+
     setDataState((prev) => {
-      const updatedUsers = prev.users.map((u) =>
-        u.id === activeUserId
-          ? {
-              ...u,
-              ...updates,
-              preferences: { ...u.preferences, ...(updates.preferences ?? {}) },
-              onboarded: true,
-            }
-          : u
-      );
-      return { ...prev, users: updatedUsers };
+      const hasUser = prev.users.some((u) => u.id === targetUserId);
+      const updatedUsers = hasUser
+        ? prev.users.map((u) => (u.id === targetUserId ? nextUser : u))
+        : [nextUser, ...prev.users];
+      const next = { ...prev, users: updatedUsers };
+      dataRef.current = next;
+      return next;
     });
-    saveOnboardingMetadata(updates);
-  }, [activeUserId]);
+    setActiveUserIdState(targetUserId);
+
+    const { session: refreshedSession, error } = await saveOnboardingMetadata(updates);
+    if (error) {
+      locallyOnboardedUserIdsRef.current.delete(targetUserId);
+      setDataState((prev) => {
+        const revertedUsers = prev.users.map((u) => (u.id === targetUserId ? previousUser : u));
+        const next = { ...prev, users: revertedUsers };
+        dataRef.current = next;
+        return next;
+      });
+      return error.message;
+    }
+
+    if (refreshedSession) {
+      handleSessionRef.current(refreshedSession);
+    }
+
+    return null;
+  }, [activeUser, activeUserId]);
 
   // ── Sync current user's data to Supabase ─────────────────────
   const prevDataRef = useRef<AppData>(EMPTY_DATA);
