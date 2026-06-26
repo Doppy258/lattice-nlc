@@ -70,7 +70,6 @@ export function OfferCard({
             className="inline-flex max-w-full cursor-pointer items-center gap-1 truncate text-left text-[13px] font-semibold text-muted-foreground transition-colors hover:text-primary"
           >
             <span className="truncate">{business.name}</span>
-            {business.verified && <Icon name="check" size={13} className="shrink-0 text-primary" />}
           </button>
           <h3 className="truncate font-display text-[17px] font-semibold tracking-[-0.02em] text-foreground">
             {offer.title}

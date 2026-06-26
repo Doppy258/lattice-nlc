@@ -90,12 +90,6 @@ export function DashboardPage() {
         eyebrow={
           <>
             <Icon name={category.icon as IconName} size={13} /> {category.label}
-            {activeBusiness.verified && (
-              <>
-                <span aria-hidden className="opacity-50">·</span>
-                <Icon name="check" size={13} /> Verified
-              </>
-            )}
           </>
         }
         title="Welcome back to"

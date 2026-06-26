@@ -60,7 +60,7 @@ export function MatchesPage() {
   }
 
   const [sort, setSort] = useState<SortKey>("best");
-  const [filters, setFilters] = useState({ deals: false, student: false, verified: false, saved: false });
+  const [filters, setFilters] = useState({ deals: false, student: false, saved: false });
   const toggle = (k: keyof typeof filters) => setFilters((f) => ({ ...f, [k]: !f[k] }));
 
   const request: PingRequest | undefined = useMemo(() => {
@@ -88,7 +88,6 @@ export function MatchesPage() {
     let list = rows.filter((r) => {
       if (filters.deals && !(r.offer.originalPrice && r.offer.originalPrice > r.offer.price)) return false;
       if (filters.student && !r.offer.studentOnly) return false;
-      if (filters.verified && !r.business.verified) return false;
       if (filters.saved && !isBusinessSaved(activeUser, r.business.id)) return false;
       return true;
     });
@@ -183,9 +182,6 @@ export function MatchesPage() {
           </ToggleChip>
           <ToggleChip active={filters.student} onClick={() => toggle("student")}>
             Student discount
-          </ToggleChip>
-          <ToggleChip active={filters.verified} onClick={() => toggle("verified")}>
-            Verified only
           </ToggleChip>
           <ToggleChip active={filters.saved} onClick={() => toggle("saved")}>
             Saved
