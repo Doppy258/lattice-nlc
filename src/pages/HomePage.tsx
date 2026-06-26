@@ -83,7 +83,7 @@ export function HomePage() {
   }, [matches, activeOffers, data.offers, prefCategories, prefStudent]);
 
   const myClaims = data.claims.filter((c) => c.userId === activeUser.id);
-  const activeClaimCount = myClaims.filter((c) => c.status === "active").length;
+  const activeClaimCount = myClaims.filter((c) => c.status === "pending").length;
   const redeemedClaimCount = myClaims.filter((c) => c.status === "redeemed").length;
   const savedCount =
     activeUser.preferences.savedBusinessIds.length + activeUser.preferences.savedOfferIds.length;

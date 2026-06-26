@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { useApp } from "@/app/providers";
-import { createClaim } from "@/services/claimService";
+import { createRedemptionPass } from "@/services/redemptionService";
 import type { Business, Claim, Offer } from "@/models";
 
 export type ClaimResult = { claim: Claim; offer: Offer; business: Business };
@@ -16,25 +16,22 @@ export function useClaim() {
   const [result, setResult] = useState<ClaimResult | null>(null);
 
   function claim(offer: Offer, requestId?: string) {
-    const res = createClaim(activeUser.id, offer, data.claims);
+    const res = createRedemptionPass(activeUser.id, offer, data.claims);
     if (!res.ok) {
       toast.error(res.error);
       return;
     }
-    const claim = res.claim;
+    const claim = res.pass;
     const business = data.businesses.find((b) => b.id === offer.businessId);
     setData((prev) => ({
       ...prev,
       claims: [...prev.claims, claim],
-      offers: prev.offers.map((o) =>
-        o.id === offer.id ? { ...o, currentClaims: o.currentClaims + 1 } : o,
-      ),
       requests: requestId
         ? prev.requests.map((r) => (r.id === requestId ? { ...r, status: "matched" } : r))
         : prev.requests,
     }));
     if (business) setResult({ claim, offer, business });
-    toast.success("Offer claimed!", { description: `Your code is ${claim.claimCode}` });
+    toast.success("Pass created", { description: `Your backup code is ${claim.backupCode}` });
   }
 
   return { claim, result, clearResult: () => setResult(null) };

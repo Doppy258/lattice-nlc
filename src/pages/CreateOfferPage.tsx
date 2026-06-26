@@ -74,6 +74,10 @@ export function CreateOfferPage() {
   const [verificationRequired, setVerificationRequired] = useState<boolean>(
     () => existing?.verificationRequired ?? false,
   );
+  const [oneTimePerUser, setOneTimePerUser] = useState<boolean>(() => existing?.oneTimePerUser ?? true);
+  const [redemptionWindowMinutes, setRedemptionWindowMinutes] = useState<number>(
+    () => existing?.redemptionWindowMinutes ?? 5,
+  );
 
   const input: OfferInput = useMemo(
     () => ({
@@ -88,6 +92,8 @@ export function CreateOfferPage() {
       tags,
       studentOnly,
       verificationRequired,
+      oneTimePerUser,
+      redemptionWindowMinutes,
     }),
     [
       title,
@@ -101,6 +107,8 @@ export function CreateOfferPage() {
       tags,
       studentOnly,
       verificationRequired,
+      oneTimePerUser,
+      redemptionWindowMinutes,
     ],
   );
 

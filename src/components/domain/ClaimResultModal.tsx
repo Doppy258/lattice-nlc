@@ -17,8 +17,8 @@ export function ClaimResultModal({
     <Modal
       open={!!result}
       onOpenChange={(o) => !o && onClose()}
-      title="Offer claimed"
-      description="Show your code at the business before it expires to redeem."
+      title="Pass created"
+      description="Show your pass code at the business before it expires to redeem."
     >
       {result && (
         <div className="space-y-4">

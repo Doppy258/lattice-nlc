@@ -10,11 +10,13 @@ import { PageHeader } from "@/components/common/PageHeader";
 import { FormField } from "@/components/common/FormField";
 import { Input } from "@/components/ui/input";
 import { Reveal, Stagger, StaggerItem } from "@/components/motion/Reveal";
+import { getBusinessClaims } from "@/services/claimService";
 import {
-  getBusinessClaims,
-  redeemClaim,
-  validateClaimCode,
-} from "@/services/claimService";
+  approveRedemption,
+  findPass,
+  validateBackupCode,
+  validateForApproval,
+} from "@/services/redemptionService";
 import { getUserById } from "@/services/userService";
 import { formatCurrency, initials, relativeTime } from "@/utils/formatting";
 import { toast } from "sonner";
@@ -27,7 +29,7 @@ type Redemption = {
 };
 
 export function RedeemPage() {
-  const { data, activeBusiness, setData } = useApp();
+  const { data, activeBusiness, activeUser, setData } = useApp();
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<Redemption | null>(null);
@@ -47,53 +49,60 @@ export function RedeemPage() {
     );
   }
 
-  const codeValid = validateClaimCode(code);
+  const codeValid = validateBackupCode(code);
   const businessClaims = getBusinessClaims(activeBusiness.id, data.claims);
-  const awaiting = businessClaims.filter((c) => c.status === "active");
+  const awaiting = businessClaims.filter((c) => c.status === "pending");
   const redeemed = businessClaims.filter((c) => c.status === "redeemed");
   const recent = [...redeemed]
     .sort((a, b) => (b.redeemedAt ?? "").localeCompare(a.redeemedAt ?? ""))
     .slice(0, 6);
 
   function onChangeCode(value: string) {
-    setCode(value.toUpperCase().replace(/[^A-Z0-9-]/g, ""));
+    setCode(value.replace(/\D/g, "").slice(0, 6));
     if (error) setError(null);
   }
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const res = redeemClaim(code, activeBusiness!.id, data.claims);
-    if (res.ok) {
-      setData((d) => ({
-        ...d,
-        claims: d.claims.map((c) => (c.id === res.claim.id ? res.claim : c)),
-      }));
-      const offer = data.offers.find((o) => o.id === res.claim.offerId);
-      const customer = getUserById(res.claim.userId, data.users);
-      const savings =
-        offer?.originalPrice != null ? offer.originalPrice - offer.price : null;
-      setSuccess({
-        offerTitle: offer?.title ?? "Offer",
-        customerName: customer?.name ?? "Customer",
-        savings,
-        code: res.claim.claimCode,
-      });
-      setError(null);
-      toast.success("Claim redeemed");
-      setCode("");
-    } else {
+    const pass = findPass(code, data.claims);
+    const offer = pass ? data.offers.find((o) => o.id === pass.offerId) : undefined;
+    const check = validateForApproval(pass, offer, activeBusiness!.id, data.claims);
+    if (!check.ok || !pass) {
+      const message = check.ok ? "No pass found for that code. Double-check the 6 digits." : check.error;
       setSuccess(null);
-      setError(res.error);
-      toast.error(res.error);
+      setError(message);
+      toast.error(message);
+      return;
     }
+
+    const redeemedPass = approveRedemption(pass, activeUser.id);
+    setData((d) => ({
+      ...d,
+      claims: d.claims.map((c) => (c.id === redeemedPass.id ? redeemedPass : c)),
+      offers: d.offers.map((o) =>
+        o.id === redeemedPass.offerId ? { ...o, currentClaims: o.currentClaims + 1 } : o,
+      ),
+    }));
+    const customer = getUserById(redeemedPass.userId, data.users);
+    const savings =
+      offer?.originalPrice != null ? offer.originalPrice - offer.price : null;
+    setSuccess({
+      offerTitle: offer?.title ?? "Offer",
+      customerName: customer?.name ?? "Customer",
+      savings,
+      code: redeemedPass.backupCode,
+    });
+    setError(null);
+    toast.success("Pass redeemed");
+    setCode("");
   }
 
   return (
     <div className="space-y-7">
       <PageHeader
         title="Redeem a"
-        accent="claim code"
-        subtitle="Enter a customer's PING code to verify and redeem their claim at the counter — instantly, no scanner required."
+        accent="pass code"
+        subtitle="Enter a customer's 6-digit pass code to verify and redeem their claim at the counter."
       />
 
       <div className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
@@ -105,16 +114,16 @@ export function RedeemPage() {
               </div>
               <form onSubmit={onSubmit} className="mt-4 space-y-4">
                 <FormField
-                  label="Claim code"
+                  label="Pass code"
                   htmlFor="claim-code"
                   error={error ?? undefined}
-                  hint="Ask the customer for the PING code on their claim, then verify it here."
+                  hint="Ask the customer for the 6-digit backup code on their pass, then verify it here."
                 >
                   <Input
                     id="claim-code"
                     value={code}
                     onChange={(e) => onChangeCode(e.target.value)}
-                    placeholder="PING-1234"
+                    placeholder="123456"
                     autoComplete="off"
                     autoCapitalize="characters"
                     spellCheck={false}
@@ -187,7 +196,7 @@ export function RedeemPage() {
           <EmptyState
             icon="redeem"
             title="No redemptions yet"
-            body="As customers cash in their PING codes, each redemption will appear here with who claimed what."
+            body="As customers redeem pass codes, each redemption will appear here with who claimed what."
           />
         </Card>
       ) : (
@@ -208,7 +217,7 @@ export function RedeemPage() {
                       <div className="truncate text-[13px] text-muted-foreground">{offer?.title ?? "Offer"}</div>
                     </div>
                     <div className="shrink-0 text-right">
-                      <div className="mono text-[13px] font-semibold text-[var(--primary-strong)]">{c.claimCode}</div>
+                      <div className="mono text-[13px] font-semibold text-[var(--primary-strong)]">{c.backupCode}</div>
                       <div className="text-[12px] text-muted-foreground">
                         {c.redeemedAt ? relativeTime(c.redeemedAt) : "—"}
                       </div>

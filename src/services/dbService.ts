@@ -28,6 +28,8 @@ function businessRowToBusiness(row: Record<string, unknown>): Business {
     priceLevel: row.price_level as Business["priceLevel"],
     tags: row.tags as string[],
     accessibilityFeatures: row.accessibility_features as string[],
+    imageUrl: (row.image_url as string | null) ?? undefined,
+    bannerUrl: (row.banner_url as string | null) ?? undefined,
     ownerUserId: row.owner_user_id as string,
     createdAt: row.created_at as string,
   };
@@ -48,6 +50,8 @@ function businessToRow(b: Business): Record<string, unknown> {
     price_level: b.priceLevel,
     tags: b.tags,
     accessibility_features: b.accessibilityFeatures,
+    image_url: b.imageUrl ?? null,
+    banner_url: b.bannerUrl ?? null,
     owner_user_id: b.ownerUserId,
     created_at: b.createdAt,
   };
@@ -71,6 +75,8 @@ function offerRowToOffer(row: Record<string, unknown>): Offer {
     tags: row.tags as string[],
     studentOnly: row.student_only as boolean,
     verificationRequired: row.verification_required as boolean,
+    oneTimePerUser: (row.one_time_per_user as boolean | null) ?? true,
+    redemptionWindowMinutes: (row.redemption_window_minutes as number | null) ?? 5,
     active: row.active as boolean,
     createdAt: row.created_at as string,
   };
@@ -94,22 +100,32 @@ function offerToRow(o: Offer): Record<string, unknown> {
     tags: o.tags,
     student_only: o.studentOnly,
     verification_required: o.verificationRequired,
+    one_time_per_user: o.oneTimePerUser,
+    redemption_window_minutes: o.redemptionWindowMinutes,
     active: o.active,
     created_at: o.createdAt,
   };
 }
 
 function claimRowToClaim(row: Record<string, unknown>): Claim {
+  const claimCode = (row.claim_code as string) ?? "";
+  // Legacy rows used "active" for an un-redeemed claim; the pass model calls it "pending".
+  const rawStatus = row.status as string;
+  const status = (rawStatus === "active" ? "pending" : rawStatus) as Claim["status"];
   return {
     id: row.id as string,
     userId: row.user_id as string,
     offerId: row.offer_id as string,
     businessId: row.business_id as string,
-    claimCode: row.claim_code as string,
-    status: row.status as Claim["status"],
+    claimCode,
+    token: (row.token as string | null) ?? claimCode,
+    backupCode: (row.backup_code as string | null) ?? claimCode,
+    status,
     createdAt: row.created_at as string,
     expiresAt: row.expires_at as string,
     redeemedAt: row.redeemed_at as string | undefined,
+    approvedByBusinessUserId:
+      (row.approved_by_business_user_id as string | null) ?? undefined,
   };
 }
 
@@ -120,10 +136,13 @@ function claimToRow(c: Claim): Record<string, unknown> {
     offer_id: c.offerId,
     business_id: c.businessId,
     claim_code: c.claimCode,
+    token: c.token,
+    backup_code: c.backupCode,
     status: c.status,
     created_at: c.createdAt,
     expires_at: c.expiresAt,
     redeemed_at: c.redeemedAt ?? null,
+    approved_by_business_user_id: c.approvedByBusinessUserId ?? null,
   };
 }
 
@@ -307,6 +326,14 @@ export async function upsertClaim(claim: Claim): Promise<void> {
 export async function upsertClaims(claims: Claim[]): Promise<void> {
   if (!supabase || claims.length === 0) return;
   await supabase.from("claims").upsert(claims.map(claimToRow), { onConflict: "id" });
+}
+
+/** Fetches a single claim/pass by id — used to poll a pass's live status. */
+export async function fetchClaimById(id: string): Promise<Claim | null> {
+  if (!supabase) return null;
+  const { data, error } = await supabase.from("claims").select("*").eq("id", id).maybeSingle();
+  if (error || !data) return null;
+  return claimRowToClaim(data as Record<string, unknown>);
 }
 
 // ── Reviews ──────────────────────────────────────────────────

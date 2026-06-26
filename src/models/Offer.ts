@@ -21,12 +21,18 @@ export type Offer = {
   originalPrice?: number;
   validFrom: string;
   validUntil: string;
+  /** Total redemption limit across all customers. */
   maxClaims: number;
+  /** Count of redemptions that have been *approved* by the business. */
   currentClaims: number;
   views: number;
   tags: string[];
   studentOnly: boolean;
   verificationRequired: boolean;
+  /** When true, a customer can only ever redeem this offer once. */
+  oneTimePerUser: boolean;
+  /** Minutes a Lattice Pass stays valid after a customer claims it (default 5). */
+  redemptionWindowMinutes: number;
   active: boolean;
   createdAt: string;
 };

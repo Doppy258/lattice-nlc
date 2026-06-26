@@ -33,6 +33,11 @@ export function navForRole(role: UserRole): NavItem[] {
   return role === "businessOwner" ? BUSINESS_NAV : CUSTOMER_NAV;
 }
 
+/** Default landing route after auth/onboarding, by role. */
+export function homePathForRole(role: UserRole): string {
+  return role === "businessOwner" ? "/dashboard" : "/home";
+}
+
 const TITLES: Record<string, string> = Object.fromEntries(
   [...CUSTOMER_NAV, ...BUSINESS_NAV].map((n) => [n.path, n.label]),
 );

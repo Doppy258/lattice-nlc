@@ -40,6 +40,10 @@ export type Business = {
   priceLevel: 1 | 2 | 3 | 4;
   tags: string[];
   accessibilityFeatures: string[];
+  /** Square logo / profile picture (Supabase Storage public URL). */
+  imageUrl?: string;
+  /** Wide storefront banner (Supabase Storage public URL). */
+  bannerUrl?: string;
   ownerUserId: string;
   createdAt: string;
 };

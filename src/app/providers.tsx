@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import type { Session } from "@supabase/supabase-js";
-import type { AppData, Business, User } from "../models";
+import type { AppData, Business, User, UserRole } from "../models";
 import {
   loadDataAsync,
   loadDataFromSupabase,
@@ -28,6 +28,8 @@ import { isSupabaseConfigured } from "../services/supabaseClient";
 import {
   upsertClaims,
   insertReview,
+  upsertBusiness,
+  upsertOffer,
   upsertRanking,
   insertSavedBusiness,
   deleteSavedBusiness,
@@ -51,7 +53,7 @@ type AppContextValue = {
   authState: AuthState;
   session: Session | null;
   signIn: (email: string, password: string) => Promise<string | null>;
-  signUp: (email: string, password: string, displayName: string, recaptchaToken: string) => Promise<string | null>;
+  signUp: (email: string, password: string, displayName: string, recaptchaToken: string, role?: UserRole) => Promise<string | null>;
   signOut: () => Promise<void>;
   completeOnboarding: (updates: Partial<User>) => Promise<string | null>;
 };
@@ -195,8 +197,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return null;
   }, []);
 
-  const signUp = useCallback(async (email: string, password: string, displayName: string, recaptchaToken: string): Promise<string | null> => {
-    const { session: s, error } = await authSignUp(email, password, displayName, recaptchaToken);
+  const signUp = useCallback(async (email: string, password: string, displayName: string, recaptchaToken: string, role: UserRole = "customer"): Promise<string | null> => {
+    const { session: s, error } = await authSignUp(email, password, displayName, recaptchaToken, role);
     if (error) return error.message;
     if (s) handleSessionRef.current(s);
     return null;
@@ -263,11 +265,30 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const uid = session.user.id;
     const prev = prevDataRef.current;
 
-    // Claims
-    const prevClaims = prev.claims.filter((c) => c.userId === uid);
-    const curClaims = data.claims.filter((c) => c.userId === uid);
+    const ownedBusinessIds = new Set(
+      data.businesses.filter((b) => b.ownerUserId === uid).map((b) => b.id),
+    );
+
+    // Claims/pass approvals owned by the user or by one of their businesses.
+    const canSyncClaim = (c: AppData["claims"][number]) =>
+      c.userId === uid || ownedBusinessIds.has(c.businessId);
+    const prevClaims = prev.claims.filter(canSyncClaim);
+    const curClaims = data.claims.filter(canSyncClaim);
     if (JSON.stringify(prevClaims) !== JSON.stringify(curClaims) && curClaims.length > 0) {
       upsertClaims(curClaims);
+    }
+
+    // Offers owned by the user's businesses, including redemption counts.
+    const canSyncOffer = (o: AppData["offers"][number]) => ownedBusinessIds.has(o.businessId);
+    const prevOffers = prev.offers.filter(canSyncOffer);
+    const curOffers = data.offers.filter(canSyncOffer);
+    if (JSON.stringify(prevOffers) !== JSON.stringify(curOffers)) {
+      for (const offer of curOffers) {
+        const before = prevOffers.find((p) => p.id === offer.id);
+        if (!before || JSON.stringify(before) !== JSON.stringify(offer)) {
+          upsertOffer(offer);
+        }
+      }
     }
 
     // Reviews (only insert new ones)
@@ -277,6 +298,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
       for (const review of curReviews) {
         if (!prevReviews.some((p) => p.id === review.id)) {
           insertReview(review);
+        }
+      }
+    }
+
+    // Persist derived rating fields after verified review submission.
+    if (prev.businesses.length > 0) {
+      for (const business of data.businesses) {
+        const before = prev.businesses.find((b) => b.id === business.id);
+        if (
+          before &&
+          (before.ratingAverage !== business.ratingAverage || before.reviewCount !== business.reviewCount)
+        ) {
+          upsertBusiness(business);
         }
       }
     }

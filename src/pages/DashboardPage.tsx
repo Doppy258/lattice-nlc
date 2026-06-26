@@ -18,7 +18,7 @@ import { formatCurrency, formatPercent, formatRating, initials, relativeTime } f
 import type { ClaimStatus } from "@/models";
 
 function claimTone(status: ClaimStatus): "brand" | "success" | "neutral" {
-  if (status === "active") return "brand";
+  if (status === "pending") return "brand";
   if (status === "redeemed") return "success";
   return "neutral";
 }

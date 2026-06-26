@@ -8,6 +8,8 @@ import { isSupabaseConfigured } from "./services/supabaseClient";
 import { LoginPage } from "./pages/LoginPage";
 import { SignupPage } from "./pages/SignupPage";
 import { OnboardingPage } from "./pages/OnboardingPage";
+import { BusinessOnboardingPage } from "./pages/BusinessOnboardingPage";
+import { homePathForRole } from "@/components/layout/navConfig";
 
 const PUBLIC_AUTH_PATHS = ["/login", "/signup"];
 
@@ -44,7 +46,7 @@ function Shell() {
 
   // Authenticated users on login/signup get sent to the right place.
   if (authState === "authenticated" && PUBLIC_AUTH_PATHS.includes(path)) {
-    navigate(needsOnboarding ? "/onboarding" : "/home");
+    navigate(needsOnboarding ? "/onboarding" : homePathForRole(activeUser.role));
     return null;
   }
 
@@ -61,11 +63,11 @@ function Shell() {
 
   if (needsOnboarding) {
     if (path !== "/onboarding") navigate("/onboarding");
-    return <OnboardingPage />;
+    return activeUser.role === "businessOwner" ? <BusinessOnboardingPage /> : <OnboardingPage />;
   }
 
   if (authState === "authenticated" && path === "/onboarding") {
-    navigate("/home");
+    navigate(homePathForRole(activeUser.role));
     return null;
   }
 

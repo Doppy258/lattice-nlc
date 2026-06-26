@@ -1,6 +1,6 @@
 import type { Session, User as SupabaseUser } from "@supabase/supabase-js";
 import { supabase } from "./supabaseClient";
-import type { User } from "../models";
+import type { User, UserRole } from "../models";
 
 export type AuthError = { message: string };
 
@@ -50,14 +50,17 @@ export async function signUp(
   email: string,
   password: string,
   displayName: string,
-  recaptchaToken: string
+  recaptchaToken: string,
+  role: UserRole = "customer"
 ): Promise<{ user: SupabaseUser | null; session: Session | null; error: AuthError | null }> {
   if (!supabase) {
     return { user: null, session: null, error: { message: "Supabase is not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in .env." } };
   }
 
+  // Business accounts start un-onboarded so they get routed to business onboarding;
+  // role overrides the customer default in DEFAULT_METADATA.
   const options: Record<string, unknown> = {
-    data: { name: displayName, ...DEFAULT_METADATA },
+    data: { name: displayName, ...DEFAULT_METADATA, role },
   };
   if (recaptchaToken) options.captchaToken = recaptchaToken;
 

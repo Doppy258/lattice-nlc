@@ -18,10 +18,10 @@ import { calculateEstimatedSavings } from "@/services/reportService";
 import { formatCurrency, relativeTime } from "@/utils/formatting";
 import type { Claim, ClaimStatus } from "@/models";
 
-type Filter = "all" | "active" | "redeemed" | "expired";
+type Filter = "all" | "pending" | "redeemed" | "expired";
 
 const STATUS_META: Record<ClaimStatus, { tone: BadgeTone; label: string }> = {
-  active: { tone: "brand", label: "Active" },
+  pending: { tone: "brand", label: "Active" },
   redeemed: { tone: "success", label: "Redeemed" },
   expired: { tone: "neutral", label: "Expired" },
   cancelled: { tone: "neutral", label: "Cancelled" },
@@ -42,7 +42,7 @@ export function ClaimsPage() {
   );
 
   const counts = {
-    active: myClaims.filter((c) => c.status === "active").length,
+    active: myClaims.filter((c) => c.status === "pending").length,
     redeemed: myClaims.filter((c) => c.status === "redeemed").length,
     past: myClaims.filter((c) => c.status === "expired" || c.status === "cancelled").length,
     saved: calculateEstimatedSavings(myClaims, data.offers),
@@ -71,7 +71,7 @@ export function ClaimsPage() {
       <PageHeader
         title="Your"
         accent="claims"
-        subtitle="Every offer you've claimed lives here. Show an active code at the business to redeem it, then leave a verified review."
+        subtitle="Every offer you've claimed lives here. Show an active pass at the business to redeem it, then leave a verified review."
       />
 
       <div className="rounded-[var(--tile-radius)] border border-border bg-card/75 px-4 py-3 text-sm text-muted-foreground shadow-[var(--shadow-soft)]">
@@ -85,7 +85,7 @@ export function ClaimsPage() {
         onChange={setFilter}
         options={[
           { value: "all", label: `All (${myClaims.length})` },
-          { value: "active", label: `Active (${counts.active})` },
+          { value: "pending", label: `Active (${counts.active})` },
           { value: "redeemed", label: `Redeemed (${counts.redeemed})` },
           { value: "expired", label: `Past (${counts.past})` },
         ]}
@@ -128,7 +128,7 @@ export function ClaimsPage() {
                       <span className="text-[12px] text-muted-foreground">
                         {c.status === "redeemed" && c.redeemedAt
                           ? `Redeemed ${relativeTime(c.redeemedAt)}`
-                          : c.status === "active"
+                          : c.status === "pending"
                             ? `Expires ${relativeTime(c.expiresAt)}`
                             : `Expired ${relativeTime(c.expiresAt)}`}
                       </span>
@@ -146,10 +146,10 @@ export function ClaimsPage() {
                   </div>
                   <div className="flex items-center justify-between gap-3 sm:flex-col sm:items-end">
                     <span className="mono rounded-xl bg-[var(--tint-blue)] px-3 py-1.5 text-[15px] font-semibold tracking-[0.08em] text-[var(--primary-strong)]">
-                      {c.claimCode}
+                      {c.backupCode}
                     </span>
                     <div className="flex items-center gap-2">
-                      {c.status === "active" && (
+                      {c.status === "pending" && (
                         <Button variant="brand" size="sm" iconLeft={<Icon name="ticket" size={15} />} onClick={() => setCodeClaim(c)}>
                           Show code
                         </Button>
@@ -178,7 +178,7 @@ export function ClaimsPage() {
       <Modal
         open={!!codeClaim}
         onOpenChange={(o) => !o && setCodeClaim(null)}
-        title="Your claim code"
+        title="Your pass code"
         description="Show this at the business to redeem your offer before it expires."
       >
         {codeClaim && codeOffer && codeBiz && (

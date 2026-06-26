@@ -3,9 +3,18 @@ import { useApp } from "../app/providers";
 import { navigate } from "../app/navigation";
 import { Button } from "@/components/common/Button";
 import { FormField } from "@/components/common/FormField";
+import { Icon } from "@/components/common/Icon";
 import { Input } from "@/components/ui/input";
 import { BrandLockup } from "@/components/layout/LatticeMark";
 import { AuthError, AuthShell } from "./authShared";
+import { cn } from "@/lib/utils";
+
+type AccountType = "customer" | "business";
+
+const ACCOUNT_TYPES: { id: AccountType; label: string; description: string; icon: "home" | "store" }[] = [
+  { id: "customer", label: "Personal", description: "Find & save local offers", icon: "home" },
+  { id: "business", label: "Business", description: "List offers & redeem passes", icon: "store" },
+];
 
 declare global {
   interface Window {
@@ -22,6 +31,7 @@ const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY || "";
 
 export function SignupPage() {
   const { signUp } = useApp();
+  const [accountType, setAccountType] = useState<AccountType>("customer");
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -76,7 +86,8 @@ export function SignupPage() {
     }
 
     setSubmitting(true);
-    const err = await signUp(email.trim(), password, displayName.trim(), recaptchaToken);
+    const role = accountType === "business" ? "businessOwner" : "customer";
+    const err = await signUp(email.trim(), password, displayName.trim(), recaptchaToken, role);
     setSubmitting(false);
 
     if (err) {
@@ -94,13 +105,49 @@ export function SignupPage() {
           Create your <span className="font-accent font-normal text-primary">account</span>
         </h1>
         <p className="mt-1.5 text-[14px] text-muted-foreground">
-          Join Lattice and get matched with local offers.
+          {accountType === "business"
+            ? "List your storefront and redeem customer passes."
+            : "Join Lattice and get matched with local offers."}
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="mt-7 space-y-4">
         {error && <AuthError message={error} />}
-        <FormField label="Display name" htmlFor="signup-name">
+
+        <FormField label="I'm signing up as a">
+          <div className="grid grid-cols-2 gap-2.5">
+            {ACCOUNT_TYPES.map((opt) => {
+              const selected = accountType === opt.id;
+              return (
+                <button
+                  key={opt.id}
+                  type="button"
+                  onClick={() => setAccountType(opt.id)}
+                  aria-pressed={selected}
+                  className={cn(
+                    "flex cursor-pointer flex-col items-start gap-1.5 rounded-2xl border p-3.5 text-left transition-colors",
+                    selected
+                      ? "border-primary/40 bg-[var(--tint-blue)] ring-1 ring-inset ring-primary/20"
+                      : "border-border bg-card hover:border-[var(--input)]",
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "grid size-9 place-items-center rounded-xl",
+                      selected ? "bg-primary text-white" : "bg-accent text-primary",
+                    )}
+                  >
+                    <Icon name={opt.icon} size={18} />
+                  </span>
+                  <span className="text-[14px] font-semibold tracking-[-0.01em]">{opt.label}</span>
+                  <span className="text-[11px] leading-snug text-muted-foreground">{opt.description}</span>
+                </button>
+              );
+            })}
+          </div>
+        </FormField>
+
+        <FormField label={accountType === "business" ? "Your name" : "Display name"} htmlFor="signup-name">
           <Input
             id="signup-name"
             type="text"
