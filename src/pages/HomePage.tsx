@@ -19,6 +19,7 @@ import { distanceForBusiness } from "@/services/businessService";
 import { isOfferSaved, toggleSavedOffer } from "@/services/userService";
 import { NEED_TYPE_LABELS } from "@/data/catalog";
 import { formatCurrency, formatDistance } from "@/utils/formatting";
+import { offerSavingsPerRedemption } from "@/utils/offerPricing";
 import type { Offer, PingRequest } from "@/models";
 
 function greeting(): string {
@@ -85,11 +86,10 @@ export function HomePage() {
         match: m,
       }));
     }
-    const savings = (o: Offer) => (o.originalPrice ?? o.price) - o.price;
     const affinity = (o: Offer) =>
       (prefCategories.includes(o.category) ? 1000 : 0) +
       (prefStudent && o.studentOnly ? 300 : 0) +
-      savings(o);
+      offerSavingsPerRedemption(o);
     return activeOffers
       .slice()
       .sort((a, b) => affinity(b) - affinity(a))
@@ -107,7 +107,7 @@ export function HomePage() {
       .filter((c) => c.status === "redeemed")
       .reduce((sum, c) => {
         const offer = data.offers.find((o) => o.id === c.offerId);
-        return offer?.originalPrice ? sum + (offer.originalPrice - offer.price) : sum;
+        return offer ? sum + offerSavingsPerRedemption(offer) : sum;
       }, 0);
   }, [myClaims, data.offers]);
 

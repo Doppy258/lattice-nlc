@@ -1,4 +1,4 @@
-import type { BusinessCategory, Offer, OfferType } from "../models";
+import type { BusinessCategory, DiscountKind, Offer, OfferType } from "../models";
 import { MS_PER_DAY } from "../utils/dateTime";
 
 type OfferSpec = {
@@ -8,8 +8,11 @@ type OfferSpec = {
   description: string;
   category: BusinessCategory;
   offerType: OfferType;
+  discountKind?: DiscountKind;
   price: number;
   originalPrice?: number;
+  percentOff?: number;
+  amountOff?: number;
   maxClaims?: number;
   currentClaims?: number;
   views?: number;
@@ -25,7 +28,7 @@ type OfferSpec = {
 
 const SPECS: OfferSpec[] = [
   { id: "offer_freshbowl_bowl", businessId: "biz_freshbowl", title: "Student lunch bowl", description: "Grain bowl with protein + drink, weekdays after 11 AM.", category: "food", offerType: "studentOffer", price: 11.99, originalPrice: 15.99, maxClaims: 40, currentClaims: 12, views: 410, tags: ["student-friendly", "vegetarian", "fast"], studentOnly: true },
-  { id: "offer_freshbowl_smoothie", businessId: "biz_freshbowl", title: "After-school smoothie", description: "Any 16oz smoothie, 3-5 PM only.", category: "food", offerType: "discount", price: 4.5, originalPrice: 6, maxClaims: 60, currentClaims: 21, views: 260, tags: ["fast"] },
+  { id: "offer_freshbowl_smoothie", businessId: "biz_freshbowl", title: "$2 off any smoothie", description: "Any 16oz smoothie, 3-5 PM only.", category: "food", offerType: "discount", discountKind: "amountOff", amountOff: 2, price: 0, maxClaims: 60, currentClaims: 21, views: 260, tags: ["fast"] },
   { id: "offer_rosas_taco", businessId: "biz_rosas", title: "Taco lunch combo", description: "Two tacos, rice, and a drink.", category: "food", offerType: "limitedTime", price: 11, originalPrice: 14, maxClaims: 50, currentClaims: 30, views: 520, tags: ["tacos", "fast"] },
   { id: "offer_rosas_group", businessId: "biz_rosas", title: "Group taco platter", description: "Feeds 4-5; great for hangouts.", category: "food", offerType: "groupOffer", price: 42, originalPrice: 55, maxClaims: 20, currentClaims: 6, views: 180, tags: ["group-friendly"] },
   { id: "offer_harbour_latte", businessId: "biz_harbourroast", title: "$3 iced latte after school", description: "Any iced latte, weekdays 3-6 PM.", category: "food", offerType: "studentOffer", price: 3, originalPrice: 5, maxClaims: 80, currentClaims: 44, views: 610, tags: ["coffee", "student-friendly"], studentOnly: true },
@@ -55,7 +58,7 @@ const SPECS: OfferSpec[] = [
   { id: "offer_scholar_room", businessId: "biz_scholarspace", title: "Group study room hour", description: "Private room for up to 6.", category: "education", offerType: "groupOffer", price: 12, originalPrice: 20, maxClaims: 30, currentClaims: 6, views: 120, tags: ["study", "group-friendly"] },
   { id: "offer_exam_workshop", businessId: "biz_examedge", title: "SAT crash workshop", description: "Two-hour strategy + practice clinic.", category: "education", offerType: "event", price: 20, originalPrice: 40, maxClaims: 24, currentClaims: 16, views: 180, tags: ["test-prep", "student-friendly"], studentOnly: true },
 
-  { id: "offer_fixly_protector", businessId: "biz_fixly", title: "20% off screen protector", description: "Tempered glass, installed in-store.", category: "repair", offerType: "discount", price: 16, originalPrice: 20, maxClaims: 60, currentClaims: 24, views: 300, tags: ["phone-repair", "fast"] },
+  { id: "offer_fixly_protector", businessId: "biz_fixly", title: "20% off any screen protector", description: "Tempered glass for any phone, installed in-store.", category: "repair", offerType: "discount", discountKind: "percent", percentOff: 20, price: 0, maxClaims: 60, currentClaims: 24, views: 300, tags: ["phone-repair", "fast"] },
   { id: "offer_fixly_screen", businessId: "biz_fixly", title: "Phone screen replacement", description: "Same-day screen repair, most models.", category: "repair", offerType: "limitedTime", price: 79, originalPrice: 110, maxClaims: 20, currentClaims: 8, views: 220, tags: ["phone-repair"], verificationRequired: true },
   { id: "offer_cycle_tune", businessId: "biz_cyclewerks", title: "Spring tune-up", description: "Brakes, gears, and safety check.", category: "repair", offerType: "discount", price: 35, originalPrice: 50, maxClaims: 30, currentClaims: 7, views: 140, tags: ["bike-repair"] },
 
@@ -83,8 +86,11 @@ export function buildSeedOffers(now: Date = new Date()): Offer[] {
       description: s.description,
       category: s.category,
       offerType: s.offerType,
+      discountKind: s.discountKind ?? "fixedPrice",
       price: s.price,
       originalPrice: s.originalPrice,
+      percentOff: s.percentOff,
+      amountOff: s.amountOff,
       validFrom,
       validUntil,
       maxClaims: s.maxClaims ?? 30,

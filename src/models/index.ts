@@ -10,7 +10,7 @@ export type {
   BusinessHours,
   Business,
 } from "./Business";
-export type { OfferType, Offer, ScoreBreakdown, MatchResult } from "./Offer";
+export type { OfferType, DiscountKind, Offer, ScoreBreakdown, MatchResult } from "./Offer";
 export type { NeedType, PingRequestStatus, PingRequest } from "./PingRequest";
 export type { ClaimStatus, Claim } from "./Claim";
 export type { Review, ReviewTag } from "./Review";
