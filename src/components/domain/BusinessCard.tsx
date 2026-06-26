@@ -1,3 +1,7 @@
+/**
+ * BusinessCard — a business tile in explore/saved/search grids.
+ * See component for prop details.
+ */
 import { motion } from "motion/react";
 import { Bookmark } from "lucide-react";
 import type { Business } from "@/models";

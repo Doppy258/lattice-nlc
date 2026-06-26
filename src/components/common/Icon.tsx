@@ -1,3 +1,7 @@
+/**
+ * Icon — named icon surface backed by lucide-react.
+ * See component and IconName type for available glyphs.
+ */
 import type { CSSProperties } from "react";
 import {
   Activity,

@@ -1,3 +1,7 @@
+/**
+ * Badge — compact status/label pill in semantic tones.
+ * See component for prop details.
+ */
 import type { ComponentProps, ReactNode } from "react";
 import { cn } from "@/lib/utils";
 

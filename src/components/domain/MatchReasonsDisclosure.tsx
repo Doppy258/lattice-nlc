@@ -1,3 +1,7 @@
+/**
+ * MatchReasonsDisclosure — collapsible "Why this match?" panel inside OfferCard.
+ * See component for animation and trigger details.
+ */
 import { useId, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { ChevronDown } from "lucide-react";

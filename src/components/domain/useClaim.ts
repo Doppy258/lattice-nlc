@@ -1,3 +1,7 @@
+/**
+ * useClaim — shared claim orchestration hook.
+ * See hook documentation for the two-phase (stage + confirm) flow.
+ */
 import { useState } from "react";
 import { toast } from "sonner";
 import { useApp } from "@/app/providers";

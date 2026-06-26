@@ -1,3 +1,10 @@
+/**
+ * offerMatchingService — OfferRank matching engine.
+ * Filters offers through a hard eligibility gate (category, distance, budget,
+ * time), then scores survivors across 7 weighted dimensions. The result is a
+ * ranked list of MatchResults with per-dimension breakdowns and human-readable
+ * reasons — the core intelligence behind "Why this match?".
+ */
 import type {
   Business,
   GeoPoint,
