@@ -1,3 +1,10 @@
+/**
+ * ClaimsPage - /claims.
+ * Purpose: Customer's hub for every claimed offer — shows active, redeemed, and
+ * expired passes with filter tabs. Customers view their Lattice Pass (QR + code)
+ * and leave verified reviews after redemption.
+ * Key flows: Filter by status; open pass modal with QR; submit review via ReviewModal.
+ */
 import { useMemo, useState } from "react";
 import { useApp } from "@/app/providers";
 import { navigate } from "@/app/navigation";

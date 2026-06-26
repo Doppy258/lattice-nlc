@@ -12,7 +12,13 @@ const VARIANTS: Record<CardVariant, string> = {
     "bg-card border border-border shadow-[var(--shadow-card)] transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-0.5 hover:shadow-[var(--shadow-lift)] hover:border-[color-mix(in_oklab,var(--primary)_22%,var(--border))]",
 };
 
-/** Surface primitive. Solid white for content, glass for chrome/accents, tint for color. */
+/**
+ * Card — surface primitive for content containers.
+ * `solid`: standard card on light background. `glass`/`glassBlue`: frosted
+ * panels for navigation or hero regions. `tint`: subtle blue fill for
+ * secondary info. `interactive`: same as solid but lifts on hover,
+ * intended for clickable card grids.
+ */
 export function Card({
   variant = "solid",
   className,

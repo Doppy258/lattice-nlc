@@ -1,3 +1,10 @@
+/**
+ * businessVisuals - deterministic visual helpers for business display.
+ * Purpose: Generates consistent images (picsum), letter grades based on
+ * rating, pseudo-random social-proof numbers (saved-by count, friend
+ * avatars) that are stable per business ID — no external state needed.
+ * Key exports: businessImageUrl, businessGrade, savedByCount, friendAvatarUrl
+ */
 import type { Business, BusinessCategory } from "../models";
 
 const CATEGORY_SEEDS: Record<BusinessCategory, string> = {

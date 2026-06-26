@@ -1,3 +1,10 @@
+/**
+ * BusinessHoursEditor — animated day-by-day hours editor with open/closed
+ * toggles and time pickers. Each day row expands inline when opened,
+ * revealing Opens/Closes inputs. "Apply to all" copies one day's schedule
+ * across the whole week. Emits `BusinessHours[]` (closed days omitted).
+ * Used in the business profile settings.
+ */
 import { useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Icon } from "@/components/common/Icon";

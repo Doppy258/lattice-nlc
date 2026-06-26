@@ -10,12 +10,14 @@ export type ClaimResult = { claim: Claim; offer: Offer; business: Business };
 type PendingClaim = { offer: Offer; requestId?: string };
 
 /**
- * Shared offer-claim orchestration used by Home, Matches, Saved and Business
- * profile. Every claim is gated behind a human check (bot prevention): `claim`
- * stages the request and opens the verification modal, and `confirmClaim` mints
- * the pending Lattice Pass once the user passes the check — appending it to local
- * state, incrementing the offer's claim count, and (when claiming from a request)
- * marking that request matched.
+ * useClaim — shared claim orchestration used across screens (Home, Matches,
+ * Saved, Business profile). Two-phase flow:
+ * 1. `claim()` stages the request and opens a bot-check modal.
+ * 2. `confirmClaim()` mints the Lattice Pass, persists via upsertClaim,
+ *    appends to local state, increments the offer's claim count, and
+ *    (if claiming from a request) marks that request as matched.
+ * `cancelClaim()` aborts a staged claim. `result` exposes the minted pass
+ * so callers can show a success sheet.
  */
 export function useClaim() {
   const { data, setData, activeUser } = useApp();

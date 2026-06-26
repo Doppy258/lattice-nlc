@@ -1,3 +1,8 @@
+/**
+ * Animation tokens — a single source of truth for timing, easing, spring
+ * configs, and stagger variants used across all motion components.
+ * Mirrors the CSS motion tokens in tokens.css so JS and CSS stay in sync.
+ */
 import type { Transition, Variants } from "motion/react";
 
 /** Animation timing primitives, mirrored from the CSS motion tokens in tokens.css. */

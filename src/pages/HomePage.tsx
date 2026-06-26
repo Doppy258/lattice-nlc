@@ -1,3 +1,11 @@
+/**
+ * HomePage — route: /home
+ *
+ * Customer landing page after login. Shows a greeting, the user's latest
+ * active Lattice (if any), and a personalised feed of matched or recommended
+ * offers. Displays claim/savings insight summary and geolocation prompt.
+ */
+
 import { useMemo } from "react";
 import { useApp } from "@/app/providers";
 import { navigate } from "@/app/navigation";

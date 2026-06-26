@@ -1,3 +1,9 @@
+/**
+ * Tests for the repository layer and RPC wrappers. Uses a minimal fake
+ * Supabase client to verify that `hydrateAppData` de-dupes self profiles,
+ * `claimRepo.create` returns mapped claims, and `requestRepo.submit`
+ * passes snake_case params to the underlying RPC without real DB calls.
+ */
 import { describe, it, expect } from "vitest";
 import { hydrateAppData, claimRepo, requestRepo } from "./index";
 

@@ -8,8 +8,11 @@ import { TopBar } from "./TopBar";
 import { MobileNav } from "./MobileNav";
 
 /**
- * Authenticated app chrome: glass sidebar + glass top bar over the blue-tinted
- * canvas, with a blur-free fade/rise page transition keyed on the route.
+ * AppLayout — authenticated app shell that wraps page content.
+ * Assembles Sidebar (≥900px), TopBar, and MobileNav (<900px) with a
+ * fade+rise page transition keyed on the hash route. The layout shifts
+ * its left padding when the sidebar is present. <TooltipProvider> is
+ * placed here so tooltips work anywhere inside without re-mounting.
  */
 export function AppLayout({ children }: { children: ReactNode }) {
   const { path } = useHashRoute();

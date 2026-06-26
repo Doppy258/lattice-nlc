@@ -1,3 +1,9 @@
+/**
+ * Offer CRUD and lifecycle management. Creates, validates, updates, pauses,
+ * and classifies offers. All operations are pure transformations on the offers
+ * array — dbService handles persistence.
+ */
+
 import type { BusinessCategory, DiscountKind, NeedType, Offer, OfferType } from "../models";
 import { createId } from "../utils/ids";
 import { isPast } from "../utils/dateTime";
@@ -29,11 +35,13 @@ export type OfferInput = {
   imageUrl?: string;
 };
 
+/** Result shape for the owner-side validation before creating/updating. */
 export type OfferValidation = {
   valid: boolean;
   errors: { field: string; message: string }[];
 };
 
+/** Discriminated union so callers must handle failures explicitly. */
 export type CreateOfferResult = { ok: true; offer: Offer } | { ok: false; error: string };
 
 const TITLE_MIN = 3;
@@ -203,6 +211,7 @@ export function deleteOffer(offerId: string, offers: Offer[]): Offer[] {
   return offers.filter((o) => o.id !== offerId);
 }
 
+/** All offers (active or not) belonging to a given business; used in the owner dashboard. */
 export function getOwnerOffers(businessId: string, offers: Offer[]): Offer[] {
   return offers.filter((o) => o.businessId === businessId);
 }

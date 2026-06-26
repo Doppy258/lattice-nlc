@@ -1,3 +1,12 @@
+/**
+ * TopBar - the sticky header visible on every authenticated page. Shows the
+ * current page title (desktop), a mobile brand mark that navigates home, a
+ * business-owner switcher dropdown, and the user profile dropdown (with sign-out).
+ * Props: none (reads route + auth context)
+ * Role in architecture: Layout — top-level chrome element used inside AppLayout.
+ * Provides navigation affordances and user/session controls without leaving the
+ * current page context.
+ */
 import { useApp } from "@/app/providers";
 import { useHashRoute, navigate } from "@/app/navigation";
 import { Icon } from "@/components/common/Icon";

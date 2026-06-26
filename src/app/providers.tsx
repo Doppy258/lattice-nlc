@@ -1,3 +1,13 @@
+/**
+ * Root app context: holds all shared state (local data snapshot, auth session,
+ * active user/business selections) and provides the `useApp()` hook. Wraps
+ * every page so they never wire up Supabase or localStorage themselves.
+ *
+ * Data flows: seed → localStorage → Supabase overlay. Live records from
+ * Supabase are merged on top of the local snapshot so multi-browser edits
+ * are visible to everyone without a full page refresh.
+ */
+
 import {
   createContext,
   useCallback,

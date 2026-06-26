@@ -1,3 +1,11 @@
+/**
+ * ProfilePage — route: /profile
+ *
+ * Business storefront editor. Owners manage name, description, address
+ * (Nominatim autocomplete), price level, tags, hours (BusinessHoursEditor),
+ * and banner image upload. Only renders when activeBusiness is set.
+ */
+
 import { useRef, useState } from "react";
 import { useApp } from "@/app/providers";
 import { navigate } from "@/app/navigation";

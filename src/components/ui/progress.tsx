@@ -1,3 +1,8 @@
+/**
+ * shadcn/ui Progress primitive — Radix-based progress bar with
+ * configurable indicator classes/style for tinting the fill (e.g.
+ * match-score gauge colours by tier).
+ */
 import * as React from "react";
 import * as ProgressPrimitive from "@radix-ui/react-progress";
 import { cn } from "@/lib/utils";

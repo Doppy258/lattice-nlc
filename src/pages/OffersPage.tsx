@@ -1,3 +1,11 @@
+/**
+ * OffersPage - /offers.
+ * Purpose: Business owner's offer management dashboard — view, edit, pause,
+ * resume, and delete offers. Shows status badges, capacity progress, and
+ * pricing at a glance.
+ * Key flows: Filter by status (active/paused/expired/full); toggle offer
+ * active state; delete with cascading claim cleanup.
+ */
 import { useState } from "react";
 import { useApp } from "@/app/providers";
 import { navigate } from "@/app/navigation";

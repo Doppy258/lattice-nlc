@@ -2,7 +2,11 @@ import type { ReactNode } from "react";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
-/** Labelled form control wrapper with hint + error messaging tied to the field. */
+/**
+ * FormField — labelled wrapper for inputs with hint/error text.
+ * Wires `aria-describedby` automatically so validation messages are
+ * associated with the control. Required fields get an asterisk on the label.
+ */
 export function FormField({
   label,
   htmlFor,

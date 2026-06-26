@@ -1,3 +1,10 @@
+/**
+ * LoginPage — route: /login
+ *
+ * Email/password sign-in form wrapped in AuthShell. Delegates auth to
+ * useApp().signIn. Includes a link to /signup for new accounts.
+ */
+
 import { useState, type FormEvent } from "react";
 import { useApp } from "../app/providers";
 import { navigate } from "../app/navigation";

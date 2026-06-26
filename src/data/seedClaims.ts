@@ -1,3 +1,8 @@
+/**
+ * Seeded claim lifecycle data: 5 pending, 5 redeemed, 3 expired claims spread
+ * across the demo users and businesses. Each claim's `createdAt` and `expiresAt`
+ * are computed relative to `now` so statuses behave correctly during demos.
+ */
 import type { Claim } from "../models";
 import { MS_PER_DAY } from "../utils/dateTime";
 

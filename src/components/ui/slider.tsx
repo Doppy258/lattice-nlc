@@ -1,3 +1,8 @@
+/**
+ * shadcn/ui Slider primitive — Radix-based range slider with track,
+ * range fill, and draggable thumbs. Supports single and multi-value
+ * modes with hover/focus/active state transitions.
+ */
 import * as React from "react";
 import * as SliderPrimitive from "@radix-ui/react-slider";
 import { cn } from "@/lib/utils";

@@ -1,3 +1,11 @@
+/**
+ * SettingsPage — route: /settings
+ *
+ * Customer account management: display name, default search distance,
+ * preferred categories (chips), student-discount toggle, and sign-out.
+ * Business owners see a simplified view without distance/preferences.
+ */
+
 import { useState } from "react";
 import { useApp } from "@/app/providers";
 import { Button } from "@/components/common/Button";

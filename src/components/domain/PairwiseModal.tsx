@@ -1,3 +1,13 @@
+/**
+ * PairwiseModal - one step of the binary-insertion ranking flow. The user
+ * compares the business being inserted against the current pivot and answers
+ * "better", "worse", "same", or "skip". Their answers drive the bounds in
+ * rankingService to efficiently place the new entry.
+ * Props: open, onOpenChange, newBusiness, compareBusiness, comparison (step #),
+ *        onAnswer (ComparisonAnswer => void)
+ * Role in architecture: Domain — the interactive component of the ranking
+ * algorithm; each answer halves the remaining search space.
+ */
 import { motion } from "motion/react";
 import type { Business } from "@/models";
 import type { ComparisonAnswer } from "@/services/rankingService";

@@ -1,3 +1,8 @@
+/**
+ * shadcn/ui Button primitive with CVA variant/size system. Supports
+ * `asChild` for polymorphism via Radix Slot. Variants: default, brand,
+ * secondary, outline, ghost, destructive, link.
+ */
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";

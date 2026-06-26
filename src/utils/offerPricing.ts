@@ -3,6 +3,7 @@
 import type { DiscountKind, Offer } from "../models";
 import { formatCurrency } from "./formatting";
 
+/** Structured pricing display for card UI — varies by discount kind. */
 export type OfferPricing =
   | {
       kind: "fixedPrice";
@@ -24,7 +25,10 @@ export function offerDiscountKind(offer: Offer): DiscountKind {
   return offer.discountKind ?? "fixedPrice";
 }
 
-/** Single source of truth for how an offer's discount is displayed. */
+/**
+ * Single source of truth for how an offer's discount is displayed. Every card,
+ * detail page, and list item calls this — never formats pricing inline.
+ */
 export function getOfferPricing(offer: Offer): OfferPricing {
   switch (offerDiscountKind(offer)) {
     case "percent": {

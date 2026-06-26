@@ -43,9 +43,10 @@ import {
 } from "lucide-react";
 
 /**
- * Public icon surface for the app. The call-site API (name/size/className/style)
- * is unchanged from the original hand-rolled SVG set, but each name now renders a
- * lucide-react glyph for a richer, consistent, premium line-icon language.
+ * Icon — named icon surface backed by lucide-react.
+ * Call sites reference icons by logical name (e.g. "location", "store")
+ * rather than importing glyphs directly, keeping the visual language
+ * consistent and making it easy to swap the icon set later.
  */
 export type IconName =
   | "home"

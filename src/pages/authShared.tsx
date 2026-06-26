@@ -1,3 +1,11 @@
+/**
+ * AuthShared - shared UI primitives for auth and onboarding flows.
+ * Purpose: Provides AuthShell (centered glass card layout) and AuthError
+ * (inline error banner) reused by SignupPage, OnboardingPage, and any
+ * future auth-adjacent views.
+ * Key flows: Wraps form content in a consistent visual frame; displays
+ * per-step validation errors inline.
+ */
 import type { ReactNode } from "react";
 import { Icon } from "@/components/common/Icon";
 import { Reveal } from "@/components/motion/Reveal";

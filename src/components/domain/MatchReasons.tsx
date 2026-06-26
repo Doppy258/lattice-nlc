@@ -1,7 +1,14 @@
+/**
+ * MatchReasons - renders the "Why this matched" explanation list produced by
+ * the OfferRank scoring engine. Each reason gets a green checkmark bullet.
+ * Props: reasons (string[]), className?, title? (default "Why this matched")
+ * Role in architecture: Domain — surfaces offer-ranking transparency so users
+ * understand why a particular offer was recommended to them.
+ */
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-/** The "Why this matched" explanation list from the OfferRank reasons. */
+
 export function MatchReasons({
   reasons,
   className,

@@ -1,12 +1,18 @@
+/**
+ * Charts - in-house, dependency-free chart components built with motion and SVG.
+ * Exports: BarColumns (vertical column chart), BarList (horizontal bar chart),
+ * Donut (donut chart with legend). All use solid fills from the design-token
+ * palette and animate in on mount while respecting reduced-motion.
+ * Props:
+ *   BarColumns — data, format, color, height, className
+ *   BarList    — data, format, color, className
+ *   Donut      — data, size, thickness, centerLabel, centerSub, className
+ * Role in architecture: Provides lightweight, on-brand data visualisation
+ * throughout the app without pulling in a heavy charting library.
+ */
 import { motion, useReducedMotion } from "motion/react";
 import type { SeriesPoint } from "@/models";
 import { cn } from "@/lib/utils";
-
-/**
- * In-house, dependency-free charts. Every fill is a SOLID colour (no gradients) —
- * depth comes from rounded geometry, spacing and the blue palette. All bars grow
- * in on mount, and collapse to their final state under reduced-motion.
- */
 
 const PALETTE = [
   "var(--chart-1)",

@@ -1,3 +1,11 @@
+/**
+ * ReviewsPage - /reviews.
+ * Purpose: Business owner's review dashboard — shows verified customer
+ * reviews with rating breakdown, common mention tags, and individual
+ * review cards.
+ * Key flows: Aggregates distribution (1–5★), top tags by frequency,
+ * chronologically sorted review list.
+ */
 import { useApp } from "@/app/providers";
 import { navigate } from "@/app/navigation";
 import { Button } from "@/components/common/Button";

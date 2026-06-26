@@ -1,3 +1,13 @@
+/**
+ * redemptionService - Lattice Pass two-sided redemption logic.
+ * Purpose: Manages the lifecycle of a redemptions pass — from validation
+ * and minting (createRedemptionPass), through look-up (findPass), approval
+ * checks (validateForApproval), and final approval (approveRedemption).
+ * Also handles pass expiry and per-business pending queues.
+ * Key exports: createRedemptionPass, validateForApproval, approveRedemption,
+ *   findPass, generateBackupCode, generateToken, remainingRedemptions,
+ *   getLivePendingForBusiness, expirePendingPasses
+ */
 import type { Claim, Offer } from "../models";
 import { MAX_ACTIVE_CLAIMS } from "../utils/constants";
 import { createId, randomInt } from "../utils/ids";

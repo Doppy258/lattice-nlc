@@ -1,7 +1,13 @@
+/**
+ * RatingStars - display-only star rating using solid fills from the primary
+ * palette. Rounds to the nearest whole star; non-interactive.
+ * Props: rating (number), size?, className?
+ * Role in architecture: Common UI — used wherever a numeric rating needs
+ * a visual 1–5 star representation (business cards, review snippets, etc.).
+ */
 import { Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-/** Display-only star rating. Filled = primary blue (stays on-palette). */
 export function RatingStars({
   rating,
   size = 14,

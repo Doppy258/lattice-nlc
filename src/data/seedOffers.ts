@@ -1,3 +1,9 @@
+/**
+ * 30 seeded offers spanning every business, need type, and offer type (student
+ * deals, discounts, bundles, group offers, free trials, events). Active offers
+ * get a `validUntil` in the future; expired offers sit in the past so the
+ * demo accurately reflects both states side by side.
+ */
 import type { BusinessCategory, DiscountKind, NeedType, Offer, OfferType } from "../models";
 import { MS_PER_DAY } from "../utils/dateTime";
 

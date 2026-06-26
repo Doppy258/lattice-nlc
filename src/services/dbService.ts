@@ -1,3 +1,10 @@
+/**
+ * Supabase persistence layer: every read/write to the remote database flows
+ * through this module. The row↔entity mappers centralize the camelCase ↔
+ * snake_case translation so every other module (services, hooks, components)
+ * works with the TypeScript models and never sees raw Postgres columns.
+ */
+
 import { supabase, isSupabaseConfigured } from "./supabaseClient";
 import type {
   AppData,
@@ -261,6 +268,7 @@ function requestToRow(r: PingRequest): Record<string, unknown> {
 
 // ── Fetch all data ───────────────────────────────────────────
 
+/** Fetches every entity table in parallel and returns a merged AppData snapshot. */
 export async function fetchAllData(): Promise<AppData | null> {
   if (!isSupabaseConfigured || !supabase) return null;
 
@@ -297,12 +305,14 @@ export async function fetchAllData(): Promise<AppData | null> {
 
 // ── Businesses ───────────────────────────────────────────────
 
+/** Creates or updates a single business row. Returns an error message or null on success. */
 export async function upsertBusiness(business: Business): Promise<string | null> {
   if (!supabase) return null;
   const { error } = await supabase.from("businesses").upsert(businessToRow(business), { onConflict: "id" });
   return error?.message ?? null;
 }
 
+/** Batch upsert for seeding/migration — no per-row error reporting. */
 export async function upsertBusinesses(businesses: Business[]): Promise<void> {
   if (!supabase || businesses.length === 0) return;
   await supabase.from("businesses").upsert(businesses.map(businessToRow), { onConflict: "id" });
@@ -310,11 +320,13 @@ export async function upsertBusinesses(businesses: Business[]): Promise<void> {
 
 // ── Offers ───────────────────────────────────────────────────
 
+/** Creates or updates a single offer row. */
 export async function upsertOffer(offer: Offer): Promise<void> {
   if (!supabase) return;
   await supabase.from("offers").upsert(offerToRow(offer), { onConflict: "id" });
 }
 
+/** Batch upsert for offers. */
 export async function upsertOffers(offers: Offer[]): Promise<void> {
   if (!supabase || offers.length === 0) return;
   await supabase.from("offers").upsert(offers.map(offerToRow), { onConflict: "id" });
@@ -340,11 +352,13 @@ export async function deleteOffer(offerId: string): Promise<string | null> {
 
 // ── Claims ───────────────────────────────────────────────────
 
+/** Creates or updates a single claim/pass row. */
 export async function upsertClaim(claim: Claim): Promise<void> {
   if (!supabase) return;
   await supabase.from("claims").upsert(claimToRow(claim), { onConflict: "id" });
 }
 
+/** Batch upsert for claims. */
 export async function upsertClaims(claims: Claim[]): Promise<void> {
   if (!supabase || claims.length === 0) return;
   await supabase.from("claims").upsert(claims.map(claimToRow), { onConflict: "id" });
@@ -378,6 +392,7 @@ export async function fetchClaimByCode(value: string): Promise<Claim | null> {
 
 // ── Reviews ──────────────────────────────────────────────────
 
+/** Inserts a single review (reviews are append-only — no upsert). */
 export async function insertReview(review: Review): Promise<void> {
   if (!supabase) return;
   await supabase.from("reviews").insert(reviewToRow(review));
@@ -385,6 +400,7 @@ export async function insertReview(review: Review): Promise<void> {
 
 // ── Rankings ─────────────────────────────────────────────────
 
+/** Saves a personal ranking; conflicts on (user_id, category, need_type). */
 export async function upsertRanking(ranking: PersonalRanking): Promise<void> {
   if (!supabase) return;
   const row = rankingToRow(ranking);
@@ -395,6 +411,7 @@ export async function upsertRanking(ranking: PersonalRanking): Promise<void> {
 
 // ── Saved items ──────────────────────────────────────────────
 
+/** Bookmarks a business for quick access; idempotent via upsert. */
 export async function insertSavedBusiness(saved: SavedBusiness): Promise<void> {
   if (!supabase) return;
   await supabase.from("saved_businesses").upsert(
@@ -403,6 +420,7 @@ export async function insertSavedBusiness(saved: SavedBusiness): Promise<void> {
   );
 }
 
+/** Removes a saved-business bookmark. */
 export async function deleteSavedBusiness(userId: string, businessId: string): Promise<void> {
   if (!supabase) return;
   await supabase
@@ -412,6 +430,7 @@ export async function deleteSavedBusiness(userId: string, businessId: string): P
     .eq("business_id", businessId);
 }
 
+/** Bookmarks an offer for quick access; idempotent via upsert. */
 export async function insertSavedOffer(saved: SavedOffer): Promise<void> {
   if (!supabase) return;
   await supabase.from("saved_offers").upsert(
@@ -420,6 +439,7 @@ export async function insertSavedOffer(saved: SavedOffer): Promise<void> {
   );
 }
 
+/** Removes a saved-offer bookmark. */
 export async function deleteSavedOffer(userId: string, offerId: string): Promise<void> {
   if (!supabase) return;
   await supabase
@@ -431,11 +451,13 @@ export async function deleteSavedOffer(userId: string, offerId: string): Promise
 
 // ── Ping Requests ────────────────────────────────────────────
 
+/** Creates or updates a single ping request. */
 export async function upsertRequest(request: PingRequest): Promise<void> {
   if (!supabase) return;
   await supabase.from("ping_requests").upsert(requestToRow(request), { onConflict: "id" });
 }
 
+/** Batch upsert for ping requests. */
 export async function upsertRequests(requests: PingRequest[]): Promise<void> {
   if (!supabase || requests.length === 0) return;
   await supabase.from("ping_requests").upsert(requests.map(requestToRow), { onConflict: "id" });

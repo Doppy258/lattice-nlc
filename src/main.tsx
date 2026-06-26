@@ -1,3 +1,9 @@
+/**
+ * main - application entry point. Renders the React root inside StrictMode
+ * and imports all global font assets + stylesheet.
+ * Props: none
+ * Role in architecture: Bootstrap — the only file called by index.html.
+ */
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import '@fontsource-variable/geist'

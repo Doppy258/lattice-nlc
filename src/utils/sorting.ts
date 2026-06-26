@@ -1,4 +1,10 @@
-/** Reusable comparators for sorting businesses, offers, and results. */
+/**
+ * sorting - reusable comparator factories.
+ * Purpose: Provides type-safe, curried comparators for sorting arrays by
+ * numeric value, locale-aware string, or ISO date — in ascending or
+ * descending order. Used across offer, business, and review listings.
+ * Key exports: byNumber, byString, byDate
+ */
 
 export type SortDirection = "asc" | "desc";
 

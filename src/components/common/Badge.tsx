@@ -20,7 +20,11 @@ const TONES: Record<BadgeTone, string> = {
   outline: "border border-border bg-card/60 text-foreground",
 };
 
-/** Compact status/label pill. Solid tints only — no gradients. */
+/**
+ * Badge — compact status/label pill in semantic tones.
+ * Use `dot` for a live-indicator (online/offline), `icon` for a leading
+ * glyph. Tints are solid — no gradients — to keep the UI clean.
+ */
 export function Badge({
   tone = "neutral",
   dot = false,

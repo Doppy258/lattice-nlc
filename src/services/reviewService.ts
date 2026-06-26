@@ -1,3 +1,11 @@
+/**
+ * reviewService - verified review creation and business rating computations.
+ * Purpose: Enforces the review-unlock rule (only redeemed claims can be
+ * reviewed, once per claim), validates review input, builds verified Review
+ * objects, and recomputes business rating aggregates.
+ * Key exports: createReview, canUserReviewClaim, validateReview,
+ *   getBusinessReviews, updateBusinessRating
+ */
 import type { Business, Claim, Review } from "../models";
 import { REVIEW_TEXT_MAX, REVIEW_TEXT_MIN } from "../utils/constants";
 import { lengthWithin } from "../utils/validation";

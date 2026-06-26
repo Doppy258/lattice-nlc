@@ -1,3 +1,11 @@
+/**
+ * rankingService - binary insertion ranking system.
+ * Purpose: Enables pairwise preference comparisons to build a personalised
+ * ranked list of businesses per category (and optional need type). Uses
+ * binary insertion so each new business requires O(log n) comparisons.
+ * Rankings are stored as PersonalRanking records and merged immutably.
+ * Key exports: startBinaryInsertion, processComparison, insertBusinessAtIndex, upsertRanking, getRanking
+ */
 import type { BusinessCategory, NeedType, PersonalRanking } from "../models";
 
 export type ComparisonAnswer = "better" | "worse" | "same" | "skip";

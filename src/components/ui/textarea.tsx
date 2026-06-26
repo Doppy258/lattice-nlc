@@ -1,3 +1,7 @@
+/**
+ * shadcn/ui Textarea primitive — styled native `<textarea>` with focus
+ * ring, invalid state, disabled state, and resizable by default.
+ */
 import * as React from "react";
 import { cn } from "@/lib/utils";
 

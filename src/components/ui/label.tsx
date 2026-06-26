@@ -1,3 +1,8 @@
+/**
+ * shadcn/ui Label primitive — Radix-based label with peer-disabled
+ * styling and consistent typography. Paired with form controls for
+ * accessible input labelling.
+ */
 import * as React from "react";
 import * as LabelPrimitive from "@radix-ui/react-label";
 import { cn } from "@/lib/utils";
