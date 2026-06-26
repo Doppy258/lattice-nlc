@@ -54,6 +54,8 @@ export type Offer = {
   oneTimePerUser: boolean;
   /** Minutes a Lattice Pass stays valid after a customer claims it (default 5). */
   redemptionWindowMinutes: number;
+  /** Optional offer-specific image (data URL or uploaded URL). Overrides business image when set. */
+  imageUrl?: string;
   active: boolean;
   createdAt: string;
 };
