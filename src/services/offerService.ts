@@ -1,4 +1,4 @@
-import type { BusinessCategory, DiscountKind, Offer, OfferType } from "../models";
+import type { BusinessCategory, DiscountKind, NeedType, Offer, OfferType } from "../models";
 import { createId } from "../utils/ids";
 import { isPast } from "../utils/dateTime";
 import { isNonEmpty, isNumber, lengthWithin } from "../utils/validation";
@@ -11,6 +11,8 @@ export type OfferInput = {
   title: string;
   description: string;
   offerType: OfferType;
+  /** The specific need this offer serves; refines matching against requests. */
+  needType?: NeedType;
   discountKind: DiscountKind;
   price: number;
   originalPrice?: number;
@@ -147,6 +149,7 @@ export function createOffer(
     description: input.description.trim(),
     category,
     offerType: input.offerType,
+    needType: input.needType,
     ...discountFields(input),
     validFrom: input.validFrom,
     validUntil: input.validUntil,
@@ -174,6 +177,7 @@ export function updateOffer(offerId: string, input: OfferInput, offers: Offer[])
           title: input.title.trim(),
           description: input.description.trim(),
           offerType: input.offerType,
+          needType: input.needType,
           ...discountFields(input),
           validFrom: input.validFrom,
           validUntil: input.validUntil,

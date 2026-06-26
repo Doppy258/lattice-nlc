@@ -1,4 +1,5 @@
 import type { BusinessCategory } from "./Business";
+import type { NeedType } from "./PingRequest";
 
 export type OfferType =
   | "discount"
@@ -24,6 +25,12 @@ export type Offer = {
   description: string;
   category: BusinessCategory;
   offerType: OfferType;
+  /**
+   * The specific customer need this offer serves (e.g. "lunch", "haircut").
+   * Refines the category match so a request for the exact need ranks highest.
+   * Optional for backward compatibility with offers created before this field.
+   */
+  needType?: NeedType;
   /** Defaults to "fixedPrice" when absent. */
   discountKind?: DiscountKind;
   /** Final price the customer pays. 0 for percent/amountOff offers (no fixed price). */
