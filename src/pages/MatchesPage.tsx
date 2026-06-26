@@ -244,7 +244,7 @@ export function MatchesPage() {
       ) : (
         <Stagger className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {visible.map((r) => (
-            <StaggerItem key={r.offer.id}>
+            <StaggerItem key={r.offer.id} className="h-full">
               <OfferCard
                 offer={r.offer}
                 business={r.business}
@@ -254,6 +254,7 @@ export function MatchesPage() {
                 onClaim={(o) => claim(o, request.id)}
                 onSave={(o) => setData((d) => toggleSavedOffer(d, activeUser.id, o.id))}
                 onView={(b) => navigate(`/business?id=${b.id}`)}
+                className="h-full"
               />
             </StaggerItem>
           ))}

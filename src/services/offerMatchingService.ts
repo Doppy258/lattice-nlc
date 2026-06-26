@@ -56,16 +56,21 @@ export function calculateRatingScore(business: Business): number {
   return Math.round((business.ratingAverage / 5) * 100);
 }
 
+/** Whether the offer is live at any point during the request's time window. */
+export function offerOverlapsWindow(offer: Offer, request: PingRequest): boolean {
+  return (
+    Date.parse(offer.validUntil) >= Date.parse(request.timeStart) &&
+    Date.parse(offer.validFrom) <= Date.parse(request.timeEnd)
+  );
+}
+
 /** 100 fully available, 50 partially, 0 unavailable during the window. */
 export function calculateTimeScore(
   request: PingRequest,
   offer: Offer,
   business: Business
 ): number {
-  const offerOverlaps =
-    Date.parse(offer.validUntil) >= Date.parse(request.timeStart) &&
-    Date.parse(offer.validFrom) <= Date.parse(request.timeEnd);
-  if (!offerOverlaps) return 0;
+  if (!offerOverlapsWindow(offer, request)) return 0;
   const open = isBusinessOpenDuring(business.hours, request.timeStart, request.timeEnd);
   return open === "full" ? 100 : open === "partial" ? 50 : 0;
 }
@@ -172,8 +177,28 @@ export function generateMatchReasons(
 }
 
 /**
+ * Hard eligibility gate: an offer must satisfy every spec the user set before it
+ * can be ranked. OfferRank then orders the survivors — this is what makes the
+ * Create-a-Lattice specs actually constrain the result set rather than just
+ * reorder the whole catalog. Each clause reuses the corresponding subscore.
+ */
+export function isOfferEligible(
+  request: PingRequest,
+  offer: Offer,
+  business: Business,
+  origin: GeoPoint
+): boolean {
+  if (calculateCategoryScore(request, offer) <= 0) return false; // right category (exact/related)
+  if (calculateDistanceScore(request, business, origin) <= 0) return false; // within the radius
+  if (calculateBudgetScore(request, offer, business) <= 0) return false; // within (or near) budget
+  if (!offerOverlapsWindow(offer, request)) return false; // live during the requested window
+  return true;
+}
+
+/**
  * Ranks active offers for a request, best match first. Each result carries its
- * score, breakdown, and reasons (the OfferRank intelligent feature).
+ * score, breakdown, and reasons (the OfferRank intelligent feature). Offers that
+ * fail the hard eligibility gate (isOfferEligible) are excluded before ranking.
  */
 export function getMatchingOffers(
   request: PingRequest,
@@ -190,6 +215,7 @@ export function getMatchingOffers(
     if (!offer.active) continue;
     const business = byId.get(offer.businessId);
     if (!business) continue;
+    if (!isOfferEligible(request, offer, business, origin)) continue;
     const { score, breakdown } = calculateOfferScore(request, offer, business, user, origin);
     if (score <= 0) continue;
     results.push({
