@@ -32,6 +32,7 @@ export function userFromSession(s: Session): User {
     email: s.user.email ?? "",
     role: m.role ?? "customer",
     homeLocationId: m.homeLocationId ?? "origin_school",
+    location: null,
     verified: false,
     createdAt: s.user.created_at ?? new Date().toISOString(),
     preferences: {

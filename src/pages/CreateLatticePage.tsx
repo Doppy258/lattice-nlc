@@ -19,6 +19,8 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { VerificationModal } from "@/components/domain/VerificationModal";
+import { ShareLocationButton } from "@/components/common/ShareLocationButton";
+import { useGeolocation } from "@/hooks/useGeolocation";
 import { validatePingRequest, getRequestQuality } from "@/services/requestValidationService";
 import { getMatchingOffers } from "@/services/offerMatchingService";
 import {
@@ -106,6 +108,20 @@ function Option({
 
 export function CreateLatticePage() {
   const { data, activeUser, setData } = useApp();
+  const geolocation = useGeolocation();
+
+  function handleShareLocation() {
+    geolocation.requestLocation();
+  }
+
+  if (geolocation.location && !activeUser.location) {
+    setData((d) => ({
+      ...d,
+      users: d.users.map((u) =>
+        u.id === activeUser.id ? { ...u, location: geolocation.location! } : u,
+      ),
+    }));
+  }
 
   const [category, setCategory] = useState<BusinessCategory>();
   const [needType, setNeedType] = useState<NeedType>();
@@ -435,6 +451,18 @@ export function CreateLatticePage() {
             {errors.duplicate && (
               <p className="mt-5 rounded-xl bg-[var(--danger-tint)] px-3 py-2 text-[13px] font-medium text-[var(--danger)]">
                 {errors.duplicate}
+              </p>
+            )}
+
+            {!activeUser.location && !geolocation.loading && !geolocation.error && (
+              <div className="mt-5 flex items-center justify-between rounded-xl bg-[var(--tint-blue)] px-4 py-3">
+                <span className="text-[13px] text-[var(--primary-strong)]">Enable location for accurate distance matching</span>
+                <ShareLocationButton loading={false} error={null} onRequest={handleShareLocation} />
+              </div>
+            )}
+            {geolocation.error && (
+              <p className="mt-5 rounded-xl bg-[var(--danger-tint)] px-3 py-2 text-[13px] font-medium text-destructive">
+                Could not get your location: {geolocation.error}
               </p>
             )}
 
