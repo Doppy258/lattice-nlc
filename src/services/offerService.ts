@@ -1,4 +1,4 @@
-import type { BusinessCategory, Offer, OfferType } from "../models";
+import type { BusinessCategory, DiscountKind, Offer, OfferType } from "../models";
 import { createId } from "../utils/ids";
 import { isPast } from "../utils/dateTime";
 import { isNonEmpty, isNumber, lengthWithin } from "../utils/validation";
@@ -11,8 +11,11 @@ export type OfferInput = {
   title: string;
   description: string;
   offerType: OfferType;
+  discountKind: DiscountKind;
   price: number;
   originalPrice?: number;
+  percentOff?: number;
+  amountOff?: number;
   validFrom: string;
   validUntil: string;
   maxClaims: number;
@@ -48,15 +51,25 @@ export function validateOfferInput(input: OfferInput): OfferValidation {
       message: `Description must be ${DESC_MIN}-${DESC_MAX} characters.`,
     });
   }
-  if (!isNumber(input.price) || input.price < 0) {
-    errors.push({ field: "price", message: "Price must be zero or more." });
-  }
-  if (input.originalPrice !== undefined) {
-    if (!isNumber(input.originalPrice) || input.originalPrice <= input.price) {
-      errors.push({
-        field: "originalPrice",
-        message: "Original price must be greater than the offer price.",
-      });
+  if (input.discountKind === "percent") {
+    if (!isNumber(input.percentOff) || input.percentOff < 1 || input.percentOff > 100) {
+      errors.push({ field: "percentOff", message: "Percent off must be between 1 and 100." });
+    }
+  } else if (input.discountKind === "amountOff") {
+    if (!isNumber(input.amountOff) || input.amountOff <= 0) {
+      errors.push({ field: "amountOff", message: "Amount off must be greater than zero." });
+    }
+  } else {
+    if (!isNumber(input.price) || input.price < 0) {
+      errors.push({ field: "price", message: "Price must be zero or more." });
+    }
+    if (input.originalPrice !== undefined) {
+      if (!isNumber(input.originalPrice) || input.originalPrice <= input.price) {
+        errors.push({
+          field: "originalPrice",
+          message: "Original price must be greater than the offer price.",
+        });
+      }
     }
   }
   if (!isNonEmpty(input.validFrom) || !isNonEmpty(input.validUntil)) {
@@ -71,6 +84,46 @@ export function validateOfferInput(input: OfferInput): OfferValidation {
   }
 
   return { valid: errors.length === 0, errors };
+}
+
+/**
+ * Normalizes the discount fields so only the ones relevant to the chosen kind
+ * are stored. Percent/amountOff offers have no fixed price, so price is 0 and
+ * originalPrice is dropped.
+ */
+function discountFields(input: OfferInput): Pick<
+  Offer,
+  "discountKind" | "price" | "originalPrice" | "percentOff" | "amountOff"
+> {
+  // Every key is set explicitly (undefined where unused) so spreading the
+  // result over an existing offer clears stale fields when the kind changes.
+  switch (input.discountKind) {
+    case "percent":
+      return {
+        discountKind: "percent",
+        price: 0,
+        originalPrice: undefined,
+        percentOff: input.percentOff,
+        amountOff: undefined,
+      };
+    case "amountOff":
+      return {
+        discountKind: "amountOff",
+        price: 0,
+        originalPrice: undefined,
+        percentOff: undefined,
+        amountOff: input.amountOff,
+      };
+    case "fixedPrice":
+    default:
+      return {
+        discountKind: "fixedPrice",
+        price: input.price,
+        originalPrice: input.originalPrice,
+        percentOff: undefined,
+        amountOff: undefined,
+      };
+  }
 }
 
 /**
@@ -93,8 +146,7 @@ export function createOffer(
     description: input.description.trim(),
     category,
     offerType: input.offerType,
-    price: input.price,
-    originalPrice: input.originalPrice,
+    ...discountFields(input),
     validFrom: input.validFrom,
     validUntil: input.validUntil,
     maxClaims: input.maxClaims,
@@ -120,8 +172,7 @@ export function updateOffer(offerId: string, input: OfferInput, offers: Offer[])
           title: input.title.trim(),
           description: input.description.trim(),
           offerType: input.offerType,
-          price: input.price,
-          originalPrice: input.originalPrice,
+          ...discountFields(input),
           validFrom: input.validFrom,
           validUntil: input.validUntil,
           maxClaims: input.maxClaims,
