@@ -7,7 +7,6 @@ export type NavItem = { path: string; label: string; icon: IconName };
 export const CUSTOMER_NAV: NavItem[] = [
   { path: "/home", label: "Home", icon: "home" },
   { path: "/create", label: "Create", icon: "ping" },
-  { path: "/matches", label: "Matches", icon: "matches" },
   { path: "/explore", label: "Explore", icon: "explore" },
   { path: "/saved", label: "Saved", icon: "saved" },
   { path: "/claims", label: "Claims", icon: "claims" },
@@ -45,6 +44,7 @@ const TITLES: Record<string, string> = Object.fromEntries(
 /** Human title for the top bar, with a couple of route-specific overrides. */
 export function titleForPath(path: string): string {
   if (path === "/create") return "Create a Lattice";
+  if (path === "/matches") return "Matches";
   if (path === "/business") return "Business";
   if (path === "/help") return "Help";
   return TITLES[path] ?? "Lattice";
