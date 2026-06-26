@@ -1,23 +1,26 @@
+-- Idempotent / non-destructive: safe to re-run against an existing database.
+-- Existing objects are kept as-is; only missing ones are created.
+
 -- Extensions
 create extension if not exists pgcrypto;      -- gen_random_uuid(), crypt()
 
--- Enums
-create type user_role         as enum ('customer','businessOwner','admin');
-create type business_category as enum ('food','retail','services','fitness','education','repair','entertainment');
-create type offer_type        as enum ('discount','limitedTime','studentOffer','groupOffer','appointmentSlot','event','freeTrial','bundle');
-create type claim_status      as enum ('active','redeemed','expired','cancelled');
-create type request_status    as enum ('draft','submitted','matched','expired');
-create type need_type         as enum (
+-- Enums (guarded so re-running does not error if the type already exists)
+do $$ begin create type user_role         as enum ('customer','businessOwner','admin'); exception when duplicate_object then null; end $$;
+do $$ begin create type business_category as enum ('food','retail','services','fitness','education','repair','entertainment'); exception when duplicate_object then null; end $$;
+do $$ begin create type offer_type        as enum ('discount','limitedTime','studentOffer','groupOffer','appointmentSlot','event','freeTrial','bundle'); exception when duplicate_object then null; end $$;
+do $$ begin create type claim_status      as enum ('active','redeemed','expired','cancelled'); exception when duplicate_object then null; end $$;
+do $$ begin create type request_status    as enum ('draft','submitted','matched','expired'); exception when duplicate_object then null; end $$;
+do $$ begin create type need_type         as enum (
   'lunch','cafeStudySpot','dessert','dinner','groupMeal','quickSnack',
   'gift','clothing','books','thrift','schoolSupplies','homeItem',
   'haircut','salonService','printing','alterations','tutoring','cleaning',
   'gymTrial','dropInClass','sportsFacility','personalTraining',
   'testPrep','workshop','studySpace',
   'phoneRepair','laptopRepair','bikeRepair','clothingRepair',
-  'escapeRoom','arcade','movieActivity','localEvent','groupHangout');
+  'escapeRoom','arcade','movieActivity','localEvent','groupHangout'); exception when duplicate_object then null; end $$;
 
 -- Profiles (1:1 with auth.users)
-create table public.profiles (
+create table if not exists public.profiles (
   id                  uuid primary key references auth.users(id) on delete cascade,
   name                text not null default '',
   email               text not null default '',
@@ -30,7 +33,7 @@ create table public.profiles (
   created_at          timestamptz not null default now()
 );
 
-create table public.businesses (
+create table if not exists public.businesses (
   id                     uuid primary key default gen_random_uuid(),
   name                   text not null,
   category               business_category not null,
@@ -47,9 +50,9 @@ create table public.businesses (
   owner_user_id          uuid not null references public.profiles(id) on delete cascade,
   created_at             timestamptz not null default now()
 );
-create index businesses_owner_idx on public.businesses(owner_user_id);
+create index if not exists businesses_owner_idx on public.businesses(owner_user_id);
 
-create table public.offers (
+create table if not exists public.offers (
   id                    uuid primary key default gen_random_uuid(),
   business_id           uuid not null references public.businesses(id) on delete cascade,
   title                 text not null,
@@ -69,10 +72,10 @@ create table public.offers (
   active                boolean not null default true,
   created_at            timestamptz not null default now()
 );
-create index offers_business_idx on public.offers(business_id);
-create index offers_active_idx on public.offers(active, valid_until);
+create index if not exists offers_business_idx on public.offers(business_id);
+create index if not exists offers_active_idx on public.offers(active, valid_until);
 
-create table public.claims (
+create table if not exists public.claims (
   id          uuid primary key default gen_random_uuid(),
   user_id     uuid not null references public.profiles(id) on delete cascade,
   offer_id    uuid not null references public.offers(id) on delete cascade,
@@ -83,14 +86,14 @@ create table public.claims (
   expires_at  timestamptz not null,
   redeemed_at timestamptz
 );
-create index claims_user_idx on public.claims(user_id);
-create index claims_business_idx on public.claims(business_id);
+create index if not exists claims_user_idx on public.claims(user_id);
+create index if not exists claims_business_idx on public.claims(business_id);
 -- a user may hold at most one active/redeemed claim per offer
-create unique index claims_one_per_offer_idx
+create unique index if not exists claims_one_per_offer_idx
   on public.claims(user_id, offer_id)
   where status in ('active','redeemed');
 
-create table public.reviews (
+create table if not exists public.reviews (
   id          uuid primary key default gen_random_uuid(),
   user_id     uuid not null references public.profiles(id) on delete cascade,
   business_id uuid not null references public.businesses(id) on delete cascade,
@@ -102,9 +105,9 @@ create table public.reviews (
   verified    boolean not null default true,
   created_at  timestamptz not null default now()
 );
-create index reviews_business_idx on public.reviews(business_id);
+create index if not exists reviews_business_idx on public.reviews(business_id);
 
-create table public.requests (
+create table if not exists public.requests (
   id             uuid primary key default gen_random_uuid(),
   user_id        uuid not null references public.profiles(id) on delete cascade,
   category       business_category not null,
@@ -120,4 +123,4 @@ create table public.requests (
   status         request_status not null default 'submitted',
   created_at     timestamptz not null default now()
 );
-create index requests_user_idx on public.requests(user_id);
+create index if not exists requests_user_idx on public.requests(user_id);

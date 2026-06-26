@@ -17,9 +17,15 @@ Plan:   `../docs/superpowers/plans/2026-06-25-supabase-backend.md`
 - `seed.sql` — demo users + representative content (local only; for hosted see below)
 - `tests/*.sql` — pgTAP tests (`supabase test db`, requires the local stack)
 
+> **Re-runnable / non-destructive.** All migrations and `apply_all.sql` are idempotent: enums/tables/
+> indexes use `if not exists`, policies are dropped-if-exists then recreated, functions/triggers/views
+> are replaced, and the seed uses `on conflict do nothing`. Running them against a database that already
+> has some (or all) of these objects keeps existing objects and data and only adds what's missing — it
+> will **not** error with "relation already exists".
+
 ## Apply — Option A: hosted project (no Docker needed)
 
-1. In the Supabase dashboard → **SQL Editor**, run the five `migrations/*.sql` files **in order** (0001 → 0005).
+1. In the Supabase dashboard → **SQL Editor**, paste **`apply_all.sql`** (or run the five `migrations/*.sql` files **in order**, 0001 → 0005). Safe to re-run on an existing project.
 2. Create the two demo users (don't insert into `auth.users` by hand on hosted):
    ```bash
    SUPABASE_URL=https://<ref>.supabase.co \
