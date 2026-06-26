@@ -14,6 +14,7 @@ import {
   GraduationCap,
   Home,
   type LucideIcon,
+  LogOut,
   MapPin,
   MessageSquareText,
   Minus,
@@ -22,6 +23,7 @@ import {
   ScanLine,
   Scissors,
   Search,
+  Settings,
   ShoppingBag,
   SlidersHorizontal,
   Sparkles,
@@ -76,7 +78,9 @@ export type IconName =
   | "fitness"
   | "education"
   | "repair"
-  | "entertainment";
+  | "entertainment"
+  | "settings"
+  | "logout";
 
 const ICONS: Record<IconName, LucideIcon> = {
   home: Home,
@@ -114,6 +118,8 @@ const ICONS: Record<IconName, LucideIcon> = {
   education: GraduationCap,
   repair: Wrench,
   entertainment: Gamepad2,
+  settings: Settings,
+  logout: LogOut,
 };
 
 type Props = {

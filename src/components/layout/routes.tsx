@@ -15,7 +15,7 @@ import { OffersPage } from "@/pages/OffersPage";
 import { RedeemPage } from "@/pages/RedeemPage";
 import { ReviewsPage } from "@/pages/ReviewsPage";
 import { ProfilePage } from "@/pages/ProfilePage";
-import { DemoPage } from "@/pages/DemoPage";
+import { SettingsPage } from "@/pages/SettingsPage";
 import { ComingSoon } from "./ComingSoon";
 
 /** Maps the current hash route to a page. Unbuilt routes fall back to ComingSoon. */
@@ -54,8 +54,8 @@ export function RouteView() {
       return <ReviewsPage />;
     case "/profile":
       return <ProfilePage />;
-    case "/demo":
-      return <DemoPage />;
+    case "/settings":
+      return <SettingsPage />;
     default:
       return <ComingSoon path={path} />;
   }

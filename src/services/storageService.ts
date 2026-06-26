@@ -1,11 +1,7 @@
 import type { AppData, CollectionName } from "../models";
-import { buildSeedData } from "../data/seed";
+import { fetchAllData } from "./dbService";
+import { isSupabaseConfigured } from "./supabaseClient";
 
-const STORAGE_KEY = "lattice.appData.v2.san-antonio";
-const ACTIVE_USER_KEY = "lattice.activeUserId.v1";
-const ACTIVE_BUSINESS_KEY = "lattice.activeBusinessId.v1";
-
-/** Empty/typed default in case any collection is missing after a bad load. */
 function emptyData(): AppData {
   return {
     users: [],
@@ -20,47 +16,24 @@ function emptyData(): AppData {
   };
 }
 
-function hasStorage(): boolean {
-  try {
-    return typeof window !== "undefined" && !!window.localStorage;
-  } catch {
-    return false;
-  }
-}
-
 /**
- * Loads persisted app data. On first run (or after a reset) the seeded dataset
- * is generated relative to "now" and saved so subsequent loads are stable.
+ * Loads app data from Supabase. Returns empty data if unavailable
+ * (e.g. first run before seed SQL has been applied).
  */
-export function loadData(): AppData {
-  if (!hasStorage()) return buildSeedData();
-  const raw = window.localStorage.getItem(STORAGE_KEY);
-  if (!raw) {
-    const seeded = buildSeedData();
-    saveData(seeded);
-    return seeded;
-  }
-  try {
-    const parsed = JSON.parse(raw) as Partial<AppData>;
-    // Merge over an empty shape so a newly-added collection never reads as undefined.
-    return { ...emptyData(), ...parsed };
-  } catch {
-    const seeded = buildSeedData();
-    saveData(seeded);
-    return seeded;
-  }
+export async function loadDataAsync(): Promise<AppData> {
+  return emptyData();
 }
 
-export function saveData(data: AppData): void {
-  if (!hasStorage()) return;
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-}
-
-/** Wipes persisted state and re-seeds. Returns the fresh dataset. */
-export function resetDemoData(): AppData {
-  const seeded = buildSeedData();
-  saveData(seeded);
-  return seeded;
+export async function loadDataFromSupabase(): Promise<AppData | null> {
+  if (isSupabaseConfigured) {
+    try {
+      const dbData = await fetchAllData();
+      if (dbData) return dbData;
+    } catch {
+      // Supabase unavailable
+    }
+  }
+  return null;
 }
 
 export function getCollection<K extends CollectionName>(
@@ -77,26 +50,4 @@ export function updateCollection<K extends CollectionName>(
   newData: AppData[K]
 ): AppData {
   return { ...data, [name]: newData };
-}
-
-export function loadActiveUserId(): string | null {
-  if (!hasStorage()) return null;
-  return window.localStorage.getItem(ACTIVE_USER_KEY);
-}
-
-export function saveActiveUserId(userId: string): void {
-  if (!hasStorage()) return;
-  window.localStorage.setItem(ACTIVE_USER_KEY, userId);
-}
-
-/** The business an owner is currently managing (Phase 4). */
-export function loadActiveBusinessId(): string | null {
-  if (!hasStorage()) return null;
-  return window.localStorage.getItem(ACTIVE_BUSINESS_KEY);
-}
-
-export function saveActiveBusinessId(businessId: string | null): void {
-  if (!hasStorage()) return;
-  if (businessId) window.localStorage.setItem(ACTIVE_BUSINESS_KEY, businessId);
-  else window.localStorage.removeItem(ACTIVE_BUSINESS_KEY);
 }

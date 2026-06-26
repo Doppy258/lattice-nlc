@@ -27,7 +27,7 @@ function Shell() {
     !activeUser?.onboardingComplete &&
     !isSeededUser(activeUser?.id);
 
-  if (authState === "loading") {
+  if (authState === "loading" || (authState === "authenticated" && !activeUser.id)) {
     return (
       <div className="grid min-h-dvh place-items-center bg-background">
         <div className="flex flex-col items-center gap-4 text-muted-foreground">

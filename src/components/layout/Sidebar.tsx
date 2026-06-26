@@ -5,7 +5,7 @@ import { Icon } from "@/components/common/Icon";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { LatticeMark } from "./LatticeMark";
-import { DEMO_NAV, navForRole, type NavItem } from "./navConfig";
+import { navForRole, type NavItem } from "./navConfig";
 
 function isActive(path: string, target: string): boolean {
   return path === target || path.startsWith(`${target}/`);
@@ -40,7 +40,6 @@ export function Sidebar() {
   const { path } = useHashRoute();
   const { activeUser } = useApp();
   const nav = navForRole(activeUser.role);
-  const showDemo = activeUser.role === "admin";
 
   return (
     <aside className="glass-blue fixed left-0 top-0 z-40 hidden h-screen w-[var(--sidebar-w)] flex-col items-center gap-1 py-5 min-[900px]:flex">
@@ -58,8 +57,6 @@ export function Sidebar() {
           <SidebarLink key={item.path} item={item} active={isActive(path, item.path)} />
         ))}
       </nav>
-
-      {showDemo && <SidebarLink item={DEMO_NAV} active={isActive(path, DEMO_NAV.path)} />}
     </aside>
   );
 }
