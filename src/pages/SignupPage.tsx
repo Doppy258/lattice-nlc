@@ -6,6 +6,7 @@ import { FormField } from "@/components/common/FormField";
 import { Icon } from "@/components/common/Icon";
 import { Input } from "@/components/ui/input";
 import { BrandLockup } from "@/components/layout/LatticeMark";
+import { BotCheckModal } from "@/components/domain/BotCheckModal";
 import { AuthError, AuthShell } from "./authShared";
 import { cn } from "@/lib/utils";
 
@@ -41,6 +42,10 @@ export function SignupPage() {
   const recaptchaRef = useRef<HTMLDivElement>(null);
   const [recaptchaToken, setRecaptchaToken] = useState("");
   const [, setRecaptchaReady] = useState(false);
+  // Offline fallback used when no reCAPTCHA key is configured (e.g. the demo):
+  // a self-contained human check still gates account creation against bots.
+  const [humanVerified, setHumanVerified] = useState(false);
+  const [botCheckOpen, setBotCheckOpen] = useState(false);
 
   useEffect(() => {
     if (!RECAPTCHA_SITE_KEY || !recaptchaRef.current) return;
@@ -82,6 +87,10 @@ export function SignupPage() {
     }
     if (RECAPTCHA_SITE_KEY && !recaptchaToken) {
       setError("Please complete the reCAPTCHA verification.");
+      return;
+    }
+    if (!RECAPTCHA_SITE_KEY && !humanVerified) {
+      setError("Please complete the human verification.");
       return;
     }
 
@@ -191,12 +200,37 @@ export function SignupPage() {
           </FormField>
         </div>
 
-        {RECAPTCHA_SITE_KEY && <div ref={recaptchaRef} className="recaptcha-wrapper" />}
+        {RECAPTCHA_SITE_KEY ? (
+          <div ref={recaptchaRef} className="recaptcha-wrapper" />
+        ) : humanVerified ? (
+          <div className="flex items-center gap-2.5 rounded-2xl border border-[var(--success)]/30 bg-[var(--success)]/10 p-3.5 text-sm font-medium text-foreground">
+            <Icon name="check" size={18} className="text-[var(--success)]" />
+            Verified — you're human.
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setBotCheckOpen(true)}
+            className="flex w-full cursor-pointer items-center gap-2.5 rounded-2xl border border-border bg-card p-3.5 text-left text-sm font-medium text-foreground transition-colors hover:border-[var(--input)]"
+          >
+            <Icon name="shield" size={18} className="text-primary" />
+            Verify you're human
+            <Icon name="arrow" size={16} className="ml-auto text-muted-foreground" />
+          </button>
+        )}
 
         <Button type="submit" variant="brand" block size="lg" disabled={submitting}>
           {submitting ? "Creating account…" : "Create account"}
         </Button>
       </form>
+
+      <BotCheckModal
+        open={botCheckOpen}
+        onOpenChange={setBotCheckOpen}
+        onVerified={() => setHumanVerified(true)}
+        title="Verify you're human"
+        description="A quick check to keep bots from creating fake accounts."
+      />
 
       <p className="mt-6 text-center text-[14px] text-muted-foreground">
         Already have an account?{" "}

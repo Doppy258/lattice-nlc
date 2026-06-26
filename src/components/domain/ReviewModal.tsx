@@ -9,6 +9,7 @@ import { FormField } from "@/components/common/FormField";
 import { ToggleChip, ChipGroup } from "@/components/common/ToggleChip";
 import { Textarea } from "@/components/ui/textarea";
 import { createReview, updateBusinessRating, type ReviewInput } from "@/services/reviewService";
+import { insertReview, upsertBusiness } from "@/services/dbService";
 import { REVIEW_TAGS } from "@/models";
 import { REVIEW_TEXT_MAX, REVIEW_TEXT_MIN } from "@/utils/constants";
 import type { Business, Claim, Offer } from "@/models";
@@ -69,6 +70,7 @@ export function ReviewModal({
       return;
     }
     const review = res.review;
+    const updatedBusiness = updateBusinessRating(business.id, [...data.reviews, review], business);
     setData((d) => {
       const reviews = [...d.reviews, review];
       const businesses = d.businesses.map((b) =>
@@ -76,6 +78,9 @@ export function ReviewModal({
       );
       return { ...d, reviews, businesses };
     });
+    // Persist the verified review + recalculated rating so they show everywhere.
+    void insertReview(review);
+    void upsertBusiness(updatedBusiness);
     toast.success("Review posted — thanks for the feedback!");
     reset();
     onOpenChange(false);

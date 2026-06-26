@@ -5,7 +5,7 @@ import { Icon } from "@/components/common/Icon";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { LatticeMark } from "./LatticeMark";
-import { navForRole, type NavItem } from "./navConfig";
+import { homePathForRole, navForRole, type NavItem } from "./navConfig";
 
 function isActive(path: string, target: string): boolean {
   return path === target || path.startsWith(`${target}/`);
@@ -45,7 +45,7 @@ export function Sidebar() {
     <aside className="glass-blue fixed left-0 top-0 z-40 hidden h-screen w-[var(--sidebar-w)] flex-col items-center gap-1 py-5 min-[900px]:flex">
       <button
         type="button"
-        onClick={() => navigate("/home")}
+        onClick={() => navigate(homePathForRole(activeUser.role))}
         aria-label="Lattice home"
         className="cursor-pointer transition-transform duration-200 hover:-translate-y-0.5 active:scale-95"
       >

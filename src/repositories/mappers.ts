@@ -39,12 +39,12 @@ const DEFAULT_PREFS: UserPreferences = {
 export const rowToProfile = (r: ProfileRow): User => ({
   id: r.id, name: r.name, email: r.email, role: r.role,
   homeLocationId: r.home_location_id, verified: r.verified, createdAt: r.created_at,
-  preferences: r.preferences ?? DEFAULT_PREFS, onboardingComplete: r.onboarding_complete,
+  preferences: r.preferences ?? DEFAULT_PREFS, onboarded: r.onboarding_complete,
 });
 
 export const publicRowToUser = (r: PublicProfileRow): User => ({
   id: r.id, name: r.name, email: "", role: r.role,
-  homeLocationId: "origin_school", verified: r.verified, createdAt: "", preferences: DEFAULT_PREFS, onboardingComplete: true,
+  homeLocationId: "origin_school", verified: r.verified, createdAt: "", preferences: DEFAULT_PREFS, onboarded: true,
 });
 
 export const rowToBusiness = (r: BusinessRow): Business => ({
@@ -59,10 +59,12 @@ export const rowToOffer = (r: OfferRow): Offer => ({
   offerType: r.offer_type, price: Number(r.price), originalPrice: r.original_price == null ? undefined : Number(r.original_price),
   validFrom: r.valid_from, validUntil: r.valid_until, maxClaims: r.max_claims, currentClaims: r.current_claims, views: r.views,
   tags: r.tags ?? [], studentOnly: r.student_only, verificationRequired: r.verification_required, active: r.active, createdAt: r.created_at,
+  oneTimePerUser: true, redemptionWindowMinutes: 5,
 });
 
 export const rowToClaim = (r: ClaimRow): Claim => ({
   id: r.id, userId: r.user_id, offerId: r.offer_id, businessId: r.business_id, claimCode: r.claim_code,
+  token: r.claim_code, backupCode: r.claim_code,
   status: r.status, createdAt: r.created_at, expiresAt: r.expires_at, redeemedAt: r.redeemed_at ?? undefined,
 });
 

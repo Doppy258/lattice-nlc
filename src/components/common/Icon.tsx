@@ -9,6 +9,7 @@ import {
   CircleHelp,
   Clock,
   Compass,
+  Download,
   Dumbbell,
   Gamepad2,
   GraduationCap,
@@ -19,11 +20,14 @@ import {
   MessageSquareText,
   Minus,
   Plus,
+  Printer,
   Radio,
+  RotateCw,
   ScanLine,
   Scissors,
   Search,
   Settings,
+  ShieldCheck,
   ShoppingBag,
   SlidersHorizontal,
   Sparkles,
@@ -80,7 +84,11 @@ export type IconName =
   | "repair"
   | "entertainment"
   | "settings"
-  | "logout";
+  | "logout"
+  | "download"
+  | "print"
+  | "refresh"
+  | "shield";
 
 const ICONS: Record<IconName, LucideIcon> = {
   home: Home,
@@ -120,6 +128,10 @@ const ICONS: Record<IconName, LucideIcon> = {
   entertainment: Gamepad2,
   settings: Settings,
   logout: LogOut,
+  download: Download,
+  print: Printer,
+  refresh: RotateCw,
+  shield: ShieldCheck,
 };
 
 type Props = {
