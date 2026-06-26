@@ -8,6 +8,8 @@ import { isSupabaseConfigured } from "./services/supabaseClient";
 import { LoginPage } from "./pages/LoginPage";
 import { SignupPage } from "./pages/SignupPage";
 import { OnboardingPage } from "./pages/OnboardingPage";
+import { BusinessOnboardingPage } from "./pages/BusinessOnboardingPage";
+import { homePathForRole } from "@/components/layout/navConfig";
 
 const PUBLIC_AUTH_PATHS = ["/login", "/signup"];
 
@@ -20,19 +22,26 @@ function isSeededUser(id: string | undefined): boolean {
 
 function Shell() {
   const { path } = useHashRoute();
-  const { authState, activeUser } = useApp();
+  const { authState, activeUser, ownedBusinesses } = useApp();
   const needsOnboarding =
     authState === "authenticated" &&
     isSupabaseConfigured &&
-    !activeUser?.onboardingComplete &&
+    !activeUser?.onboarded &&
+    !isSeededUser(activeUser?.id);
+  const needsBusinessSetup =
+    authState === "authenticated" &&
+    isSupabaseConfigured &&
+    activeUser?.role === "businessOwner" &&
+    activeUser?.onboarded &&
+    ownedBusinesses.length === 0 &&
     !isSeededUser(activeUser?.id);
 
-  if (authState === "loading") {
+  if (authState === "loading" || (authState === "authenticated" && !activeUser.id)) {
     return (
-      <div className="auth-page">
-        <div className="auth-loading">
-          <div className="auth-loading__spinner" />
-          <p>Loading…</p>
+      <div className="grid min-h-dvh place-items-center bg-background">
+        <div className="flex flex-col items-center gap-4 text-muted-foreground">
+          <div className="size-9 animate-spin rounded-full border-[3px] border-[var(--border)] border-t-primary" />
+          <p className="text-sm font-medium">Loading…</p>
         </div>
       </div>
     );
@@ -44,7 +53,7 @@ function Shell() {
 
   // Authenticated users on login/signup get sent to the right place.
   if (authState === "authenticated" && PUBLIC_AUTH_PATHS.includes(path)) {
-    navigate(needsOnboarding ? "/onboarding" : "/home");
+    navigate(needsOnboarding || needsBusinessSetup ? "/onboarding" : homePathForRole(activeUser.role));
     return null;
   }
 
@@ -59,9 +68,14 @@ function Shell() {
 
   // Authenticated below this point.
 
-  if (needsOnboarding) {
+  if (needsOnboarding || needsBusinessSetup) {
     if (path !== "/onboarding") navigate("/onboarding");
-    return <OnboardingPage />;
+    return activeUser.role === "businessOwner" ? <BusinessOnboardingPage /> : <OnboardingPage />;
+  }
+
+  if (authState === "authenticated" && path === "/onboarding") {
+    navigate(homePathForRole(activeUser.role));
+    return null;
   }
 
   // Authenticated and onboarded — render the app shell + routed page.

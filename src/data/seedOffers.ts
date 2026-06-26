@@ -16,6 +16,8 @@ type OfferSpec = {
   tags?: string[];
   studentOnly?: boolean;
   verificationRequired?: boolean;
+  oneTimePerUser?: boolean;
+  redemptionWindowMinutes?: number;
   /** Days the offer stays valid from `now`. Ignored when `expired` is true. */
   daysValid?: number;
   expired?: boolean;
@@ -91,6 +93,8 @@ export function buildSeedOffers(now: Date = new Date()): Offer[] {
       tags: s.tags ?? [],
       studentOnly: s.studentOnly ?? false,
       verificationRequired: s.verificationRequired ?? false,
+      oneTimePerUser: s.oneTimePerUser ?? true,
+      redemptionWindowMinutes: s.redemptionWindowMinutes ?? 5,
       active: !s.expired,
       createdAt: created,
     };

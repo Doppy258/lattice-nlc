@@ -6,7 +6,7 @@ import { Icon } from "@/components/common/Icon";
 import { relativeTime } from "@/utils/formatting";
 import { cn } from "@/lib/utils";
 
-/** Confirmation card showing a generated PING-#### claim code + how to redeem it. */
+/** Confirmation card showing a generated pass backup code + how to redeem it. */
 export function ClaimCodeCard({
   claim,
   offer,
@@ -22,12 +22,12 @@ export function ClaimCodeCard({
 
   async function copy() {
     try {
-      await navigator.clipboard?.writeText(claim.claimCode);
+      await navigator.clipboard?.writeText(claim.backupCode);
     } catch {
       /* clipboard may be unavailable; the code is still visible on screen */
     }
     setCopied(true);
-    toast.success("Claim code copied");
+    toast.success("Pass code copied");
     window.setTimeout(() => setCopied(false), 1600);
   }
 
@@ -39,16 +39,16 @@ export function ClaimCodeCard({
       )}
     >
       <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-        Your claim code
+        Your pass code
       </div>
       <button
         type="button"
         onClick={copy}
         className="mx-auto mt-2.5 inline-flex cursor-pointer items-center gap-2.5 rounded-2xl bg-card/70 px-4 py-2.5 shadow-[var(--shadow-soft)] transition-transform active:scale-[0.98]"
-        aria-label={`Copy claim code ${claim.claimCode}`}
+        aria-label={`Copy pass code ${claim.backupCode}`}
       >
         <span className="mono text-3xl font-semibold tracking-[0.12em] text-[var(--primary-strong)]">
-          {claim.claimCode}
+          {claim.backupCode}
         </span>
         <span className="text-muted-foreground">
           {copied ? <Check size={18} className="text-[var(--success)]" /> : <Copy size={18} />}

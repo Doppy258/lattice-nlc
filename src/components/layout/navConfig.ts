@@ -3,7 +3,7 @@ import type { UserRole } from "@/models";
 
 export type NavItem = { path: string; label: string; icon: IconName };
 
-/** Customer-facing information architecture (PRD §9). */
+/** Customer-facing information architecture (PRD S9). */
 export const CUSTOMER_NAV: NavItem[] = [
   { path: "/home", label: "Home", icon: "home" },
   { path: "/create", label: "Create", icon: "ping" },
@@ -13,10 +13,10 @@ export const CUSTOMER_NAV: NavItem[] = [
   { path: "/claims", label: "Claims", icon: "claims" },
   { path: "/rankings", label: "Rankings", icon: "rankings" },
   { path: "/reports", label: "Reports", icon: "reports" },
-  { path: "/help", label: "Help", icon: "help" },
+  { path: "/settings", label: "Settings", icon: "settings" },
 ];
 
-/** Business-owner information architecture (PRD §9, §11). */
+/** Business-owner information architecture (PRD S9, S11). */
 export const BUSINESS_NAV: NavItem[] = [
   { path: "/dashboard", label: "Dashboard", icon: "store" },
   { path: "/create-offer", label: "New offer", icon: "createOffer" },
@@ -25,17 +25,21 @@ export const BUSINESS_NAV: NavItem[] = [
   { path: "/reviews", label: "Reviews", icon: "reviews" },
   { path: "/analytics", label: "Analytics", icon: "analytics" },
   { path: "/profile", label: "Profile", icon: "store" },
+  { path: "/settings", label: "Settings", icon: "settings" },
 ];
-
-export const DEMO_NAV: NavItem = { path: "/demo", label: "Demo", icon: "demo" };
 
 /** Which nav an active user sees. Owners get the business IA; everyone else the customer IA. */
 export function navForRole(role: UserRole): NavItem[] {
   return role === "businessOwner" ? BUSINESS_NAV : CUSTOMER_NAV;
 }
 
+/** Default landing route after auth/onboarding, by role. */
+export function homePathForRole(role: UserRole): string {
+  return role === "businessOwner" ? "/dashboard" : "/home";
+}
+
 const TITLES: Record<string, string> = Object.fromEntries(
-  [...CUSTOMER_NAV, ...BUSINESS_NAV, DEMO_NAV].map((n) => [n.path, n.label]),
+  [...CUSTOMER_NAV, ...BUSINESS_NAV].map((n) => [n.path, n.label]),
 );
 
 /** Human title for the top bar, with a couple of route-specific overrides. */

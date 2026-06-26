@@ -10,7 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import { DEMO_NAV, navForRole, type NavItem } from "./navConfig";
+import { navForRole, type NavItem } from "./navConfig";
 
 function isActive(path: string, target: string): boolean {
   return path === target || path.startsWith(`${target}/`);
@@ -53,7 +53,7 @@ export function MobileNav() {
 
   const nav = navForRole(activeUser.role);
   const primary = nav.slice(0, 4);
-  const rest = [...nav.slice(4), ...(activeUser.role === "admin" ? [DEMO_NAV] : [])];
+  const rest = nav.slice(4);
 
   return (
     <>

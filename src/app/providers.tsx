@@ -1,17 +1,35 @@
 import {
-  createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode,
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
 } from "react";
 import type { Session } from "@supabase/supabase-js";
-import { toast } from "sonner";
-import type { AppData, Business, User, UserPreferences } from "../models";
-import { loadActiveBusinessId, saveActiveBusinessId } from "../services/storageService";
+import type { AppData, Business, User } from "../models";
+import { DEFAULT_USER_ID } from "../data/seed";
 import {
-  signIn as authSignIn, signUp as authSignUp, signOut as authSignOut, getSession, listenAuth,
+  loadActiveBusinessId,
+  loadActiveUserId,
+  loadData,
+  resetDemoData,
+  saveActiveBusinessId,
+  saveActiveUserId,
+  saveData,
+} from "../services/storageService";
+import {
+  signIn as authSignIn,
+  signUp as authSignUp,
+  signOut as authSignOut,
+  getSession,
+  listenAuth,
+  findOrCreateLocalUser,
 } from "../services/authService";
 import { expireOldClaims } from "../services/claimService";
 import { getUserById } from "../services/userService";
-import { isSupabaseConfigured, supabase } from "../services/supabaseClient";
-import { hydrateAppData, profileRepo } from "../repositories";
+import { isSupabaseConfigured } from "../services/supabaseClient";
 
 type DataUpdater = AppData | ((prev: AppData) => AppData);
 export type AuthState = "loading" | "unauthenticated" | "authenticated";
@@ -33,9 +51,8 @@ type AppContextValue = {
   data: AppData;
   activeUserId: string;
   activeUser: User;
-  setActiveUserId: (id: string) => void;
   setData: (updater: DataUpdater) => void;
-  refetch: () => Promise<void>;
+  resetDemo: () => void;
   ownedBusinesses: Business[];
   activeBusinessId: string | null;
   activeBusiness: Business | null;
@@ -43,73 +60,114 @@ type AppContextValue = {
   authState: AuthState;
   session: Session | null;
   signIn: (email: string, password: string) => Promise<string | null>;
-  signUp: (email: string, password: string, displayName: string, recaptchaToken: string) => Promise<string | null>;
+  signUp: (email: string, password: string, displayName: string, recaptchaToken: string, role?: UserRole) => Promise<string | null>;
   signOut: () => Promise<void>;
-  completeOnboarding: (updates: Partial<User>) => Promise<void>;
+  completeOnboarding: (updates: Partial<User>) => void;
 };
 
 const AppContext = createContext<AppContextValue | null>(null);
 
+const EMPTY_DATA: AppData = { users: [], businesses: [], offers: [], requests: [], claims: [], reviews: [], rankings: [], savedBusinesses: [], savedOffers: [] };
+
+const FALLBACK_USER: User = {
+  id: "",
+  name: "",
+  email: "",
+  role: "customer",
+  homeLocationId: "origin_school",
+  verified: false,
+  createdAt: "",
+  preferences: {
+    preferredCategories: [],
+    maxDefaultDistanceKm: 5,
+    studentDiscountPreferred: false,
+    accessibilityNeeds: [],
+    savedBusinessIds: [],
+    savedOfferIds: [],
+  },
+  onboarded: false,
+};
+
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [data, setDataState] = useState<AppData>(EMPTY_DATA);
-  const [activeUserId, setActiveUserIdState] = useState<string>("");
-  const [activeBusinessId, setActiveBusinessIdState] = useState<string | null>(() => loadActiveBusinessId());
+  const [data, setDataState] = useState<AppData>(() => {
+    const loaded = loadData();
+    return { ...loaded, claims: expireOldClaims(loaded.claims) };
+  });
+  const [activeUserId, setActiveUserIdState] = useState<string>(
+    () => loadActiveUserId() ?? DEFAULT_USER_ID
+  );
+  const [activeBusinessId, setActiveBusinessIdState] = useState<string | null>(
+    () => loadActiveBusinessId()
+  );
   const [session, setSession] = useState<Session | null>(null);
   const [authState, setAuthState] = useState<AuthState>("loading");
 
-  useEffect(() => { saveActiveBusinessId(activeBusinessId); }, [activeBusinessId]);
-
-  const hydrate = useCallback(async (userId: string) => {
-    if (!supabase) return;
-    const fresh = await hydrateAppData(supabase, userId);
-    setDataState({ ...fresh, claims: expireOldClaims(fresh.claims) });
-  }, []);
-
-  const handleSession = useCallback(async (s: Session | null) => {
-    setSession(s);
-    if (s?.user) {
-      setActiveUserIdState(s.user.id);
-      try {
-        await hydrate(s.user.id);
-      } catch (e) {
-        toast.error("Could not load your data. Please refresh.");
-        console.error(e);
-      }
-      setAuthState("authenticated");
-    } else {
-      setActiveUserIdState("");
-      setDataState(EMPTY_DATA);
-      setAuthState("unauthenticated");
-    }
-  }, [hydrate]);
+  useEffect(() => {
+    saveData(data);
+  }, [data]);
 
   useEffect(() => {
-    if (!isSupabaseConfigured) {
+    saveActiveUserId(activeUserId);
+  }, [activeUserId]);
+
+  useEffect(() => {
+    saveActiveBusinessId(activeBusinessId);
+  }, [activeBusinessId]);
+
+  const handleSession = useCallback((s: Session | null) => {
+    setSession(s);
+    if (s?.user) {
+      const { users, userId } = findOrCreateLocalUser(
+        loadData(),
+        s.user.id,
+        s.user.email ?? "",
+        s.user.user_metadata?.name ?? s.user.email?.split("@")[0] ?? "User"
+      );
+      setDataState((prev) => ({ ...prev, users }));
+      setActiveUserIdState(userId);
+      setAuthState("authenticated");
+    } else if (s === null && isSupabaseConfigured) {
       setAuthState("unauthenticated");
+    } else {
+      setAuthState("authenticated");
+    }
+  }, []);
+
+  // Auth: only after data loaded
+  useEffect(() => {
+    if (!dataLoaded) return;
+
+    if (!isSupabaseConfigured) {
+      setAuthState("authenticated");
       return;
     }
-    getSession().then((s) => handleSession(s));
-    const unsub = listenAuth((s) => handleSession(s));
-    return unsub;
-  }, [handleSession]);
 
+    const unsub = listenAuth((s) => handleSessionRef.current(s));
+    return unsub;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dataLoaded]);
+
+  // setData: update React state only. Supabase persistence
+  // is handled by the sync effect below.
   const setData = useCallback((updater: DataUpdater) => {
-    setDataState((prev) => (typeof updater === "function" ? updater(prev) : updater));
+    setDataState((prev) => {
+      const next = typeof updater === "function" ? updater(prev) : updater;
+      return next;
+    });
   }, []);
-  const refetch = useCallback(async () => {
-    if (activeUserId) await hydrate(activeUserId);
-  }, [activeUserId, hydrate]);
+
   const setActiveUserId = useCallback((id: string) => setActiveUserIdState(id), []);
   const setActiveBusinessId = useCallback((id: string) => setActiveBusinessIdState(id), []);
 
   const activeUser = useMemo(
-    () => getUserById(activeUserId, data.users) ?? data.users[0] ?? GUEST_USER,
-    [activeUserId, data.users],
+    () => getUserById(activeUserId, data.users) ?? data.users[0],
+    [activeUserId, data.users]
   );
   const ownedBusinesses = useMemo(
     () => data.businesses.filter((b) => b.ownerUserId === activeUser.id),
-    [data.businesses, activeUser.id],
+    [data.businesses, activeUser.id]
   );
+
   useEffect(() => {
     const valid = activeBusinessId && ownedBusinesses.some((b) => b.id === activeBusinessId);
     if (!valid) setActiveBusinessIdState(ownedBusinesses[0]?.id ?? null);
@@ -122,16 +180,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const signIn = useCallback(async (email: string, password: string): Promise<string | null> => {
     const { session: s, error } = await authSignIn(email, password);
     if (error) return error.message;
-    if (s) await handleSession(s);
+    if (s) handleSession(s);
     return null;
-  }, [handleSession]);
+  }, []);
 
-  const signUp = useCallback(async (email: string, password: string, displayName: string, recaptchaToken: string): Promise<string | null> => {
-    const { session: s, error } = await authSignUp(email, password, displayName, recaptchaToken);
+  const signUp = useCallback(async (email: string, password: string, displayName: string, recaptchaToken: string, role: UserRole = "customer"): Promise<string | null> => {
+    const { session: s, error } = await authSignUp(email, password, displayName, recaptchaToken, role);
     if (error) return error.message;
-    if (s) await handleSession(s);
+    if (s) handleSession(s);
     return null;
-  }, [handleSession]);
+  }, []);
 
   const signOutAction = useCallback(async () => {
     await authSignOut();
@@ -139,36 +197,64 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setActiveUserIdState("");
     setDataState(EMPTY_DATA);
     setAuthState("unauthenticated");
+    setActiveUserIdState(DEFAULT_USER_ID);
   }, []);
 
-  const completeOnboarding = useCallback(async (updates: Partial<User>) => {
-    if (!activeUserId) return;
-    const mergedPrefs = { ...activeUser.preferences, ...(updates.preferences ?? {}) };
-    try {
-      const updated = await profileRepo.updateSelf(activeUserId, {
-        name: updates.name ?? activeUser.name,
-        home_location_id: updates.homeLocationId ?? activeUser.homeLocationId,
-        preferences: mergedPrefs,
-        onboarding_complete: true,
-      });
-      setDataState((prev) => ({
-        ...prev,
-        users: prev.users.map((u) => (u.id === activeUserId ? updated : u)),
-      }));
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Could not save your preferences.");
-    }
-  }, [activeUserId, activeUser]);
+  const completeOnboarding = useCallback((updates: Partial<User>) => {
+    setDataState((prev) => {
+      const updatedUsers = prev.users.map((u) =>
+        u.id === activeUserId
+          ? {
+              ...u,
+              ...updates,
+              preferences: { ...u.preferences, ...(updates.preferences ?? {}) },
+              onboardingComplete: true,
+            }
+          : u
+      );
+      saveData({ ...prev, users: updatedUsers });
+      return { ...prev, users: updatedUsers };
+    });
+  }, [activeUserId]);
 
-  const value = useMemo<AppContextValue>(() => ({
-    data, activeUserId, activeUser, setActiveUserId, setData, refetch,
-    ownedBusinesses, activeBusinessId, activeBusiness, setActiveBusinessId,
-    authState, session, signIn, signUp, signOut: signOutAction, completeOnboarding,
-  }), [
-    data, activeUserId, activeUser, setActiveUserId, setData, refetch,
-    ownedBusinesses, activeBusinessId, activeBusiness, setActiveBusinessId,
-    authState, session, signIn, signUp, signOutAction, completeOnboarding,
-  ]);
+  const value = useMemo(
+    () => ({
+      data,
+      activeUserId,
+      activeUser,
+      setActiveUserId,
+      setData,
+      resetDemo,
+      ownedBusinesses,
+      activeBusinessId,
+      activeBusiness,
+      setActiveBusinessId,
+      authState,
+      session,
+      signIn,
+      signUp: signUp,
+      signOut: signOutAction,
+      completeOnboarding,
+    }),
+    [
+      data,
+      activeUserId,
+      activeUser,
+      setActiveUserId,
+      setData,
+      resetDemo,
+      ownedBusinesses,
+      activeBusinessId,
+      activeBusiness,
+      setActiveBusinessId,
+      authState,
+      session,
+      signIn,
+      signUp,
+      signOutAction,
+      completeOnboarding,
+    ]
+  );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }
