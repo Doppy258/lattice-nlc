@@ -1,3 +1,7 @@
+/**
+ * Button — app-level semantic shortcut over shadcn/ui Button.
+ * See component for prop details.
+ */
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { Button as UIButton } from "@/components/ui/button";
 import { cn } from "@/lib/utils";

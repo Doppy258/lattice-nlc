@@ -1,3 +1,7 @@
+/**
+ * BusinessImage — storefront photo with resilient fallback chain.
+ * See component for resolution priority and overlay usage.
+ */
 import { useState, type ReactNode } from "react";
 import type { Business } from "@/models";
 import { Icon, type IconName } from "@/components/common/Icon";

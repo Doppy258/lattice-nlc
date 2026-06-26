@@ -1,3 +1,7 @@
+/**
+ * OfferCard — an offer tile in explore/matches/saved grids.
+ * See component for prop details and conditional match-badge rendering.
+ */
 import { motion } from "motion/react";
 import { Bookmark } from "lucide-react";
 import type { Business, MatchResult, Offer } from "@/models";

@@ -1,3 +1,10 @@
+/**
+ * requestValidationService — syntactic and semantic validation for Ping
+ * (Create-a-Lattice) submissions. Covers budget minima per need type, time
+ * window ordering/past/range, optional note spam/character limits, and
+ * duplicate-request cooldown. Also provides the RequestQuality signal
+ * shown in the live preview.
+ */
 import type { NeedType, PingRequest } from "../models";
 import {
   DUPLICATE_REQUEST_COOLDOWN_MIN,

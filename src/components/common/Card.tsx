@@ -1,3 +1,7 @@
+/**
+ * Card — surface primitive for content containers.
+ * See component for variant details.
+ */
 import type { ComponentProps } from "react";
 import { cn } from "@/lib/utils";
 

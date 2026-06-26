@@ -1,3 +1,9 @@
+/**
+ * userService — query helpers and state-mutation functions for the User model.
+ * Handles user lookup by id/role, saved-business and saved-offer toggling by
+ * keeping both the inlined id arrays (preferences.savedBusinessIds) and the
+ * timestamped savedBusinesses/savedOffers collections in sync.
+ */
 import type { AppData, User } from "../models";
 
 export function getUserById(id: string, users: User[]): User | undefined {

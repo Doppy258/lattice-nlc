@@ -1,3 +1,7 @@
+/**
+ * MatchScoreBadge — rounded pill with score percentage and tier label.
+ * See component for tier thresholds and colour mapping.
+ */
 import { cn } from "@/lib/utils";
 
 function tier(score: number): { label: string; color: string } {

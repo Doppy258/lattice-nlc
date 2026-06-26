@@ -1,3 +1,7 @@
+/**
+ * AppLayout — authenticated app shell wrapping page content.
+ * Assembles Sidebar, TopBar, and MobileNav with hash-route keyed transitions.
+ */
 import type { ReactNode } from "react";
 import { motion } from "motion/react";
 import { useHashRoute } from "@/app/navigation";
