@@ -22,8 +22,8 @@ import type { ClaimStatus, ReportFilters, SeriesPoint } from "@/models";
 /** Solid panel with a titled header used for each analytics chart. */
 function ChartCard({ title, sub, children }: { title: string; sub?: string; children: React.ReactNode }) {
   return (
-    <Card variant="solid" className="space-y-4 p-5">
-      <div>
+    <Card variant="solid" className="space-y-6 p-6 sm:p-7">
+      <div className="space-y-1">
         <h3 className="font-display text-[17px] font-semibold tracking-[-0.02em]">{title}</h3>
         {sub && <p className="text-[13px] text-muted-foreground">{sub}</p>}
       </div>
@@ -115,7 +115,7 @@ export function AnalyticsPage() {
   }
 
   return (
-    <div className="space-y-7">
+    <div className="space-y-8">
       <PageHeader
         title="Performance"
         accent="analytics"
@@ -147,6 +147,7 @@ export function AnalyticsPage() {
 
       <InsightSummary
         title="Performance summary"
+        density="comfortable"
         items={[
           {
             label: "Conversion",
@@ -189,7 +190,7 @@ export function AnalyticsPage() {
         </p>
       </ChartCard>
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2">
         <ChartCard title="Claims by month" sub="Claim volume over time">
           <BarColumns data={report.claimsByMonth} color="var(--brand-violet)" />
         </ChartCard>
