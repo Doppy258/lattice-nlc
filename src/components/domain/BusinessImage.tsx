@@ -8,12 +8,13 @@ import { cn } from "@/lib/utils";
 type BusinessLike = Pick<Business, "id" | "name" | "category"> & { bannerUrl?: string };
 
 /**
- * Storefront photo for a business with a built-in resilient fallback: if the
- * image fails to load (e.g. offline demo mode) it swaps to a clean category-icon
- * tile on a blue tint, so the surface is never broken. A hairline inset ring +
- * top highlight give the liquid-glass edge — depth from shadow, never gradients.
- *
- * The wrapper className controls size/aspect/rounding; pass overlays as children.
+ * BusinessImage — storefront photo with a resilient fallback chain.
+ * Priority: 1) explicit `imageUrl` prop (e.g. offer-specific), 2) business
+ * `bannerUrl`, 3) auto-generated Unsplash URL from the business ID + width.
+ * On load failure it degrades to a category-icon tile. Overlays (badges,
+ * save buttons) are passed as children and rendered on top.
+ * The outer className controls aspect ratio and rounding — all image sizing
+ * is delegated to the caller.
  */
 export function BusinessImage({
   business,

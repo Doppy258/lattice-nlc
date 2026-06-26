@@ -1,3 +1,12 @@
+/**
+ * BusinessProfilePage — route: /business?id=<id>
+ *
+ * Public storefront view with a hero banner, glass identity card (rating,
+ * category, price, distance, open/closed status), segmented sections for
+ * active offers, verified reviews, and about details (description, address,
+ * tags, hours). Supports save/bookmark and the claim flow.
+ */
+
 import { useMemo, useState } from "react";
 import { motion } from "motion/react";
 import { Bookmark } from "lucide-react";

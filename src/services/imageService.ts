@@ -1,9 +1,16 @@
+/**
+ * Business image (logo/banner) uploads to Supabase Storage. Validates file
+ * type and size before uploading, then returns the public URL for storage
+ * in the business record.
+ */
+
 import { supabase } from "./supabaseClient";
 import { createId } from "../utils/ids";
 
 /** Public Supabase Storage bucket holding business logos + banners. */
 export const BUSINESS_IMAGE_BUCKET = "business-images";
 
+/** Which type of business image is being uploaded. */
 export type BusinessImageKind = "logo" | "banner";
 
 const MAX_BYTES = 5 * 1024 * 1024; // 5 MB

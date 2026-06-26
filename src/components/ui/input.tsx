@@ -1,3 +1,8 @@
+/**
+ * shadcn/ui Input primitive — styled native `<input>` with focus ring,
+ * invalid state, disabled state, and soft shadow. Works with any type
+ * (text, email, number, search, etc.).
+ */
 import * as React from "react";
 import { cn } from "@/lib/utils";
 

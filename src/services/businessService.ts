@@ -1,3 +1,10 @@
+/**
+ * Business-domain logic: creating businesses, filtering/sorting the browse list,
+ * and computing derived fields (active deal counts, distance from origin).
+ * Persistence lives in dbService — this layer is pure transformations on
+ * in-memory arrays.
+ */
+
 import type { Business, BusinessCategory, BusinessHours, GeoPoint, Offer } from "../models";
 import { distanceKm } from "../utils/distance";
 import { byNumber, byString } from "../utils/sorting";
@@ -56,10 +63,12 @@ export type BusinessFilters = {
   hasDeals?: boolean;
 };
 
+/** Looks up a business by id; returns undefined for missing/removed entries. */
 export function getBusinessById(id: string, businesses: Business[]): Business | undefined {
   return businesses.find((b) => b.id === id);
 }
 
+/** All non-expired offers belonging to a given business. */
 export function getActiveOffersForBusiness(
   businessId: string,
   offers: Offer[],
@@ -70,10 +79,12 @@ export function getActiveOffersForBusiness(
   );
 }
 
+/** Count of active (non-expired) offers for a business; used for "activeDeals" sort. */
 export function activeDealCount(businessId: string, offers: Offer[], now = new Date()): number {
   return getActiveOffersForBusiness(businessId, offers, now).length;
 }
 
+/** Haversine distance from the given origin to a business's location. */
 export function distanceForBusiness(business: Business, origin: GeoPoint): number {
   return distanceKm(origin, business.location);
 }

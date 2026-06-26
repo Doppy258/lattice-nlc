@@ -1,3 +1,9 @@
+/**
+ * Seeded user accounts: 3 customers (Lucas, Maya, Ethan), 2 business owners
+ * (Sam, Nina), and 1 admin/demo user. Each has realistic preferences including
+ * preferred categories, distance limits, and saved items that drive personalised
+ * matched results and views throughout the app.
+ */
 import type { User } from "../models";
 
 /** Seeded accounts: 3 customers, 2 business owners, 1 admin/demo user. */

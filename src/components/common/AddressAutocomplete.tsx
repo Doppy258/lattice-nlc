@@ -1,3 +1,8 @@
+/**
+ * AddressAutocomplete — geocoded search with debounced Nominatim queries.
+ * Used on the map page and onboarding to resolve text input into lat/lng pairs.
+ * Renders accessible suggestions with keyboard nav (arrow keys, Enter, Escape).
+ */
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { Icon } from "@/components/common/Icon";

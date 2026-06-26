@@ -1,3 +1,10 @@
+/**
+ * User-facing error messages keyed by short codes that match the Postgres
+ * `raise exception 'CODE'` convention used in Supabase RPC functions.
+ * `RepoError` wraps the code and a friendly UI message; `throwIfError`
+ * maps an RPC result's `error.message` back to the right message, keeping
+ * the API boundary readable without leaking raw Postgres text to the UI.
+ */
 const MESSAGES: Record<string, string> = {
   NOT_AUTHENTICATED: "Please sign in and try again.",
   OFFER_NOT_FOUND: "This offer no longer exists.",

@@ -1,3 +1,11 @@
+/**
+ * ClaimCodeCard - confirmation card shown after a successful offer claim.
+ * Displays the generated backup code (copyable) and instructions for redeeming
+ * it at the business before expiry.
+ * Props: claim (Claim), offer (Offer), business (Business), className?
+ * Role in architecture: Domain — provides the user with an offline-accessible
+ * pass code and clear redemption instructions for their most recent claim.
+ */
 import { useState } from "react";
 import { Check, Copy } from "lucide-react";
 import { toast } from "sonner";
@@ -6,7 +14,7 @@ import { Icon } from "@/components/common/Icon";
 import { relativeTime } from "@/utils/formatting";
 import { cn } from "@/lib/utils";
 
-/** Confirmation card showing a generated pass backup code + how to redeem it. */
+
 export function ClaimCodeCard({
   claim,
   offer,

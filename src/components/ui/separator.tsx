@@ -1,3 +1,8 @@
+/**
+ * shadcn/ui Separator primitive — Radix-based visual divider for
+ * horizontal or vertical layout separation. Defaults to decorative
+ * (non-semantic) and horizontal orientation.
+ */
 import * as React from "react";
 import * as SeparatorPrimitive from "@radix-ui/react-separator";
 import { cn } from "@/lib/utils";

@@ -1,3 +1,9 @@
+/**
+ * 40 historical community reviews (2 per seeded business) authored by the 3
+ * demo customers. Every review is tied to a representative offer and references
+ * an archived claim ID, making them "verified" in the Lattice sense — they
+ * appear on business profiles and in the explore feed as trusted feedback.
+ */
 import type { Review } from "../models";
 import { MS_PER_DAY } from "../utils/dateTime";
 

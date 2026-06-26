@@ -1,3 +1,10 @@
+/**
+ * Row-to-model mapper functions and their companion TypeScript types for
+ * every Supabase table used in the app. Each `rowTo*` function converts a
+ * snake_case Supabase row into the corresponding camelCase domain model,
+ * supplying sensible defaults for nullable columns (empty arrays, default
+ * preferences, etc.) so the rest of the app never handles raw rows.
+ */
 import type { Business, Claim, Offer, PingRequest, Review, User, UserPreferences } from "@/models";
 
 export type ProfileRow = {

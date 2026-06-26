@@ -13,6 +13,14 @@ import { BusinessImage } from "./BusinessImage";
 import { MatchScoreBadge } from "./MatchScoreBadge";
 import { MatchReasonsDisclosure } from "./MatchReasonsDisclosure";
 
+/**
+ * OfferCard — an offer tile in the explore/matches/saved grids.
+ * Composes BusinessImage, MatchScoreBadge, pricing info, rating/distance,
+ * match reasons, and a claim button. The `match` prop is optional;
+ * when absent the match badge and reasons disclosure are hidden
+ * (e.g. on the business profile where the user has already navigated
+ * past the ranking layer).
+ */
 export function OfferCard({
   offer,
   business,

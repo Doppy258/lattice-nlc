@@ -1,3 +1,8 @@
+/**
+ * shadcn/ui Toaster — app-wide toast surface using the `sonner` library.
+ * Mounted once near the root of the component tree; any module can
+ * trigger toasts by importing `toast` from `sonner`.
+ */
 import * as React from "react";
 import { Toaster as Sonner, type ToasterProps } from "sonner";
 

@@ -1,3 +1,12 @@
+/**
+ * CreateOfferPage — route: /create-offer (edits via ?id=<offerId>)
+ *
+ * Business offer composer with a live OfferCard preview. Handles discount
+ * kind (fixed/percent/amount-off), validity window, redemption limits,
+ * tags, image upload, and student-only/verification toggles. Inherits
+ * the business's category automatically.
+ */
+
 import { useMemo, useState, useRef } from "react";
 import { useApp } from "@/app/providers";
 import { useHashRoute, navigate } from "@/app/navigation";

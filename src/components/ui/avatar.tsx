@@ -1,3 +1,8 @@
+/**
+ * shadcn/ui Avatar primitive — Radix-based image avatar with fallback.
+ * Displays a user photo or initials; falls back to a text initial when
+ * no image is available or while it loads.
+ */
 import * as React from "react";
 import * as AvatarPrimitive from "@radix-ui/react-avatar";
 import { cn } from "@/lib/utils";

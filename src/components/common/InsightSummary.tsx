@@ -1,3 +1,10 @@
+/**
+ * InsightSummary - compact metric band for contextual counts. Displays a grid
+ * of label/value/detail tiles (optional density: compact or comfortable).
+ * Props: title (ReactNode), items (InsightSummaryItem[]), columns, density, className
+ * Role in architecture: Common UI for presenting KPI-like aggregates across
+ * dashboards and summary sections without making every number a page hero.
+ */
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 

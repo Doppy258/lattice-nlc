@@ -1,3 +1,12 @@
+/**
+ * BusinessOnboardingPage — route: /onboarding/business
+ *
+ * Multi-step (single-form) storefront creation for new business owners.
+ * Collects name, category, description, and address (Nominatim) then
+ * creates a Business record, completes onboarding, and redirects to
+ * /dashboard.
+ */
+
 import { useMemo, useState, type FormEvent } from "react";
 import { useApp } from "@/app/providers";
 import { navigate } from "@/app/navigation";

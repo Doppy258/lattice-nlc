@@ -1,10 +1,19 @@
+/**
+ * ComingSoon - on-brand placeholder for routes not yet implemented.
+ * Shows the route title, a friendly message, and CTAs to Create a Lattice or
+ * return home so the user never hits a dead 404-style page.
+ * Props: path (string) — the unknown hash route
+ * Role in architecture: Layout — guards every unbuilt route via the switch
+ * default in RouteView, maintaining the brand experience during incremental
+ * feature delivery.
+ */
 import { navigate } from "@/app/navigation";
 import { Button } from "@/components/common/Button";
 import { Icon } from "@/components/common/Icon";
 import { Reveal } from "@/components/motion/Reveal";
 import { titleForPath } from "./navConfig";
 
-/** On-brand placeholder for routes still being built in later passes. */
+
 export function ComingSoon({ path }: { path: string }) {
   const title = titleForPath(path);
   return (

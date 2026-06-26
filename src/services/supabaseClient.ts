@@ -1,3 +1,10 @@
+/**
+ * supabaseClient - Supabase client initialisation.
+ * Purpose: Conditionally creates the Supabase client from environment
+ * variables (with a hardcoded fallback URL). Exports the client instance
+ * (null when not configured) and a helper to check connectivity.
+ * Key exports: supabase, isSupabaseConfigured, requireSupabase, checkSupabaseConnection
+ */
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 const FALLBACK_SUPABASE_URL = "https://nzasnhmpcyxsgwpdxwni.supabase.co";

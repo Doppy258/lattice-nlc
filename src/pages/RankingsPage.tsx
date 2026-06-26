@@ -1,3 +1,12 @@
+/**
+ * RankingsPage — route: /rankings
+ *
+ * Personal pairwise-comparison ranking for businesses a user has claimed
+ * offers from. Uses binary insertion (startBinaryInsertion / processComparison)
+ * to minimise the number of head-to-head choices. Ranked lists are stored
+ * per user and category via the rankingService.
+ */
+
 import { useMemo, useState } from "react";
 import { motion } from "motion/react";
 import { toast } from "sonner";

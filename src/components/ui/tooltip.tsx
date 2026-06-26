@@ -1,3 +1,7 @@
+/**
+ * shadcn/ui Tooltip primitive — Radix-based hover/focus tooltip with
+ * delayed open, arrow indicator, and animated entrance/exit.
+ */
 import * as React from "react";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import { cn } from "@/lib/utils";

@@ -1,3 +1,9 @@
+/**
+ * Lucas's personal rankings (head-to-head leaderboards) for the 5 need types
+ * called out in the PRD — lunch, cafes, haircuts, study spots, and gift shops.
+ * Each ranking is a sorted list; index 0 is the top pick. Rankings are built
+ * fresh from `now` so the `updatedAt` timestamp always reflects the demo time.
+ */
 import type { PersonalRanking } from "../models";
 
 /**

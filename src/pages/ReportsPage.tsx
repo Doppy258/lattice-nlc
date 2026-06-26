@@ -1,3 +1,11 @@
+/**
+ * ReportsPage - /reports.
+ * Purpose: Customer's personal impact report — shows estimated savings,
+ * claims by category, savings by month, rating distribution, and
+ * businesses supported over time.
+ * Key flows: Filter by date range, category, and claim status; CSV export
+ * and print of all chart sections.
+ */
 import { useMemo, useState } from "react";
 import { useApp } from "@/app/providers";
 import { navigate } from "@/app/navigation";

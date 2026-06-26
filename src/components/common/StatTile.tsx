@@ -1,3 +1,11 @@
+/**
+ * StatTile - a KPI tile presenting a tracked label, a large display value, an
+ * optional sub-line, and an optional icon. Supports five colour tones (plain,
+ * blue, violet, mint, amber) that tint the surface, value, and icon wrap.
+ * Props: label, value, sub?, icon?, tone?, className?
+ * Role in architecture: Common UI — the primary building block for dashboards
+ * and analytics surfaces where individual metrics need visual emphasis.
+ */
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 

@@ -1,3 +1,13 @@
+/**
+ * BotCheckModal - self-contained, offline bot-prevention check. Unlike a
+ * network reCAPTCHA, this always works in the demo: the user ticks "I'm not a
+ * robot" and re-types a randomised, distorted canvas-drawn code with a bounded
+ * number of attempts. Gates offer claims and serves as a signup fallback.
+ * Props: open, onOpenChange, onVerified, title?, description?
+ * Role in architecture: Domain — ensures only humans can mass-claim limited
+ * offers or create accounts, replacing a third-party CAPTCHA with a zero-
+ * dependency, always-available alternative.
+ */
 import { useEffect, useRef, useState } from "react";
 import { Modal } from "@/components/common/Modal";
 import { Button } from "@/components/common/Button";
