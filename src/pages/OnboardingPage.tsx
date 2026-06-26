@@ -63,12 +63,12 @@ export function OnboardingPage() {
     if (step < STEPS.length - 1) setStep((s) => s + 1);
   };
 
-  const handleFinish = () => {
+  const handleFinish = async () => {
     if (categories.length === 0) {
       setError("Please select at least one category.");
       return;
     }
-    completeOnboarding({
+    await completeOnboarding({
       name: activeUser.name,
       homeLocationId: locationId,
       preferences: {
