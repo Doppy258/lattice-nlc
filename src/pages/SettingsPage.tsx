@@ -104,18 +104,20 @@ export function SettingsPage() {
               />
             </FormField>
 
-            <FormField label="Max search distance" htmlFor="settings-distance" hint="How far Lattice will search for offers.">
-              <Select
-                id="settings-distance"
-                value={String(maxDistance)}
-                onChange={(e) => setMaxDistance(Number(e.target.value))}
-                className="w-40"
-              >
-                {DISTANCE_OPTIONS.map((d) => (
-                  <option key={d} value={d}>{d} km</option>
-                ))}
-              </Select>
-            </FormField>
+            {activeUser.role !== "businessOwner" && (
+              <FormField label="Max search distance" htmlFor="settings-distance" hint="How far Lattice will search for offers.">
+                <Select
+                  id="settings-distance"
+                  value={String(maxDistance)}
+                  onChange={(e) => setMaxDistance(Number(e.target.value))}
+                  className="w-40"
+                >
+                  {DISTANCE_OPTIONS.map((d) => (
+                    <option key={d} value={d}>{d} km</option>
+                  ))}
+                </Select>
+              </FormField>
+            )}
 
             <div className="flex justify-end pt-1">
               <Button variant="brand" iconLeft={<Icon name="check" size={17} />} onClick={saveProfile}>
@@ -125,75 +127,97 @@ export function SettingsPage() {
           </Card>
         </Reveal>
 
-        {/* Preferences sidebar */}
-        <Reveal>
-          <Card variant="solid" className="space-y-5 p-5 sm:p-6">
-            <h3 className="inline-flex items-center gap-2 font-display text-lg font-semibold tracking-[-0.02em]">
-              <Icon name="rankings" size={17} className="text-primary" /> Preferences
-            </h3>
+        {activeUser.role !== "businessOwner" ? (
+          <Reveal>
+            <Card variant="solid" className="space-y-5 p-5 sm:p-6">
+              <h3 className="inline-flex items-center gap-2 font-display text-lg font-semibold tracking-[-0.02em]">
+                <Icon name="rankings" size={17} className="text-primary" /> Preferences
+              </h3>
 
-            <div className="space-y-3">
-              <FormField label="Interested categories">
-                <ChipGroup>
-                  {ALL_CATEGORIES.map((cat) => {
-                    const meta = CATEGORY_META[cat];
-                    const active = preferredCategories.includes(cat);
-                    return (
-                      <ToggleChip
-                        key={cat}
-                        type="button"
-                        active={active}
-                        icon={<Icon name={active ? "check" : "plus"} size={14} />}
-                        onClick={() => toggleCategory(cat)}
-                      >
-                        {meta.label}
-                      </ToggleChip>
-                    );
-                  })}
-                </ChipGroup>
-              </FormField>
+              <div className="space-y-3">
+                <FormField label="Interested categories">
+                  <ChipGroup>
+                    {ALL_CATEGORIES.map((cat) => {
+                      const meta = CATEGORY_META[cat];
+                      const active = preferredCategories.includes(cat);
+                      return (
+                        <ToggleChip
+                          key={cat}
+                          type="button"
+                          active={active}
+                          icon={<Icon name={active ? "check" : "plus"} size={14} />}
+                          onClick={() => toggleCategory(cat)}
+                        >
+                          {meta.label}
+                        </ToggleChip>
+                      );
+                    })}
+                  </ChipGroup>
+                </FormField>
 
-              <div className="flex items-center justify-between rounded-lg border border-border px-3 py-2.5">
-                <span className="text-sm font-medium">Student discounts</span>
-                <button
-                  type="button"
-                  onClick={() => setStudentDiscount(!studentDiscount)}
-                  className={`relative inline-flex h-6 w-11 cursor-pointer items-center rounded-full transition-colors ${
-                    studentDiscount ? "bg-primary" : "bg-muted"
-                  }`}
-                >
-                  <span
-                    className={`inline-block size-5 rounded-full bg-white shadow transition-transform ${
-                      studentDiscount ? "translate-x-5" : "translate-x-0.5"
+                <div className="flex items-center justify-between rounded-lg border border-border px-3 py-2.5">
+                  <span className="text-sm font-medium">Student discounts</span>
+                  <button
+                    type="button"
+                    onClick={() => setStudentDiscount(!studentDiscount)}
+                    className={`relative inline-flex h-6 w-11 cursor-pointer items-center rounded-full transition-colors ${
+                      studentDiscount ? "bg-primary" : "bg-muted"
                     }`}
-                  />
-                </button>
+                  >
+                    <span
+                      className={`inline-block size-5 rounded-full bg-white shadow transition-transform ${
+                        studentDiscount ? "translate-x-5" : "translate-x-0.5"
+                      }`}
+                    />
+                  </button>
+                </div>
               </div>
+            </Card>
+          </Reveal>
+        ) : (
+          <Reveal>
+            <Card variant="solid" className="p-5 sm:p-6">
+              <h2 className="inline-flex items-center gap-2 font-display text-lg font-semibold tracking-[-0.02em]">
+                <Icon name="claims" size={18} className="text-primary" /> Account
+              </h2>
+              <p className="mt-2 text-[13px] text-muted-foreground">
+                Signed in as <span className="font-medium text-foreground">{activeUser.email}</span>
+              </p>
+              <div className="mt-4">
+                <Button
+                  variant="danger"
+                  iconLeft={<Icon name="logout" size={17} />}
+                  onClick={() => signOut()}
+                >
+                  Sign out
+                </Button>
+              </div>
+            </Card>
+          </Reveal>
+        )}
+      </div>
+
+      {activeUser.role !== "businessOwner" && (
+        <Reveal>
+          <Card variant="solid" className="p-5 sm:p-6">
+            <h2 className="inline-flex items-center gap-2 font-display text-lg font-semibold tracking-[-0.02em]">
+              <Icon name="claims" size={18} className="text-primary" /> Account
+            </h2>
+            <p className="mt-2 text-[13px] text-muted-foreground">
+              Signed in as <span className="font-medium text-foreground">{activeUser.email}</span>
+            </p>
+            <div className="mt-4">
+              <Button
+                variant="danger"
+                iconLeft={<Icon name="logout" size={17} />}
+                onClick={() => signOut()}
+              >
+                Sign out
+              </Button>
             </div>
           </Card>
         </Reveal>
-      </div>
-
-      {/* Account section */}
-      <Reveal>
-        <Card variant="solid" className="p-5 sm:p-6">
-          <h2 className="inline-flex items-center gap-2 font-display text-lg font-semibold tracking-[-0.02em]">
-            <Icon name="claims" size={18} className="text-primary" /> Account
-          </h2>
-          <p className="mt-2 text-[13px] text-muted-foreground">
-            Signed in as <span className="font-medium text-foreground">{activeUser.email}</span>
-          </p>
-          <div className="mt-4">
-            <Button
-              variant="danger"
-              iconLeft={<Icon name="logout" size={17} />}
-              onClick={() => signOut()}
-            >
-              Sign out
-            </Button>
-          </div>
-        </Card>
-      </Reveal>
+      )}
     </div>
   );
 }

@@ -41,7 +41,7 @@ export function OfferCard({
 
   return (
     <Card variant="interactive" className={cn("flex flex-col overflow-hidden", className)}>
-      <BusinessImage business={business} className="h-40 w-full">
+      <BusinessImage business={business} className="h-40 w-full" imageUrl={offer.imageUrl}>
         {pricing.badge && (
           <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-card/85 px-2.5 py-1 text-xs font-semibold text-[var(--success)] shadow-[var(--shadow-soft)] backdrop-blur-sm">
             {pricing.badge}

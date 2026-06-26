@@ -24,6 +24,7 @@ export type OfferInput = {
   verificationRequired: boolean;
   oneTimePerUser: boolean;
   redemptionWindowMinutes: number;
+  imageUrl?: string;
 };
 
 export type OfferValidation = {
@@ -157,6 +158,7 @@ export function createOffer(
     verificationRequired: input.verificationRequired,
     oneTimePerUser: input.oneTimePerUser,
     redemptionWindowMinutes: input.redemptionWindowMinutes,
+    imageUrl: input.imageUrl,
     active: true,
     createdAt: now.toISOString(),
   };
@@ -181,6 +183,7 @@ export function updateOffer(offerId: string, input: OfferInput, offers: Offer[])
           verificationRequired: input.verificationRequired,
           oneTimePerUser: input.oneTimePerUser,
           redemptionWindowMinutes: input.redemptionWindowMinutes,
+          imageUrl: input.imageUrl,
         }
       : o
   );

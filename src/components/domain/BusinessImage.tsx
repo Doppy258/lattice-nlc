@@ -21,6 +21,7 @@ export function BusinessImage({
   width = 900,
   eager = false,
   iconSize = 30,
+  imageUrl,
   children,
 }: {
   business: BusinessLike;
@@ -28,13 +29,15 @@ export function BusinessImage({
   width?: number;
   eager?: boolean;
   iconSize?: number;
+  /** Optional override image (e.g. offer-specific image). Takes priority over business banner. */
+  imageUrl?: string;
   children?: ReactNode;
 }) {
   const [failed, setFailed] = useState(false);
   const meta = CATEGORY_META[business.category];
   const id = businessPhotoId(business);
-  // A business that has uploaded its own banner overrides the auto category photo.
-  const custom = business.bannerUrl?.trim() ? business.bannerUrl : null;
+  // An explicit imageUrl (e.g. from an offer) takes priority, then business banner, then auto category photo.
+  const custom = imageUrl?.trim() ? imageUrl : business.bannerUrl?.trim() ? business.bannerUrl : null;
 
   return (
     <div className={cn("relative isolate overflow-hidden bg-[var(--tint-blue)]", className)}>
