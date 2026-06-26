@@ -77,6 +77,19 @@ export function offerOverlapsWindow(offer: Offer, request: PingRequest): boolean
   );
 }
 
+/**
+ * A business that hasn't published any weekly hours has *unknown* availability,
+ * not *zero* availability. Newly onboarded storefronts start with `hours: []`
+ * (onboarding collects no hours), so treating empty hours as "closed" would
+ * silently fail the time eligibility gate for every one of their offers — the
+ * cause of "create a Lattice" returning zero matches for a freshly created
+ * business. When hours are unknown we let the offer's own validity window do the
+ * time-gating instead.
+ */
+export function hasPublishedHours(business: Business): boolean {
+  return business.hours.length > 0;
+}
+
 /** 100 fully available, 50 partially, 0 unavailable during the window. */
 export function calculateTimeScore(
   request: PingRequest,
@@ -84,6 +97,7 @@ export function calculateTimeScore(
   business: Business
 ): number {
   if (!offerOverlapsWindow(offer, request)) return 0;
+  if (!hasPublishedHours(business)) return 100; // hours unknown — rely on the offer's validity window
   const open = isBusinessOpenDuring(business.hours, request.timeStart, request.timeEnd);
   return open === "full" ? 100 : open === "partial" ? 50 : 0;
 }
@@ -107,7 +121,9 @@ export function calculatePreferenceScore(
 
   const tags = new Set([...offer.tags, ...business.tags]);
   const access = new Set(business.accessibilityFeatures);
-  const open = isBusinessOpenDuring(business.hours, request.timeStart, request.timeEnd) !== "none";
+  const open =
+    !hasPublishedHours(business) ||
+    isBusinessOpenDuring(business.hours, request.timeStart, request.timeEnd) !== "none";
 
   const satisfied = (pref: string): boolean => {
     switch (pref) {
@@ -181,8 +197,12 @@ export function generateMatchReasons(
     reasons.push("Exactly what you're looking for");
   }
   if (breakdown.budgetScore >= 70) reasons.push("Fits your budget");
-  if (breakdown.timeScore >= 100) reasons.push("Open during your requested time");
-  else if (breakdown.timeScore >= 50) reasons.push("Partly open during your window");
+  if (hasPublishedHours(business)) {
+    if (breakdown.timeScore >= 100) reasons.push("Open during your requested time");
+    else if (breakdown.timeScore >= 50) reasons.push("Partly open during your window");
+  } else if (breakdown.timeScore > 0) {
+    reasons.push("Available during your window");
+  }
   if (breakdown.distanceScore > 0) {
     reasons.push(`${roundKm(distanceKm(origin, business.location))} km away`);
   }

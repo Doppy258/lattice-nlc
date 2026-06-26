@@ -28,6 +28,7 @@ import { CATEGORY_META } from "@/data/catalog";
 import { formatRating } from "@/utils/formatting";
 import type { Business, BusinessHours, GeoPoint } from "@/models";
 import { uploadBusinessImage } from "@/services/imageService";
+import { upsertBusiness } from "@/services/dbService";
 import { toast } from "sonner";
 
 const PRICE_LEVELS: Array<1 | 2 | 3 | 4> = [1, 2, 3, 4];
@@ -109,18 +110,30 @@ function ProfileEditor({ business }: { business: Business }) {
     }
   }
 
-  function save() {
+  async function save() {
+    const updated: Business = {
+      ...business,
+      name,
+      description,
+      address,
+      priceLevel,
+      tags,
+      hours,
+      bannerUrl,
+      location: businessLocation ?? business.location,
+    };
     setData((d) => ({
       ...d,
-      businesses: d.businesses.map((b) =>
-        b.id === business.id
-          ? {
-              ...b, name, description, address, priceLevel, tags, hours, bannerUrl,
-              location: businessLocation ?? business.location,
-            }
-          : b,
-      ),
+      businesses: d.businesses.map((b) => (b.id === business.id ? updated : b)),
     }));
+    // Persist through to the shared backend so the new address/location/hours
+    // sync to every other profile — otherwise the edit stays local to this
+    // browser and customers keep matching against the stale location.
+    const error = await upsertBusiness(updated);
+    if (error) {
+      toast.error(`Couldn't sync changes: ${error}`);
+      return;
+    }
     toast.success("Profile saved");
   }
 
