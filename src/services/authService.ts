@@ -1,22 +1,66 @@
 import type { Session, User as SupabaseUser } from "@supabase/supabase-js";
 import { supabase } from "./supabaseClient";
-import type { AppData, User } from "../models";
-import { createId } from "../utils/ids";
+import type { User, UserRole } from "../models";
 
 export type AuthError = { message: string };
+
+const DEFAULT_METADATA = {
+  role: "customer",
+  homeLocationId: "origin_school",
+  onboarded: false,
+  preferredCategories: [] as string[],
+  maxDefaultDistanceKm: 3,
+  studentDiscountPreferred: false,
+  accessibilityNeeds: [] as string[],
+  savedBusinessIds: [] as string[],
+  savedOfferIds: [] as string[],
+};
+
+/** Build a User from a Supabase Auth session's metadata (no public users table needed). */
+export function userFromSession(s: Session): User {
+  const m = s.user.user_metadata ?? {};
+  const onboarded =
+    m.onboarded === true ||
+    m.onboarded === "true" ||
+    m.onboarded === 1 ||
+    m.onboarding_complete === true ||
+    m.onboarding_complete === "true" ||
+    m.onboarding_complete === 1;
+  return {
+    id: s.user.id,
+    name: m.name ?? s.user.email?.split("@")[0] ?? "User",
+    email: s.user.email ?? "",
+    role: m.role ?? "customer",
+    homeLocationId: m.homeLocationId ?? "origin_school",
+    verified: false,
+    createdAt: s.user.created_at ?? new Date().toISOString(),
+    preferences: {
+      preferredCategories: m.preferredCategories ?? [],
+      maxDefaultDistanceKm: m.maxDefaultDistanceKm ?? 3,
+      studentDiscountPreferred: m.studentDiscountPreferred ?? false,
+      accessibilityNeeds: m.accessibilityNeeds ?? [],
+      savedBusinessIds: m.savedBusinessIds ?? [],
+      savedOfferIds: m.savedOfferIds ?? [],
+    },
+    onboarded,
+  };
+}
 
 export async function signUp(
   email: string,
   password: string,
   displayName: string,
-  recaptchaToken: string
+  recaptchaToken: string,
+  role: UserRole = "customer"
 ): Promise<{ user: SupabaseUser | null; session: Session | null; error: AuthError | null }> {
   if (!supabase) {
     return { user: null, session: null, error: { message: "Supabase is not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in .env." } };
   }
 
+  // Business accounts start un-onboarded so they get routed to business onboarding;
+  // role overrides the customer default in DEFAULT_METADATA.
   const options: Record<string, unknown> = {
-    data: { name: displayName },
+    data: { name: displayName, ...DEFAULT_METADATA, role },
   };
   if (recaptchaToken) options.captchaToken = recaptchaToken;
 
@@ -85,31 +129,34 @@ export function listenAuth(callback: (session: Session | null) => void): () => v
   return () => subscription.unsubscribe();
 }
 
-export function createLocalUser(supabaseUserId: string, email: string, name: string): User {
-  return {
-    id: supabaseUserId,
-    name,
-    email,
-    role: "customer",
-    homeLocationId: "origin_school",
-    verified: false,
-    createdAt: new Date().toISOString(),
-    preferences: {
-      preferredCategories: [],
-      maxDefaultDistanceKm: 3,
-      studentDiscountPreferred: false,
-      accessibilityNeeds: [],
-      savedBusinessIds: [],
-      savedOfferIds: [],
-    },
-    onboardingComplete: false,
+/** Save onboarding preferences to Supabase Auth metadata so they survive page reload. */
+export async function saveOnboardingMetadata(
+  updates: Partial<User>
+): Promise<{ session: Session | null; error: AuthError | null }> {
+  if (!supabase) return { session: null, error: null };
+
+  const metadata = {
+    onboarded: true,
+    ...(updates.role ? { role: updates.role } : {}),
+    ...(updates.homeLocationId ? { homeLocationId: updates.homeLocationId } : {}),
+    ...(updates.preferences ?? {}),
   };
-}
 
-export function findOrCreateLocalUser(data: AppData, supabaseUserId: string, email: string, name: string): { users: User[]; userId: string } {
-  const existing = data.users.find((u) => u.id === supabaseUserId);
-  if (existing) return { users: data.users, userId: existing.id };
+  const { data, error } = await supabase.auth.updateUser({
+    data: {
+      ...metadata,
+    },
+  });
 
-  const newUser = createLocalUser(supabaseUserId, email, name);
-  return { users: [...data.users, newUser], userId: newUser.id };
+  if (error) {
+    console.error("Supabase onboarding metadata error:", error);
+    return { session: null, error: { message: error.message } };
+  }
+
+  const { data: sessionData } = await supabase.auth.getSession();
+  const session = sessionData.session && data.user
+    ? { ...sessionData.session, user: data.user }
+    : sessionData.session;
+
+  return { session, error: null };
 }

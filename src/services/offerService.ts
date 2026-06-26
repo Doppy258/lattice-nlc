@@ -19,6 +19,8 @@ export type OfferInput = {
   tags: string[];
   studentOnly: boolean;
   verificationRequired: boolean;
+  oneTimePerUser: boolean;
+  redemptionWindowMinutes: number;
 };
 
 export type OfferValidation = {
@@ -101,6 +103,8 @@ export function createOffer(
     tags: input.tags,
     studentOnly: input.studentOnly,
     verificationRequired: input.verificationRequired,
+    oneTimePerUser: input.oneTimePerUser,
+    redemptionWindowMinutes: input.redemptionWindowMinutes,
     active: true,
     createdAt: now.toISOString(),
   };
@@ -124,6 +128,8 @@ export function updateOffer(offerId: string, input: OfferInput, offers: Offer[])
           tags: input.tags,
           studentOnly: input.studentOnly,
           verificationRequired: input.verificationRequired,
+          oneTimePerUser: input.oneTimePerUser,
+          redemptionWindowMinutes: input.redemptionWindowMinutes,
         }
       : o
   );

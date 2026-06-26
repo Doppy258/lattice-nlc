@@ -3,8 +3,8 @@ export type Review = {
   userId: string;
   businessId: string;
   offerId: string;
-  /** A verified review must reference the redeemed claim that unlocked it. */
-  claimId: string;
+  /** A verified review may reference the redeemed claim that unlocked it. */
+  claimId?: string;
   /** Integer 1–5. */
   rating: number;
   text: string;

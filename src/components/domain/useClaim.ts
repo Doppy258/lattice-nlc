@@ -2,6 +2,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useApp } from "@/app/providers";
 import { claimRepo } from "@/repositories";
+import { createRedemptionPass } from "@/services/redemptionService";
 import type { Business, Claim, Offer } from "@/models";
 
 export type ClaimResult = { claim: Claim; offer: Offer; business: Business };
@@ -17,29 +18,26 @@ export function useClaim() {
   const [result, setResult] = useState<ClaimResult | null>(null);
   const [pending, setPending] = useState(false);
 
-  async function claim(offer: Offer, requestId?: string) {
-    if (pending) return;
-    setPending(true);
-    try {
-      const created = await claimRepo.create(offer.id);
-      const business = data.businesses.find((b) => b.id === offer.businessId);
-      setData((prev) => ({
-        ...prev,
-        claims: [...prev.claims, created],
-        offers: prev.offers.map((o) =>
-          o.id === offer.id ? { ...o, currentClaims: o.currentClaims + 1 } : o,
-        ),
-        requests: requestId
-          ? prev.requests.map((r) => (r.id === requestId ? { ...r, status: "matched" } : r))
-          : prev.requests,
-      }));
-      if (business) setResult({ claim: created, offer, business });
-      toast.success("Offer claimed!", { description: `Your code is ${created.claimCode}` });
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Could not claim this offer.");
-    } finally {
-      setPending(false);
+  function claim(offer: Offer, requestId?: string) {
+    const res = createClaim(activeUser.id, offer, data.claims);
+    if (!res.ok) {
+      toast.error(res.error);
+      return;
     }
+    const claim = res.claim;
+    const business = data.businesses.find((b) => b.id === offer.businessId);
+    setData((prev) => ({
+      ...prev,
+      claims: [...prev.claims, claim],
+      offers: prev.offers.map((o) =>
+        o.id === offer.id ? { ...o, currentClaims: o.currentClaims + 1 } : o,
+      ),
+      requests: requestId
+        ? prev.requests.map((r) => (r.id === requestId ? { ...r, status: "matched" } : r))
+        : prev.requests,
+    }));
+    if (business) setResult({ claim, offer, business });
+    toast.success("Offer claimed!", { description: `Your code is ${claim.claimCode}` });
   }
 
   return { claim, pending, result, clearResult: () => setResult(null) };

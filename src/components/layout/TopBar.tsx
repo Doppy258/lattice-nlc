@@ -1,27 +1,20 @@
 import { useApp } from "@/app/providers";
-import { useHashRoute } from "@/app/navigation";
+import { useHashRoute, navigate } from "@/app/navigation";
 import { Icon } from "@/components/common/Icon";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { initials } from "@/utils/formatting";
-import type { User } from "@/models";
 import { LatticeMark } from "./LatticeMark";
 import { titleForPath } from "./navConfig";
 
-function UserSwitcher() {
-  const { data, activeUser, setActiveUserId, setActiveBusinessId } = useApp();
-  const groups: Array<{ label: string; users: User[] }> = [
-    { label: "Customers", users: data.users.filter((u) => u.role === "customer") },
-    { label: "Business owners", users: data.users.filter((u) => u.role === "businessOwner") },
-    { label: "Admin", users: data.users.filter((u) => u.role === "admin") },
-  ];
+function ProfileMenu() {
+  const { activeUser, signOut } = useApp();
 
   return (
     <DropdownMenu>
@@ -37,29 +30,19 @@ function UserSwitcher() {
           <Icon name="chevron" size={15} className="text-muted-foreground" />
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="min-w-56">
-        {groups.map((group) =>
-          group.users.length ? (
-            <div key={group.label}>
-              <DropdownMenuLabel>{group.label}</DropdownMenuLabel>
-              {group.users.map((u) => (
-                <DropdownMenuItem
-                  key={u.id}
-                  onClick={() => {
-                    setActiveUserId(u.id);
-                    setActiveBusinessId("");
-                  }}
-                >
-                  <Avatar className="size-6">
-                    <AvatarFallback className="text-[10px]">{initials(u.name)}</AvatarFallback>
-                  </Avatar>
-                  <span className="flex-1">{u.name}</span>
-                  {u.id === activeUser.id && <Icon name="check" size={15} className="text-primary" />}
-                </DropdownMenuItem>
-              ))}
-            </div>
-          ) : null,
-        )}
+      <DropdownMenuContent align="end" className="min-w-52">
+        <DropdownMenuItem onClick={() => navigate("/settings")} className="cursor-pointer gap-2.5">
+          <Icon name="settings" size={16} />
+          Settings
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onClick={() => signOut()}
+          className="cursor-pointer gap-2.5 text-destructive focus:text-destructive"
+        >
+          <Icon name="logout" size={16} />
+          Sign out
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -82,9 +65,9 @@ function BusinessSwitcher() {
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-56">
-        <DropdownMenuLabel>Your businesses</DropdownMenuLabel>
         {ownedBusinesses.map((b) => (
-          <DropdownMenuItem key={b.id} onClick={() => setActiveBusinessId(b.id)}>
+          <DropdownMenuItem key={b.id} onClick={() => setActiveBusinessId(b.id)} className="cursor-pointer gap-2">
+            <Icon name="store" size={14} />
             <span className="flex-1">{b.name}</span>
             {b.id === activeBusiness?.id && <Icon name="check" size={15} className="text-primary" />}
           </DropdownMenuItem>
@@ -116,6 +99,7 @@ export function TopBar() {
 
       <div className="ml-auto flex items-center gap-2">
         <BusinessSwitcher />
+        <ProfileMenu />
         <UserSwitcher />
       </div>
     </header>

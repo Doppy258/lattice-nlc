@@ -1,6 +1,44 @@
-import type { Business, BusinessCategory, GeoPoint, Offer } from "../models";
+import type { Business, BusinessCategory, BusinessHours, GeoPoint, Offer } from "../models";
 import { distanceKm } from "../utils/distance";
 import { byNumber, byString } from "../utils/sorting";
+import { createId } from "../utils/ids";
+import { DEMO_ORIGINS } from "../data/catalog";
+
+/** Fields a new owner supplies at onboarding; the rest get sensible defaults. */
+export type BusinessInput = {
+  name: string;
+  category: BusinessCategory;
+  address: string;
+  description: string;
+};
+
+/** Default storefront hours — Mon–Sat, 9am–6pm — editable later on the Profile page. */
+const DEFAULT_HOURS: BusinessHours[] = [1, 2, 3, 4, 5, 6].map((dayOfWeek) => ({
+  dayOfWeek,
+  openTime: "09:00",
+  closeTime: "18:00",
+}));
+
+/** Builds a new Business record from onboarding input. Does not persist. */
+export function createBusiness(input: BusinessInput, ownerUserId: string, now = new Date()): Business {
+  return {
+    id: createId("biz"),
+    name: input.name.trim(),
+    category: input.category,
+    description: input.description.trim(),
+    address: input.address.trim(),
+    location: DEMO_ORIGINS[0].location,
+    hours: DEFAULT_HOURS,
+    ratingAverage: 0,
+    reviewCount: 0,
+    verified: false,
+    priceLevel: 2,
+    tags: [],
+    accessibilityFeatures: [],
+    ownerUserId,
+    createdAt: now.toISOString(),
+  };
+}
 
 export type BusinessSort =
   | "category"

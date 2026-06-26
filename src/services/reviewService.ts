@@ -38,6 +38,19 @@ export function canUserReviewClaim(
   return !reviews.some((r) => r.claimId === claimId);
 }
 
+function getReviewUnlockError(
+  userId: string,
+  claimId: string,
+  claims: Claim[],
+  reviews: Review[]
+): string | null {
+  const claim = claims.find((c) => c.id === claimId);
+  if (!claim || claim.userId !== userId) return "Reviews unlock after the offer is redeemed.";
+  if (claim.status !== "redeemed") return "Reviews unlock after the offer is redeemed.";
+  if (reviews.some((r) => r.claimId === claimId)) return "You've already reviewed this redeemed claim.";
+  return null;
+}
+
 export function validateReview(input: ReviewInput): ReviewValidation {
   const errors: ReviewValidation["errors"] = [];
   if (!Number.isInteger(input.rating) || input.rating < 1 || input.rating > 5) {
@@ -62,8 +75,13 @@ export function createReview(
   if (!validation.valid) {
     return { ok: false, error: validation.errors[0].message };
   }
-  if (!canUserReviewClaim(input.userId, input.claimId, claims, reviews)) {
-    return { ok: false, error: "Reviews unlock after the offer is redeemed." };
+  const unlockError = getReviewUnlockError(input.userId, input.claimId, claims, reviews);
+  if (unlockError) {
+    return { ok: false, error: unlockError };
+  }
+  const claim = claims.find((c) => c.id === input.claimId);
+  if (!claim || claim.businessId !== input.businessId || claim.offerId !== input.offerId) {
+    return { ok: false, error: "This review does not match the redeemed claim." };
   }
   const review: Review = {
     id: createId("review"),

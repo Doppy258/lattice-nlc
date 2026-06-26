@@ -5,7 +5,7 @@ import { Button } from "@/components/common/Button";
 import { Icon } from "@/components/common/Icon";
 import { Badge } from "@/components/common/Badge";
 import { PageHero } from "@/components/common/PageHeader";
-import { StatTile } from "@/components/common/StatTile";
+import { InsightSummary } from "@/components/common/InsightSummary";
 import { EmptyState } from "@/components/common/EmptyState";
 import { Stagger, StaggerItem } from "@/components/motion/Reveal";
 import { OfferCard } from "@/components/domain/OfferCard";
@@ -56,7 +56,13 @@ export function HomePage() {
     return getMatchingOffers(latestRequest, data.offers, data.businesses, activeUser).slice(0, 6);
   }, [latestRequest, data.offers, data.businesses, activeUser]);
 
-  // Offers to feature: a request's top matches, else the biggest fresh savings.
+  const prefCategories = activeUser.preferences.preferredCategories;
+  const prefStudent = activeUser.preferences.studentDiscountPreferred;
+  // Whether the fallback feed is personalised from onboarding interests.
+  const personalized = !matches.length && (prefCategories.length > 0 || prefStudent);
+
+  // Offers to feature: a request's top matches, else offers ranked by the
+  // interests + student preference captured during onboarding, then savings.
   const featured = useMemo(() => {
     if (matches.length) {
       return matches.map((m) => ({
@@ -64,15 +70,21 @@ export function HomePage() {
         match: m,
       }));
     }
+    const savings = (o: Offer) => (o.originalPrice ?? o.price) - o.price;
+    const affinity = (o: Offer) =>
+      (prefCategories.includes(o.category) ? 1000 : 0) +
+      (prefStudent && o.studentOnly ? 300 : 0) +
+      savings(o);
     return activeOffers
       .slice()
-      .sort((a, b) => (b.originalPrice ?? b.price) - b.price - ((a.originalPrice ?? a.price) - a.price))
+      .sort((a, b) => affinity(b) - affinity(a))
       .slice(0, 6)
       .map((offer) => ({ offer, match: undefined }));
-  }, [matches, activeOffers, data.offers]);
+  }, [matches, activeOffers, data.offers, prefCategories, prefStudent]);
 
   const myClaims = data.claims.filter((c) => c.userId === activeUser.id);
-  const activeClaimCount = myClaims.filter((c) => c.status === "active").length;
+  const activeClaimCount = myClaims.filter((c) => c.status === "pending").length;
+  const redeemedClaimCount = myClaims.filter((c) => c.status === "redeemed").length;
   const savedCount =
     activeUser.preferences.savedBusinessIds.length + activeUser.preferences.savedOfferIds.length;
   const estimatedSaved = useMemo(() => {
@@ -107,6 +119,33 @@ export function HomePage() {
             </Button>
           </>
         }
+        aside={
+          <InsightSummary
+            title="Today on Lattice"
+            columns="three"
+            className="w-full bg-card/55 shadow-none lg:w-[420px]"
+            items={[
+              {
+                label: "Claims",
+                value: activeClaimCount,
+                detail: activeClaimCount === 1 ? "Ready to redeem" : "Active now",
+              },
+              {
+                label: "Saved",
+                value: savedCount,
+                detail:
+                  redeemedClaimCount > 0
+                    ? `${formatCurrency(estimatedSaved)} saved from visits`
+                    : "Places and offers",
+              },
+              {
+                label: "Live offers",
+                value: activeOffers.length,
+                detail: "Live now",
+              },
+            ]}
+          />
+        }
       />
 
       {latestRequest && (
@@ -134,34 +173,21 @@ export function HomePage() {
         </button>
       )}
 
-      <Stagger className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StaggerItem>
-          <StatTile tone="blue" label="Active claims" value={activeClaimCount} icon={<Icon name="claims" size={17} />} sub="Ready to redeem" />
-        </StaggerItem>
-        <StaggerItem>
-          <StatTile tone="mint" label="Est. saved" value={formatCurrency(estimatedSaved)} icon={<Icon name="reports" size={17} />} sub="From redeemed offers" />
-        </StaggerItem>
-        <StaggerItem>
-          <StatTile tone="violet" label="Saved places" value={savedCount} icon={<Icon name="saved" size={17} />} sub="Businesses & offers" />
-        </StaggerItem>
-        <StaggerItem>
-          <StatTile tone="amber" label="Offers nearby" value={activeOffers.length} icon={<Icon name="ticket" size={17} />} sub="Active right now" />
-        </StaggerItem>
-      </Stagger>
-
       <section className="space-y-4">
         <div className="flex items-end justify-between gap-4">
           <div>
             <h2 className="font-display text-[22px] font-semibold tracking-[-0.03em]">
-              {matches.length ? "Your top" : "Fresh offers"}{" "}
+              {matches.length ? "Your top " : personalized ? "Picked " : "Fresh offers "}
               <span className="font-accent font-normal text-primary">
-                {matches.length ? "matches" : "nearby"}
+                {matches.length ? "matches" : personalized ? "for you" : "nearby"}
               </span>
             </h2>
             <p className="text-[14px] text-muted-foreground">
               {matches.length
                 ? "Ranked by OfferRank for your latest Lattice."
-                : "Popular active deals from local businesses."}
+                : personalized
+                  ? "Based on the interests you chose during setup."
+                  : "Popular active deals from local businesses."}
             </p>
           </div>
           <button
