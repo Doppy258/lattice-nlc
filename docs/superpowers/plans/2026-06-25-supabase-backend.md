@@ -805,16 +805,16 @@ insert into public.businesses (id, name, category, description, address, locatio
 on conflict (id) do nothing;
 
 insert into public.offers (id, business_id, title, description, category, offer_type, price, original_price, valid_from, valid_until, max_claims, current_claims, tags, student_only, active) values
- ('f0000000-0000-0000-0000-0000000000o1','e0000000-0000-0000-0000-0000000000b1','$3 off any bowl','Student special','food','studentOffer',6,9, now()-interval '2 days', now()+interval '10 days',50,1,'{"lunch"}',true,true),
- ('f0000000-0000-0000-0000-0000000000o2','e0000000-0000-0000-0000-0000000000b2','20% off one book','Any title','retail','discount',12,15, now()-interval '1 day', now()+interval '20 days',30,0,'{"books"}',false,true)
+ ('f0000000-0000-0000-0000-0000000000a1','e0000000-0000-0000-0000-0000000000b1','$3 off any bowl','Student special','food','studentOffer',6,9, now()-interval '2 days', now()+interval '10 days',50,1,'{"lunch"}',true,true),
+ ('f0000000-0000-0000-0000-0000000000a2','e0000000-0000-0000-0000-0000000000b2','20% off one book','Any title','retail','discount',12,15, now()-interval '1 day', now()+interval '20 days',30,0,'{"books"}',false,true)
 on conflict (id) do nothing;
 
 -- one redeemed claim by the demo customer + a verified review on it
 insert into public.claims (id, user_id, offer_id, business_id, claim_code, status, expires_at, redeemed_at) values
- ('aa000000-0000-0000-0000-0000000000c1','d0000000-0000-0000-0000-0000000000c1','f0000000-0000-0000-0000-0000000000o1','e0000000-0000-0000-0000-0000000000b1','PING-2468','redeemed', now()+interval '10 days', now()-interval '1 hour')
+ ('aa000000-0000-0000-0000-0000000000c1','d0000000-0000-0000-0000-0000000000c1','f0000000-0000-0000-0000-0000000000a1','e0000000-0000-0000-0000-0000000000b1','PING-2468','redeemed', now()+interval '10 days', now()-interval '1 hour')
 on conflict (id) do nothing;
 insert into public.reviews (id, user_id, business_id, offer_id, claim_id, rating, text, tags, verified) values
- ('ab000000-0000-0000-0000-0000000000r1','d0000000-0000-0000-0000-0000000000c1','e0000000-0000-0000-0000-0000000000b1','f0000000-0000-0000-0000-0000000000o1','aa000000-0000-0000-0000-0000000000c1',5,'Fresh and fast, great student deal','{"Good value","Fast service"}',true)
+ ('ab000000-0000-0000-0000-0000000000d1','d0000000-0000-0000-0000-0000000000c1','e0000000-0000-0000-0000-0000000000b1','f0000000-0000-0000-0000-0000000000a1','aa000000-0000-0000-0000-0000000000c1',5,'Fresh and fast, great student deal','{"Good value","Fast service"}',true)
 on conflict (id) do nothing;
 ```
 
