@@ -1,6 +1,11 @@
 import { Button } from "./Button";
 import { Icon } from "./Icon";
 
+/**
+ * ShareLocationButton — triggers the browser Geolocation API and surfaces
+ * loading/error states inline. Used by the map page to center the view on
+ * the user's current position.
+ */
 export function ShareLocationButton({
   loading,
   error,

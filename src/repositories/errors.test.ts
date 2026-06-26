@@ -1,3 +1,9 @@
+/**
+ * Tests for the error-mapping layer: verifying that `throwIfError` passes
+ * through null, maps known codes to friendly UI messages, finds codes
+ * embedded in prefixed Postgres error strings, and throws unknown codes
+ * as-is without mapping.
+ */
 import { describe, it, expect } from "vitest";
 import { throwIfError, RepoError } from "./errors";
 

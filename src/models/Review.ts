@@ -1,3 +1,8 @@
+/**
+ * Review — a verified or unverified rating+text left by a customer after
+ * redeeming an offer. Verified reviews are linked to a claim so the system
+ * can guarantee the reviewer actually transacted with the business.
+ */
 export type Review = {
   id: string;
   userId: string;

@@ -1,3 +1,9 @@
+/**
+ * Central configuration constants referenced across the app: ranking weights,
+ * minimum budgets, related-category mappings, and per-feature guard rails.
+ * Single source of truth so these magic numbers aren't scattered.
+ */
+
 import type { BusinessCategory, NeedType } from "../models";
 
 /**

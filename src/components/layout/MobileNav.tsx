@@ -1,3 +1,8 @@
+/**
+ * MobileNav — bottom tab bar (<900px) showing the first 4 nav items from
+ * `navForRole`. A "More" button opens a Dialog with the remaining items
+ * in a 3-column grid. Hidden above 900px where <Sidebar> takes over.
+ */
 import { useState } from "react";
 import { motion } from "motion/react";
 import { useApp } from "@/app/providers";

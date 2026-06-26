@@ -2,7 +2,11 @@ import type { ReactNode } from "react";
 import { Icon, type IconName } from "@/components/common/Icon";
 import { cn } from "@/lib/utils";
 
-/** Friendly empty/zero state with an optional primary action. */
+/**
+ * EmptyState — centered empty/zero screen shown when a list or search
+ * returns no results. The `action` slot lets callers render a CTA button
+ * (e.g. "Create your first offer" or "Adjust filters").
+ */
 export function EmptyState({
   icon = "matches",
   title,

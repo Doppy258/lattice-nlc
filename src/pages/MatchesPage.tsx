@@ -1,3 +1,12 @@
+/**
+ * MatchesPage — route: /matches?request=<id>
+ *
+ * Displays OfferRank-scored results for a single PingRequest. Supports
+ * sorting (best/rating/closest/price/ending/claimed), filtering
+ * (deals/student/saved), an interactive Leaflet map with a radius overlay,
+ * and the claim flow (human verification → time-limited pass).
+ */
+
 import { useMemo, useState } from "react";
 import { useApp } from "@/app/providers";
 import { useHashRoute, navigate } from "@/app/navigation";

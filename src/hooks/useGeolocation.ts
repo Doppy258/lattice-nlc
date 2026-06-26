@@ -1,3 +1,9 @@
+/**
+ * Browser-geolocation hook used by the request flow to auto-fill the user's
+ * current location for distance-based ranking. Falls back gracefully when the
+ * API is unavailable or the user denies permission.
+ */
+
 import { useState, useCallback } from "react";
 import type { GeoPoint } from "../models";
 
@@ -7,6 +13,7 @@ type GeolocationState = {
   loading: boolean;
 };
 
+/** Returns the current position (on demand, not on mount) plus loading/error state. */
 export function useGeolocation() {
   const [state, setState] = useState<GeolocationState>({
     location: null,

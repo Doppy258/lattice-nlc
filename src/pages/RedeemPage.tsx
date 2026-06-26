@@ -1,3 +1,11 @@
+/**
+ * RedeemPage - /redeem.
+ * Purpose: Business-side redemption console — business owners verify
+ * customer Lattice Passes by 6-digit code or QR scan, then approve
+ * redemptions. Shows a live pending queue and recent redemptions log.
+ * Key flows: Code/QR input → verify pass → validate for approval →
+ * approve and persist upsert; auto-verifies token from QR deep-link.
+ */
 import { useEffect, useMemo, useState } from "react";
 import { ScanLine } from "lucide-react";
 import { useApp } from "@/app/providers";

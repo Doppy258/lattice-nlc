@@ -1,3 +1,12 @@
+/**
+ * DashboardPage — route: /dashboard
+ *
+ * Business owner analytics hub. Shows performance summary (views,
+ * redemptions, conversion), claims-over-time bar chart, recent claim
+ * activity feed, and a preview of active offers. Only renders when
+ * activeBusiness is set.
+ */
+
 import { useApp } from "@/app/providers";
 import { navigate } from "@/app/navigation";
 import { Button } from "@/components/common/Button";

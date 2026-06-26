@@ -1,5 +1,6 @@
 /** Presentation helpers. Pure functions, no side effects. */
 
+/** Formats as USD; omits decimals on whole-dollar amounts for a cleaner card look. */
 export function formatCurrency(amount: number): string {
   if (amount == null || Number.isNaN(amount)) return "$0";
   return amount.toLocaleString("en-US", {
@@ -10,14 +11,17 @@ export function formatCurrency(amount: number): string {
   });
 }
 
+/** 0–1 value → human-readable percentage string, e.g. 0.2 → "20%". */
 export function formatPercent(value0to1: number, digits = 0): string {
   return `${(value0to1 * 100).toFixed(digits)}%`;
 }
 
+/** Single decimal place for star-rating displays. */
 export function formatRating(rating: number): string {
   return rating.toFixed(1);
 }
 
+/** Kilometers with one decimal for the "within X km" filter label. */
 export function formatDistance(km: number): string {
   return `${km.toFixed(1)} km`;
 }
@@ -36,6 +40,7 @@ export function relativeTime(iso: string, now = new Date()): string {
   return future ? `in ${days} day${days === 1 ? "" : "s"}` : `${days} day${days === 1 ? "" : "s"} ago`;
 }
 
+/** "2:30 PM - 5:00 PM" for the request-window or business-hours display. */
 export function formatTimeRange(startIso: string, endIso: string): string {
   const opts: Intl.DateTimeFormatOptions = { hour: "numeric", minute: "2-digit" };
   const start = new Date(startIso);
@@ -44,6 +49,7 @@ export function formatTimeRange(startIso: string, endIso: string): string {
   return `${start.toLocaleTimeString("en-US", opts)} - ${end.toLocaleTimeString("en-US", opts)}`;
 }
 
+/** First two initials from a full name, used as a fallback avatar. */
 export function initials(name: string): string {
   return name
     .split(" ")

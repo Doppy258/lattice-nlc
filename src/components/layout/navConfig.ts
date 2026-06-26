@@ -1,3 +1,11 @@
+/**
+ * navConfig - information architecture definitions for both customer and
+ * business-owner navigation trees. Exports the nav arrays, role-based helpers
+ * (navForRole, homePathForRole), and a title resolver (titleForPath) used by
+ * the TopBar and RouteView.
+ * Role in architecture: Layout — single source of truth for the app's route
+ * structure, IA labels, and icons; consumed by Sidebar, TopBar, and RouteView.
+ */
 import type { IconName } from "@/components/common/Icon";
 import type { UserRole } from "@/models";
 

@@ -1,3 +1,13 @@
+/**
+ * OnboardingPage - /onboarding.
+ * Purpose: Three-step onboarding wizard for new users — selects interest
+ * categories, accessibility needs, and general preferences (radius, student
+ * discount). Saves preferences to Supabase Auth metadata and marks user as
+ * onboarded.
+ * Key flows: Step indicator and animated transitions; category toggle grid;
+ * accessibility options; radius + student discount toggle; final submit
+ * calls completeOnboarding then navigates to /home.
+ */
 import { useState, type FormEvent } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 import { useApp } from "../app/providers";

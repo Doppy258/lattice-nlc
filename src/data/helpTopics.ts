@@ -1,3 +1,10 @@
+/**
+ * The help-center knowledge base — a curated set of ~20 questions organised
+ * into 6 categories (Getting started, Claiming & passes, Reviews & rankings,
+ * Reports & export, For businesses, Account & safety). Content mirrors how
+ * Lattice actually behaves so the answers stay accurate without referencing
+ * internal implementation details.
+ */
 import type { IconName } from "@/components/common/Icon";
 
 /** Who a help topic is relevant to. "all" shows for both roles. */

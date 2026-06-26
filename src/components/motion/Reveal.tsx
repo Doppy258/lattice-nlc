@@ -3,10 +3,10 @@ import { motion, useReducedMotion } from "motion/react";
 import { DURATION, EASE_OUT_EXPO, STAGGER_CONTAINER } from "./tokens";
 
 /**
- * Blur + rise reveal, played on mount. The signature landing-page entrance
- * translated to the app. Animating on mount (rather than on scroll) guarantees
- * content is never left hidden below the fold. Under "reduce motion" it renders
- * statically from the resting state.
+ * Reveal — blur + rise entrance animation played on mount.
+ * The signature landing-page entrance translated to the app. Rather than
+ * tying to scroll (IntersectionObserver), it plays eagerly so content
+ * is never left invisible below the fold. Respects `prefers-reduced-motion`.
  */
 type RevealProps = {
   children: ReactNode;
@@ -43,7 +43,11 @@ export function Reveal({
   );
 }
 
-/** Parent that staggers the reveal of its <StaggerItem> children on mount. */
+/**
+ * Stagger — parent wrapper that staggers the reveal of its <StaggerItem>
+ * children on mount. Children animate in sequence (staggerChildren: 0.06s)
+ * with a slight initial delay. Respects reduced motion.
+ */
 export function Stagger({
   children,
   as = "div",
@@ -65,7 +69,11 @@ export function Stagger({
   );
 }
 
-/** A child of <Stagger>; reveals in sequence with its siblings. */
+/**
+ * StaggerItem — a child of <Stagger> that fades and rises into view
+ * in sequence with its siblings. Each item has its own delay via the
+ * parent stagger container; no `delay` prop is exposed here.
+ */
 export function StaggerItem({
   children,
   as = "div",

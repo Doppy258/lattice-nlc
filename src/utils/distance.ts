@@ -1,3 +1,9 @@
+/**
+ * Great-circle (haversine) distance calculations used throughout the ranking
+ * engine and the "within X km" filter. All geo inputs are expected as
+ * {lat, lng} in decimal degrees.
+ */
+
 import type { GeoPoint } from "../models";
 
 const EARTH_RADIUS_KM = 6371;

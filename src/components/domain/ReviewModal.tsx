@@ -1,3 +1,12 @@
+/**
+ * ReviewModal - verified-review composer. Only unlocked for the user's own
+ * redeemed claim. Captures a 1–5 star rating, free-text review (with min/max
+ * length enforced), and optional tags (selected via ToggleChip). Persists the
+ * review and recalculates the business's aggregate rating optimistically.
+ * Props: open, onOpenChange, claim (Claim), offer (Offer), business (Business)
+ * Role in architecture: Domain — the sole path for submitting verified reviews
+ * after redemption, ensuring only genuine customers can rate a business.
+ */
 import { useState } from "react";
 import { motion } from "motion/react";
 import { Star } from "lucide-react";

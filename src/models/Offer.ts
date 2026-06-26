@@ -1,3 +1,8 @@
+/**
+ * Offer — time-bound merchant promotions with tiered pricing, claim limits,
+ * and per-offer redemption windows. Each offer belongs to a business and may
+ * optionally target a specific NeedType for fine-grained OfferRank matching.
+ */
 import type { BusinessCategory } from "./Business";
 import type { NeedType } from "./PingRequest";
 

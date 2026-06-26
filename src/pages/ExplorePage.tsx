@@ -1,3 +1,12 @@
+/**
+ * ExplorePage — route: /explore
+ *
+ * Business directory with search, category chips, and sort (rating,
+ * reviews, closest, deals, A–Z). Renders BusinessCards in a responsive
+ * grid. Integrates geolocation for distance-aware results and "saved"
+ * toggle per business.
+ */
+
 import { useMemo, useState } from "react";
 import { useApp } from "@/app/providers";
 import { navigate } from "@/app/navigation";

@@ -1,3 +1,7 @@
+/**
+ * BusinessCard — a business tile in explore/saved/search grids.
+ * See component for prop details.
+ */
 import { motion } from "motion/react";
 import { Bookmark } from "lucide-react";
 import type { Business } from "@/models";
@@ -10,6 +14,13 @@ import { formatDistance, formatRating } from "@/utils/formatting";
 import { cn } from "@/lib/utils";
 import { BusinessImage } from "./BusinessImage";
 
+/**
+ * BusinessCard — a business tile in explore/saved/search grids.
+ * Shows the cover photo, category label, price level, rating, distance,
+ * a description snippet, active deal count badge, and a "View profile" link.
+ * The entire photo area is clickable via `onOpen`; the bookmark button is
+ * optional (`onSave`).
+ */
 export function BusinessCard({
   business,
   activeDeals = 0,

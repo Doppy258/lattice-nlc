@@ -2,7 +2,12 @@ import type { ComponentProps, ReactNode } from "react";
 import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
 
-/** A pill toggle (preferences, budget presets, tags). Tactile press built in. */
+/**
+ * ToggleChip — pill toggle for multi-select filters (categories, budget,
+ * tags). Wraps `motion.button` with a tactile press scale. The `active`
+ * state adds an inset ring to distinguish from idle chips. Use `<ChipGroup>`
+ * as the wrapping flex container.
+ */
 export function ToggleChip({
   active = false,
   icon,
@@ -37,7 +42,10 @@ export function ToggleChip({
   );
 }
 
-/** Wrap-flow container for a set of chips. */
+/**
+ * ChipGroup — flex-wrap container that lays out ToggleChips with a
+ * consistent gap. No semantic logic; purely layout.
+ */
 export function ChipGroup({ className, ...props }: ComponentProps<"div">) {
   return <div className={cn("flex flex-wrap gap-2", className)} {...props} />;
 }

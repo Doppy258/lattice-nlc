@@ -2,7 +2,11 @@ import type { ReactNode } from "react";
 import { Reveal } from "@/components/motion/Reveal";
 import { cn } from "@/lib/utils";
 
-/** Standard page title row: title (+ serif accent) / subtitle / actions. */
+/**
+ * PageHeader — standard page title row used across dashboard screens.
+ * Renders a display heading, optional serif accent word, subtitle, and
+ * action buttons. Wraps to two lines on narrow viewports.
+ */
 export function PageHeader({
   title,
   accent,
@@ -37,7 +41,12 @@ export function PageHeader({
   );
 }
 
-/** Hero header on a blue-glass panel — the premium "moment" at the top of a page. */
+/**
+ * PageHero — premium hero banner on a blue-glass panel for landing-style
+ * page tops. Includes an eyebrow badge, large title with accent word,
+ * subtitle, actions, and an optional aside slot (e.g. an illustration or
+ * stat cluster). Wraps to column on mobile.
+ */
 export function PageHero({
   eyebrow,
   title,

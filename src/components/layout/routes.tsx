@@ -1,3 +1,11 @@
+/**
+ * RouteView - maps the current hash route to a page component. Every known
+ * path is explicitly listed in the switch; unknown paths fall through to
+ * ComingSoon so the user never sees a blank screen or 404.
+ * Props: none (reads hash route from useHashRoute)
+ * Role in architecture: Layout — the central routing dispatch consumed by
+ * AppLayout. New pages are added here and in navConfig simultaneously.
+ */
 import { useHashRoute } from "@/app/navigation";
 import { HomePage } from "@/pages/HomePage";
 import { CreateLatticePage } from "@/pages/CreateLatticePage";
@@ -19,7 +27,7 @@ import { SettingsPage } from "@/pages/SettingsPage";
 import { HelpPage } from "@/pages/HelpPage";
 import { ComingSoon } from "./ComingSoon";
 
-/** Maps the current hash route to a page. Unbuilt routes fall back to ComingSoon. */
+
 export function RouteView() {
   const { path } = useHashRoute();
   switch (path) {

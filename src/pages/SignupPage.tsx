@@ -1,3 +1,11 @@
+/**
+ * SignupPage - /signup.
+ * Purpose: Account creation with account-type selection (personal vs.
+ * business), form validation, reCAPTCHA (or offline bot-check fallback),
+ * and Supabase Auth sign-up.
+ * Key flows: Toggle account type; validate fields; reCAPTCHA render or
+ * BotCheckModal for demo mode; signUp call → navigate to /onboarding or /home.
+ */
 import { useState, useRef, useEffect, type FormEvent } from "react";
 import { useApp } from "../app/providers";
 import { navigate } from "../app/navigation";

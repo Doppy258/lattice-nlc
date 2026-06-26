@@ -1,3 +1,13 @@
+/**
+ * CreateLatticePage — route: /create
+ *
+ * The core "mad-libs" request builder. Customers fill structured blanks
+ * (category, need, budget, distance, time, preferences) to produce a
+ * PingRequest that gets matched against local offers via OfferRank.
+ * Supports both create and edit (via ?edit=id) flows with a human-verification
+ * gate before submission.
+ */
+
 import { useMemo, useState, type ReactNode } from "react";
 import { ChevronDown, Check } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
@@ -35,6 +45,7 @@ import {
   budgetPresetsFor,
 } from "@/data/catalog";
 import { customTimeWindow, timeWindowForPreset, type TimeWindowPresetId } from "@/utils/timeWindows";
+import { NOTE_MAX } from "@/utils/constants";
 import { createId } from "@/utils/ids";
 import { NOTE_MAX } from "@/utils/constants";
 import { upsertRequest } from "@/services/dbService";
@@ -357,14 +368,26 @@ export function CreateLatticePage() {
             <span className="text-muted-foreground/50">—</span>
             Request
           </span>
-          {category && (
-            <Badge tone={QUALITY[quality].tone} dot>
-              {QUALITY[quality].label}
-            </Badge>
-          )}
         </div>
+        <AnimatePresence>
+          {category && (
+            <motion.div
+              key="request-badge"
+              {...slideFade}
+              className="mb-5 flex items-center justify-between gap-3"
+            >
+              <span className="text-[12px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+                Your request
+              </span>
+              <motion.div whileTap={{ scale: 0.95 }}>
+                <Badge tone={QUALITY[quality].tone}>{QUALITY[quality].label}</Badge>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Mad-libs sentence — blanks reveal after a business type is picked */}
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-3 font-display text-[21px] leading-[1.65] tracking-[-0.01em] text-foreground sm:text-[25px]">
+        <div className="mt-7 flex flex-wrap items-center gap-x-2 gap-y-3 font-display text-[22px] leading-[1.7] tracking-[-0.015em] text-foreground sm:text-[26px]">
           <motion.span
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
@@ -506,13 +529,12 @@ export function CreateLatticePage() {
               </motion.span>
             )}
           </AnimatePresence>
+          {!category && (
+            <span className="ml-2 text-[16px] leading-relaxed text-muted-foreground">
+              Choose a business type to begin.
+            </span>
+          )}
         </div>
-
-        {!category && (
-          <p className="mt-4 max-w-md text-[14px] leading-relaxed text-muted-foreground">
-            Choose a business type to begin. Each blank you fill sharpens your matches.
-          </p>
-        )}
 
         <AnimatePresence>
           {category && (
@@ -664,20 +686,21 @@ export function CreateLatticePage() {
                 </motion.p>
               )}
             </AnimatePresence>
+
             {/* Footer */}
             <motion.div
               key="footer"
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1], delay: 0.3 }}
-              className="mt-8 flex flex-col gap-4 border-t border-border/70 pt-6 sm:flex-row sm:items-center sm:justify-between"
+              className="mt-7 flex flex-col gap-3 border-t border-border pt-5 sm:flex-row sm:items-center sm:justify-between"
             >
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Icon name="matches" size={16} className="text-primary" />
                 <span>Estimated matches</span>
-                <span className="mono text-[17px] font-semibold text-foreground">{estMatches ?? "—"}</span>
+                <span className="mono text-base font-semibold text-foreground">{estMatches ?? "—"}</span>
               </div>
-              <div className="flex flex-col gap-1.5 sm:items-end">
+              <motion.div whileTap={validation.valid ? { scale: 0.97 } : undefined}>
                 <Button
                   variant="brand"
                   size="lg"
@@ -687,12 +710,7 @@ export function CreateLatticePage() {
                 >
                   Find matching offers
                 </Button>
-                {!validation.valid && (
-                  <p className="text-[12px] text-muted-foreground sm:text-right">
-                    Fill in every blank to match.
-                  </p>
-                )}
-              </div>
+              </motion.div>
             </motion.div>
           </motion.div>
         )}

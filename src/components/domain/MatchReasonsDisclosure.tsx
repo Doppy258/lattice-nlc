@@ -1,12 +1,17 @@
+/**
+ * MatchReasonsDisclosure — collapsible "Why this match?" panel inside OfferCard.
+ * See component for animation and trigger details.
+ */
 import { useId, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { ChevronDown } from "lucide-react";
 import { MatchReasons } from "./MatchReasons";
 
 /**
- * Collapsible "Why this match?" disclosure. Collapsed by default so every
- * offer card has the same fixed-height trigger row and the cards align in
- * the grid; expanding one card grows only that card.
+ * MatchReasonsDisclosure — collapsible "Why this match?" panel inside
+ * OfferCard. Starts collapsed to keep grid rows aligned; expands with
+ * an AnimatePresence height animation. The score is shown in the trigger
+ * row for quick context before opening. Returns null when reasons is empty.
  */
 export function MatchReasonsDisclosure({
   reasons,

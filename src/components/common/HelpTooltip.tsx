@@ -1,8 +1,13 @@
+/**
+ * HelpTooltip - a small "?" affordance that reveals an explanation on hover/focus.
+ * Props: label (ReactNode) — the tooltip content.
+ * Role in architecture: Common UI building block for inline contextual help,
+ * keeping screens uncluttered while making explanations available on demand.
+ */
 import type { ReactNode } from "react";
 import { Icon } from "@/components/common/Icon";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
-/** A small "?" affordance that reveals an explanation on hover/focus. */
 export function HelpTooltip({ label }: { label: ReactNode }) {
   return (
     <Tooltip>

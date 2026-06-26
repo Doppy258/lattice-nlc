@@ -1,3 +1,15 @@
+/**
+ * storageService - client-side data persistence layer.
+ * Purpose: Manages AppData snapshots in localStorage with Supabase as an
+ * optional remote backend. Handles first-run seeding (buildSeedData),
+ * active-user and active-business preferences, and demo-data reset.
+ * The async loadDataFromSupabase path is used when a Supabase connection
+ * is configured; otherwise everything runs from the in-memory/localStorage
+ * snapshot.
+ * Key exports: loadData, saveData, resetDemoData, loadDataAsync,
+ *   loadDataFromSupabase, loadActiveUserId, saveActiveUserId,
+ *   loadActiveBusinessId, saveActiveBusinessId, getCollection, updateCollection
+ */
 import type { AppData, CollectionName } from "../models";
 import { fetchAllData } from "./dbService";
 import { isSupabaseConfigured } from "./supabaseClient";

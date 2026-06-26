@@ -1,3 +1,13 @@
+/**
+ * reportService - user impact and business analytics reports.
+ * Purpose: Builds aggregate reports from raw data — getUserReport for a
+ * customer's personal impact (savings, categories, businesses supported)
+ * and getBusinessReport for an owner's performance dashboard (conversion
+ * funnel, claims by month, revenue, review tags). Both respect date-range,
+ * category, and status filters.
+ * Key exports: getUserReport, getBusinessReport, calculateEstimatedSavings,
+ *   RANGE_PRESETS, rangeToFromDate, groupClaimsByCategory, groupSavingsByMonth
+ */
 import type {
   Business,
   BusinessCategory,

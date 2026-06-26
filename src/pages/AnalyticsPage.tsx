@@ -1,3 +1,9 @@
+/**
+ * AnalyticsPage - /analytics.
+ * Purpose: Business owner's performance dashboard — conversion funnel, claims volume
+ * over time, revenue influenced, common review tags, and summary KPIs.
+ * Key flows: Date-range and claim-status filtering; CSV export and print of all charts.
+ */
 import { useMemo, useState } from "react";
 import { useApp } from "@/app/providers";
 import { navigate } from "@/app/navigation";

@@ -1,8 +1,9 @@
 /**
- * Lightweight, dependency-free report export helpers. Reports can be exported as
- * a CSV (to analyze in a spreadsheet) or sent to the browser print dialog for a
- * clean PDF — satisfying "output reports allow the user to customize and analyze
- * information." Everything here uses plain browser APIs, so it works offline.
+ * export - CSV export and print helpers.
+ * Purpose: Lightweight, dependency-free report export — builds RFC 4180 CSV
+ * documents from titled sections and triggers browser download, or opens the
+ * print dialog for PDF output. All operations use plain browser APIs.
+ * Key exports: downloadCsv, sectionsToCsv, dateStamp, slugify, printReport, CsvSection
  */
 
 /** A titled block of rows within a CSV file (e.g. "Summary", "Claims by category"). */
