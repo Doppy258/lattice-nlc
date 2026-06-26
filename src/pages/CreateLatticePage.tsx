@@ -10,7 +10,6 @@ import { FormField } from "@/components/common/FormField";
 import { PageHeader } from "@/components/common/PageHeader";
 import { Icon, type IconName } from "@/components/common/Icon";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -33,7 +32,6 @@ import {
   budgetPresetsFor,
 } from "@/data/catalog";
 import { customTimeWindow, timeWindowForPreset, type TimeWindowPresetId } from "@/utils/timeWindows";
-import { NOTE_MAX } from "@/utils/constants";
 import { createId } from "@/utils/ids";
 import { upsertRequest } from "@/services/dbService";
 import { formatTimeRange } from "@/utils/formatting";
@@ -67,7 +65,7 @@ function Blank({
         className={cn(
           "group inline-flex max-w-full cursor-pointer items-center gap-1 rounded-xl px-2.5 py-0.5 align-middle font-semibold outline-none transition-all duration-200",
           filled
-            ? "bg-secondary text-primary ring-1 ring-inset ring-primary/20 hover:ring-primary/40"
+            ? "bg-secondary text-primary-strong ring-1 ring-inset ring-primary/20 hover:ring-primary/40"
             : "bg-accent/60 text-primary underline decoration-dashed decoration-primary/40 underline-offset-4 hover:bg-accent",
           invalid && !filled && "bg-[var(--danger-tint)] text-[var(--danger)] no-underline",
           "focus-visible:ring-2 focus-visible:ring-primary/40 data-[state=open]:ring-2 data-[state=open]:ring-primary/40",
@@ -129,7 +127,6 @@ export function CreateLatticePage() {
   const [preferences, setPreferences] = useState<string[]>(() =>
     activeUser.preferences.studentDiscountPreferred ? ["studentDiscount"] : [],
   );
-  const [note, setNote] = useState("");
   const [verifyOpen, setVerifyOpen] = useState(false);
 
   const originName =
@@ -146,9 +143,8 @@ export function CreateLatticePage() {
       timeStart,
       timeEnd,
       preferences,
-      optionalNote: note || undefined,
     }),
-    [activeUser.id, category, needType, budgetMin, budgetMax, distanceKm, timeStart, timeEnd, preferences, note],
+    [activeUser.id, category, needType, budgetMin, budgetMax, distanceKm, timeStart, timeEnd, preferences],
   );
 
   const validation = useMemo(() => validatePingRequest(draft, data.requests), [draft, data.requests]);
@@ -235,7 +231,6 @@ export function CreateLatticePage() {
       timeStart: timeStart!,
       timeEnd: timeEnd!,
       preferences,
-      optionalNote: note || undefined,
       verifiedHuman: true,
       status: "submitted",
       createdAt: new Date().toISOString(),
@@ -274,18 +269,24 @@ export function CreateLatticePage() {
         subtitle="Fill in the blanks and we'll match you with verified local offers — by budget, timing, distance, and preferences."
       />
 
-      <Card variant="solid" className="p-6 sm:p-8">
-        {category && (
-          <div className="mb-5 flex items-center justify-between gap-3">
-            <span className="text-[12px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
-              Your request
-            </span>
-            <Badge tone={QUALITY[quality].tone}>{QUALITY[quality].label}</Badge>
-          </div>
-        )}
+      <Card variant="solid" className="p-7 sm:p-9">
+        {/* Step marker — this card is the request, the first move in the flow — beside a live quality read */}
+        <div className="flex items-center justify-between gap-3">
+          <span className="mono inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+            <span className="size-1.5 rounded-[2px] bg-primary" aria-hidden="true" />
+            <span className="text-foreground">01</span>
+            <span className="text-muted-foreground/50">—</span>
+            Request
+          </span>
+          {category && (
+            <Badge tone={QUALITY[quality].tone} dot>
+              {QUALITY[quality].label}
+            </Badge>
+          )}
+        </div>
 
         {/* Mad-libs sentence — blanks reveal after a business type is picked */}
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-3 font-display text-[21px] leading-[1.65] tracking-[-0.01em] text-foreground sm:text-[25px]">
+        <div className="mt-7 flex flex-wrap items-center gap-x-2 gap-y-3 font-display text-[22px] leading-[1.7] tracking-[-0.015em] text-foreground sm:text-[26px]">
           <span>I'm looking for</span>
           <Blank
             placeholder="a business type"
@@ -330,7 +331,7 @@ export function CreateLatticePage() {
               </Blank>
 
               {budgetSel === "custom" && (
-                <span className="inline-flex items-center gap-1 rounded-xl bg-secondary px-2.5 py-0.5 text-primary ring-1 ring-inset ring-primary/20">
+                <span className="inline-flex items-center gap-1 rounded-xl bg-secondary px-2.5 py-0.5 text-primary-strong ring-1 ring-inset ring-primary/20">
                   <span>$</span>
                   <input
                     type="number"
@@ -340,7 +341,7 @@ export function CreateLatticePage() {
                     value={customBudget}
                     onChange={(e) => applyCustomBudget(e.target.value)}
                     aria-invalid={!!errors.budget}
-                    className="w-16 bg-transparent font-semibold text-primary outline-none placeholder:text-primary/40"
+                    className="w-16 bg-transparent font-semibold text-primary-strong outline-none placeholder:text-primary/40"
                   />
                 </span>
               )}
@@ -373,11 +374,20 @@ export function CreateLatticePage() {
           )}
         </div>
 
+        {!category && (
+          <p className="mt-4 max-w-md text-[14px] leading-relaxed text-muted-foreground">
+            Choose a business type to begin. Each blank you fill sharpens your matches.
+          </p>
+        )}
+
         {category && (
           <>
             {/* Custom time window */}
             {timePreset === "custom" && (
-              <div className="mt-5 grid gap-3 rounded-2xl bg-muted/50 p-4 sm:grid-cols-3">
+              <div className="mt-6 grid gap-3 rounded-[16px] bg-muted/60 p-4 ring-1 ring-inset ring-border/70 sm:grid-cols-3">
+                <div className="mono text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground sm:col-span-3">
+                  Custom window
+                </div>
                 <FormField label="Date" htmlFor="c-date">
                   <Input id="c-date" type="date" value={customDate} onChange={(e) => updateCustomTime(e.target.value, customStart, customEnd)} />
                 </FormField>
@@ -394,9 +404,9 @@ export function CreateLatticePage() {
             )}
 
             {/* Preferences */}
-            <div className="mt-7">
-              <div className="mb-2.5 text-[13px] font-semibold text-muted-foreground">
-                Preferences <span className="font-normal">(optional)</span>
+            <div className="mt-8 border-t border-border/70 pt-6">
+              <div className="mb-3 mono text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                Preferences <span className="text-muted-foreground/55">· Optional</span>
               </div>
               <ChipGroup>
                 {availablePrefs.map((pref) => (
@@ -412,54 +422,36 @@ export function CreateLatticePage() {
               </ChipGroup>
             </div>
 
-            {/* Note */}
-            <div className="mt-6">
-              <div className="mb-2 flex items-center justify-between">
-                <span className="text-[13px] font-semibold text-muted-foreground">
-                  Note <span className="font-normal">(optional)</span>
-                </span>
-                <span className="mono text-[12px] text-muted-foreground">
-                  {note.length}/{NOTE_MAX}
-                </span>
-              </div>
-              <Textarea
-                value={note}
-                maxLength={NOTE_MAX}
-                onChange={(e) => setNote(e.target.value)}
-                placeholder="Example: need outlets and a quiet table"
-                aria-invalid={!!errors.note}
-              />
-              {errors.note && <p className="mt-1.5 text-[13px] font-medium text-destructive">{errors.note}</p>}
-            </div>
-
             {errors.duplicate && (
-              <p className="mt-5 rounded-xl bg-[var(--danger-tint)] px-3 py-2 text-[13px] font-medium text-[var(--danger)]">
+              <p className="mt-6 rounded-xl bg-[var(--danger-tint)] px-3 py-2 text-[13px] font-medium text-[var(--danger)]">
                 {errors.duplicate}
               </p>
             )}
 
             {/* Footer */}
-            <div className="mt-7 flex flex-col gap-3 border-t border-border pt-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="mt-8 flex flex-col gap-4 border-t border-border/70 pt-6 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Icon name="matches" size={16} className="text-primary" />
                 <span>Estimated matches</span>
-                <span className="mono text-base font-semibold text-foreground">{estMatches ?? "—"}</span>
+                <span className="mono text-[17px] font-semibold text-foreground">{estMatches ?? "—"}</span>
               </div>
-              <Button
-                variant="brand"
-                size="lg"
-                disabled={!validation.valid}
-                onClick={() => setVerifyOpen(true)}
-                iconRight={<Icon name="arrow" size={18} />}
-              >
-                Find matching offers
-              </Button>
+              <div className="flex flex-col gap-1.5 sm:items-end">
+                <Button
+                  variant="brand"
+                  size="lg"
+                  disabled={!validation.valid}
+                  onClick={() => setVerifyOpen(true)}
+                  iconRight={<Icon name="arrow" size={18} />}
+                >
+                  Find matching offers
+                </Button>
+                {!validation.valid && (
+                  <p className="text-[12px] text-muted-foreground sm:text-right">
+                    Fill in every blank to match.
+                  </p>
+                )}
+              </div>
             </div>
-            {!validation.valid && (
-              <p className="mt-2 text-right text-[12px] text-muted-foreground">
-                Fill in every blank to match.
-              </p>
-            )}
           </>
         )}
       </Card>
