@@ -14,9 +14,11 @@ export function MatchReasons({
   if (!reasons.length) return null;
   return (
     <div className={cn("space-y-2", className)}>
-      <div className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
-        {title}
-      </div>
+      {title && (
+        <div className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+          {title}
+        </div>
+      )}
       <ul className="grid gap-1.5 sm:grid-cols-2">
         {reasons.map((reason, i) => (
           <li key={i} className="flex items-center gap-2 text-[13px] text-foreground">

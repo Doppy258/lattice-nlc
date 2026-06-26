@@ -22,6 +22,7 @@ import { deleteOffer as deleteOfferFromDb } from "@/services/dbService";
 import { remainingRedemptions } from "@/services/redemptionService";
 import { OFFER_TYPE_LABELS } from "@/data/catalog";
 import { formatCurrency, relativeTime } from "@/utils/formatting";
+import { getOfferPricing } from "@/utils/offerPricing";
 import type { Offer } from "@/models";
 
 type Filter = "all" | OfferStatus;
@@ -139,8 +140,7 @@ export function OffersPage() {
               100,
               Math.round((offer.currentClaims / Math.max(1, offer.maxClaims)) * 100),
             );
-            const hasSavings =
-              offer.originalPrice !== undefined && offer.originalPrice > offer.price;
+            const pricing = getOfferPricing(offer);
             return (
               <StaggerItem key={offer.id}>
                 <Card variant="interactive" className="flex h-full flex-col gap-4 p-5">
@@ -158,11 +158,11 @@ export function OffersPage() {
 
                   <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
                     <span className="font-display text-[24px] font-semibold leading-none tracking-[-0.03em] text-foreground">
-                      {formatCurrency(offer.price)}
+                      {pricing.headline}
                     </span>
-                    {hasSavings && (
+                    {pricing.kind === "fixedPrice" && pricing.savings > 0 && (
                       <span className="text-sm text-muted-foreground line-through">
-                        {formatCurrency(offer.originalPrice!)}
+                        {formatCurrency(pricing.originalPrice!)}
                       </span>
                     )}
                     {offer.studentOnly && (
