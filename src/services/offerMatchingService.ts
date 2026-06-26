@@ -18,9 +18,16 @@ export function getOriginPoint(user: User | undefined): GeoPoint {
   return user?.location ?? FALLBACK_ORIGIN;
 }
 
-/** 100 exact category, 60 related, 0 unrelated. */
+/**
+ * 100 exact category + exact need, 75 same category but a different need,
+ * 60 related category, 0 unrelated. Offers without a declared need fall back to
+ * a full category match (100) so legacy offers aren't penalized.
+ */
 export function calculateCategoryScore(request: PingRequest, offer: Offer): number {
-  if (offer.category === request.category) return 100;
+  if (offer.category === request.category) {
+    if (offer.needType === undefined) return 100; // legacy offer, no need declared
+    return offer.needType === request.needType ? 100 : 75; // exact need vs other need in-category
+  }
   if (RELATED_CATEGORIES[request.category]?.includes(offer.category)) return 60;
   return 0;
 }
@@ -163,6 +170,9 @@ export function generateMatchReasons(
   origin: GeoPoint
 ): string[] {
   const reasons: string[] = [];
+  if (offer.needType && offer.needType === request.needType) {
+    reasons.push("Exactly what you're looking for");
+  }
   if (breakdown.budgetScore >= 70) reasons.push("Fits your budget");
   if (breakdown.timeScore >= 100) reasons.push("Open during your requested time");
   else if (breakdown.timeScore >= 50) reasons.push("Partly open during your window");
@@ -190,7 +200,7 @@ export function isOfferEligible(
   if (calculateCategoryScore(request, offer) <= 0) return false; // right category (exact/related)
   if (calculateDistanceScore(request, business, origin) <= 0) return false; // within the radius
   if (calculateBudgetScore(request, offer, business) <= 0) return false; // within (or near) budget
-  if (!offerOverlapsWindow(offer, request)) return false; // live during the requested window
+  if (calculateTimeScore(request, offer, business) <= 0) return false; // business open + offer valid in-window
   return true;
 }
 
