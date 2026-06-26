@@ -21,6 +21,7 @@ function isSeededUser(id: string | undefined): boolean {
 function Shell() {
   const { path } = useHashRoute();
   const { authState, activeUser } = useApp();
+
   const needsOnboarding =
     authState === "authenticated" &&
     isSupabaseConfigured &&
