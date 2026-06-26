@@ -23,8 +23,13 @@ import {
   getOwnerOffers,
   type OfferInput,
 } from "@/services/offerService";
-import { ALL_OFFER_TYPES, OFFER_TYPE_LABELS } from "@/data/catalog";
-import type { DiscountKind, Offer, OfferType } from "@/models";
+import {
+  ALL_OFFER_TYPES,
+  OFFER_TYPE_LABELS,
+  NEED_TYPES_BY_CATEGORY,
+  NEED_TYPE_LABELS,
+} from "@/data/catalog";
+import type { DiscountKind, NeedType, Offer, OfferType } from "@/models";
 
 const DISCOUNT_KINDS: { value: DiscountKind; label: string }[] = [
   { value: "fixedPrice", label: "Fixed price" },
@@ -66,6 +71,9 @@ export function CreateOfferPage() {
   const [title, setTitle] = useState(() => existing?.title ?? "");
   const [description, setDescription] = useState(() => existing?.description ?? "");
   const [offerType, setOfferType] = useState<OfferType>(() => existing?.offerType ?? "discount");
+  const [needType, setNeedType] = useState<NeedType | undefined>(
+    () => existing?.needType ?? (activeBusiness ? NEED_TYPES_BY_CATEGORY[activeBusiness.category][0] : undefined),
+  );
   const [discountKind, setDiscountKind] = useState<DiscountKind>(
     () => existing?.discountKind ?? "fixedPrice",
   );
@@ -112,6 +120,7 @@ export function CreateOfferPage() {
       title,
       description,
       offerType,
+      needType,
       discountKind,
       price,
       originalPrice,
@@ -131,6 +140,7 @@ export function CreateOfferPage() {
       title,
       description,
       offerType,
+      needType,
       discountKind,
       price,
       originalPrice,
@@ -262,6 +272,24 @@ export function CreateOfferPage() {
               {ALL_OFFER_TYPES.map((t) => (
                 <option key={t} value={t}>
                   {OFFER_TYPE_LABELS[t]}
+                </option>
+              ))}
+            </Select>
+          </FormField>
+
+          <FormField
+            label="What's this offer for?"
+            htmlFor="offer-need-type"
+            hint="Helps students who request this exact need find you first."
+          >
+            <Select
+              id="offer-need-type"
+              value={needType ?? ""}
+              onChange={(e) => setNeedType(e.target.value as NeedType)}
+            >
+              {NEED_TYPES_BY_CATEGORY[activeBusiness.category].map((nt) => (
+                <option key={nt} value={nt}>
+                  {NEED_TYPE_LABELS[nt]}
                 </option>
               ))}
             </Select>

@@ -53,7 +53,6 @@ export function ExplorePage() {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<BusinessCategory | "all">("all");
   const [sort, setSort] = useState<BusinessSort>("highestRating");
-  const [dealsOnly, setDealsOnly] = useState(false);
 
   const results = useMemo(() => {
     const filtered = filterBusinesses(
@@ -61,13 +60,12 @@ export function ExplorePage() {
       {
         query: query.trim() || undefined,
         category: category === "all" ? undefined : category,
-        hasDeals: dealsOnly || undefined,
       },
       data.offers,
       origin,
     );
     return sortBusinesses(filtered, sort, data.offers, origin);
-  }, [data.businesses, data.offers, query, category, dealsOnly, sort, origin]);
+  }, [data.businesses, data.offers, query, category, sort, origin]);
 
   return (
     <div className="space-y-7">
@@ -126,13 +124,6 @@ export function ExplorePage() {
               </ToggleChip>
             ))}
           </ChipGroup>
-          <ToggleChip
-            active={dealsOnly}
-            onClick={() => setDealsOnly((v) => !v)}
-            icon={<Icon name="ticket" size={14} />}
-          >
-            Deals only
-          </ToggleChip>
         </div>
       </div>
 
