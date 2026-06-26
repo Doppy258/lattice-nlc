@@ -24,7 +24,7 @@ function Shell() {
   const needsOnboarding =
     authState === "authenticated" &&
     isSupabaseConfigured &&
-    !activeUser?.onboardingComplete &&
+    !activeUser?.onboarded &&
     !isSeededUser(activeUser?.id);
 
   if (authState === "loading" || (authState === "authenticated" && !activeUser.id)) {

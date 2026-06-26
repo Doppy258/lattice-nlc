@@ -10,6 +10,7 @@ export const seedUsers: User[] = [
     homeLocationId: "origin_school",
     verified: true,
     createdAt: "2025-09-02T09:00:00.000Z",
+    onboarded: true,
     preferences: {
       preferredCategories: ["food", "education", "entertainment"],
       maxDefaultDistanceKm: 3,
@@ -27,6 +28,7 @@ export const seedUsers: User[] = [
     homeLocationId: "origin_downtown",
     verified: true,
     createdAt: "2025-09-04T13:30:00.000Z",
+    onboarded: true,
     preferences: {
       preferredCategories: ["food", "retail", "services"],
       maxDefaultDistanceKm: 5,
@@ -44,6 +46,7 @@ export const seedUsers: User[] = [
     homeLocationId: "origin_school",
     verified: true,
     createdAt: "2025-09-06T17:45:00.000Z",
+    onboarded: true,
     preferences: {
       preferredCategories: ["fitness", "repair", "food"],
       maxDefaultDistanceKm: 10,
@@ -61,6 +64,7 @@ export const seedUsers: User[] = [
     homeLocationId: "origin_downtown",
     verified: true,
     createdAt: "2025-08-20T10:00:00.000Z",
+    onboarded: true,
     preferences: {
       preferredCategories: [],
       maxDefaultDistanceKm: 5,
@@ -78,6 +82,7 @@ export const seedUsers: User[] = [
     homeLocationId: "origin_downtown",
     verified: true,
     createdAt: "2025-08-22T11:15:00.000Z",
+    onboarded: true,
     preferences: {
       preferredCategories: [],
       maxDefaultDistanceKm: 5,
@@ -95,6 +100,7 @@ export const seedUsers: User[] = [
     homeLocationId: "origin_downtown",
     verified: true,
     createdAt: "2025-08-01T08:00:00.000Z",
+    onboarded: true,
     preferences: {
       preferredCategories: [],
       maxDefaultDistanceKm: 10,

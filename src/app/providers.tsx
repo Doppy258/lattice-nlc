@@ -19,13 +19,13 @@ import {
   signUp as authSignUp,
   signOut as authSignOut,
   listenAuth,
-  findOrCreateLocalUser,
+  userFromSession,
+  saveOnboardingMetadata,
 } from "../services/authService";
 import { expireOldClaims } from "../services/claimService";
 import { getUserById } from "../services/userService";
 import { isSupabaseConfigured } from "../services/supabaseClient";
 import {
-  upsertUser,
   upsertClaims,
   insertReview,
   upsertRanking,
@@ -76,7 +76,7 @@ const FALLBACK_USER: User = {
     savedBusinessIds: [],
     savedOfferIds: [],
   },
-  onboardingComplete: false,
+  onboarded: false,
 };
 
 export function AppProvider({ children }: { children: ReactNode }) {
@@ -107,19 +107,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
   handleSessionRef.current = (s: Session | null) => {
     setSession(s);
     if (s?.user) {
-      // Don't set authState yet — load data first
       loadDataFromSupabase().then((dbData) => {
+        const user = userFromSession(s);
         const baseData = dbData ?? dataRef.current;
-        const { users, userId } = findOrCreateLocalUser(
-          baseData,
-          s.user.id,
-          s.user.email ?? "",
-          s.user.user_metadata?.name ?? s.user.email?.split("@")[0] ?? "User"
-        );
-        const merged = { ...baseData, users };
+        const merged = { ...baseData, users: [user] };
         dataRef.current = merged;
         setDataState(merged);
-        setActiveUserIdState(userId);
+        setActiveUserIdState(user.id);
         setAuthState("authenticated");
       });
     } else if (s === null && isSupabaseConfigured) {
@@ -207,12 +201,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
               ...u,
               ...updates,
               preferences: { ...u.preferences, ...(updates.preferences ?? {}) },
-              onboardingComplete: true,
+              onboarded: true,
             }
           : u
       );
       return { ...prev, users: updatedUsers };
     });
+    saveOnboardingMetadata(updates);
   }, [activeUserId]);
 
   // ── Sync current user's data to Supabase ─────────────────────
@@ -227,13 +222,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     const uid = session.user.id;
     const prev = prevDataRef.current;
-
-    // User profile
-    const prevUser = prev.users.find((u) => u.id === uid);
-    const curUser = data.users.find((u) => u.id === uid);
-    if (curUser && JSON.stringify(prevUser) !== JSON.stringify(curUser)) {
-      upsertUser(curUser);
-    }
 
     // Claims
     const prevClaims = prev.claims.filter((c) => c.userId === uid);

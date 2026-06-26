@@ -1,7 +1,6 @@
 import { supabase, isSupabaseConfigured } from "./supabaseClient";
 import type {
   AppData,
-  User,
   Business,
   Offer,
   Claim,
@@ -13,34 +12,6 @@ import type {
 } from "../models";
 
 // ── Column mappers (camelCase ↔ snake_case) ──────────────────
-
-function userRowToUser(row: Record<string, unknown>): User {
-  return {
-    id: row.id as string,
-    name: row.name as string,
-    email: row.email as string,
-    role: row.role as User["role"],
-    homeLocationId: row.home_location_id as string,
-    verified: row.verified as boolean,
-    createdAt: row.created_at as string,
-    preferences: row.preferences as User["preferences"],
-    onboardingComplete: row.onboarding_complete as boolean | undefined,
-  };
-}
-
-function userToRow(u: User): Record<string, unknown> {
-  return {
-    id: u.id,
-    name: u.name,
-    email: u.email,
-    role: u.role,
-    home_location_id: u.homeLocationId,
-    verified: u.verified,
-    created_at: u.createdAt,
-    preferences: u.preferences,
-    onboarding_complete: u.onboardingComplete ?? false,
-  };
-}
 
 function businessRowToBusiness(row: Record<string, unknown>): Business {
   return {
@@ -266,9 +237,8 @@ function requestToRow(r: PingRequest): Record<string, unknown> {
 export async function fetchAllData(): Promise<AppData | null> {
   if (!isSupabaseConfigured || !supabase) return null;
 
-  const [usersRes, businessesRes, offersRes, claimsRes, reviewsRes, rankingsRes, requestsRes, savedBizRes, savedOffersRes] =
+  const [businessesRes, offersRes, claimsRes, reviewsRes, rankingsRes, requestsRes, savedBizRes, savedOffersRes] =
     await Promise.all([
-      supabase.from("users").select("*"),
       supabase.from("businesses").select("*"),
       supabase.from("offers").select("*"),
       supabase.from("claims").select("*"),
@@ -279,14 +249,14 @@ export async function fetchAllData(): Promise<AppData | null> {
       supabase.from("saved_offers").select("*"),
     ]);
 
-  if (usersRes.error || businessesRes.error || offersRes.error ||
+  if (businessesRes.error || offersRes.error ||
       claimsRes.error || reviewsRes.error || rankingsRes.error ||
       requestsRes.error || savedBizRes.error || savedOffersRes.error) {
     return null;
   }
 
   return {
-    users: (usersRes.data ?? []).map(userRowToUser),
+    users: [],
     businesses: (businessesRes.data ?? []).map(businessRowToBusiness),
     offers: (offersRes.data ?? []).map(offerRowToOffer),
     claims: (claimsRes.data ?? []).map(claimRowToClaim),
@@ -296,18 +266,6 @@ export async function fetchAllData(): Promise<AppData | null> {
     savedBusinesses: (savedBizRes.data ?? []).map(savedBusinessRowToSaved),
     savedOffers: (savedOffersRes.data ?? []).map(savedOfferRowToSaved),
   };
-}
-
-// ── Users ────────────────────────────────────────────────────
-
-export async function upsertUser(user: User): Promise<void> {
-  if (!supabase) return;
-  await supabase.from("users").upsert(userToRow(user), { onConflict: "id" });
-}
-
-export async function upsertUsers(users: User[]): Promise<void> {
-  if (!supabase || users.length === 0) return;
-  await supabase.from("users").upsert(users.map(userToRow), { onConflict: "id" });
 }
 
 // ── Businesses ───────────────────────────────────────────────
