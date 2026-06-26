@@ -66,7 +66,6 @@ export function BusinessCard({
             >
               {business.name}
             </button>
-            {business.verified && <Icon name="check" size={15} className="shrink-0 text-primary" />}
           </div>
           <p className="mt-0.5 text-[13px] text-muted-foreground">
             {meta.label} · {"$".repeat(business.priceLevel)}

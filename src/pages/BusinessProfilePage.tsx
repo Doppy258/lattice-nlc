@@ -135,11 +135,6 @@ export function BusinessProfilePage() {
                 <h1 className="font-display text-[26px] font-semibold tracking-[-0.035em] sm:text-[32px]">
                   {business.name}
                 </h1>
-                {business.verified && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-[var(--brand-tint)] px-2 py-0.5 text-[11px] font-semibold text-[var(--primary-strong)]">
-                    <Icon name="check" size={12} /> Verified
-                  </span>
-                )}
               </div>
               <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[13px] text-muted-foreground">
                 <span className="inline-flex items-center gap-1.5">

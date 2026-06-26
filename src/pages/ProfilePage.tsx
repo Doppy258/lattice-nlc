@@ -4,7 +4,6 @@ import { navigate } from "@/app/navigation";
 import { Button } from "@/components/common/Button";
 import { Card } from "@/components/common/Card";
 import { Icon, type IconName } from "@/components/common/Icon";
-import { Badge } from "@/components/common/Badge";
 import { EmptyState } from "@/components/common/EmptyState";
 import { PageHeader } from "@/components/common/PageHeader";
 import { RatingStars } from "@/components/common/RatingStars";
@@ -16,10 +15,11 @@ import { Select } from "@/components/ui/select";
 import { Reveal } from "@/components/motion/Reveal";
 import { BusinessImage } from "@/components/domain/BusinessImage";
 import { BusinessHoursEditor } from "@/components/domain/BusinessHoursEditor";
+import { AddressAutocomplete } from "@/components/common/AddressAutocomplete";
 import { CATEGORY_META } from "@/data/catalog";
 import { formatRating } from "@/utils/formatting";
-import type { Business, BusinessHours } from "@/models";
-import { uploadBusinessImage, type BusinessImageKind } from "@/services/imageService";
+import type { Business, BusinessHours, GeoPoint } from "@/models";
+import { uploadBusinessImage } from "@/services/imageService";
 import { toast } from "sonner";
 
 const PRICE_LEVELS: Array<1 | 2 | 3 | 4> = [1, 2, 3, 4];
@@ -60,42 +60,44 @@ function ProfileEditor({ business }: { business: Business }) {
   const [name, setName] = useState(business.name);
   const [description, setDescription] = useState(business.description);
   const [address, setAddress] = useState(business.address);
+  const [businessLocation, setBusinessLocation] = useState<GeoPoint | null>(business.location);
   const [priceLevel, setPriceLevel] = useState<1 | 2 | 3 | 4>(business.priceLevel);
   const [tags, setTags] = useState<string[]>(business.tags);
   const [hours, setHours] = useState<BusinessHours[]>(business.hours);
-  const [imageUrl, setImageUrl] = useState<string | undefined>(business.imageUrl);
   const [bannerUrl, setBannerUrl] = useState<string | undefined>(business.bannerUrl);
-  const [uploading, setUploading] = useState<BusinessImageKind | null>(null);
+  const [uploading, setUploading] = useState(false);
 
-  const logoInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
 
   const meta = CATEGORY_META[business.category];
   const tagOptions = Array.from(new Set([...business.tags, ...TAG_SUGGESTIONS]));
 
+  function handleAddressSelect(fullAddress: string, location: GeoPoint) {
+    setAddress(fullAddress);
+    setBusinessLocation(location);
+  }
+
   function toggleTag(tag: string) {
     setTags((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]));
   }
 
-  async function handleUpload(kind: BusinessImageKind, file: File | null | undefined) {
+  async function handleBannerUpload(file: File | null | undefined) {
     if (!file) return;
-    setUploading(kind);
+    setUploading(true);
     try {
-      const url = await uploadBusinessImage(file, business.id, kind);
-      if (kind === "logo") setImageUrl(url);
-      else setBannerUrl(url);
-      // Persist the image immediately (sync effect upserts the owned business).
+      const url = await uploadBusinessImage(file, business.id, "banner");
+      setBannerUrl(url);
       setData((d) => ({
         ...d,
         businesses: d.businesses.map((b) =>
-          b.id === business.id ? { ...b, [kind === "logo" ? "imageUrl" : "bannerUrl"]: url } : b,
+          b.id === business.id ? { ...b, bannerUrl: url } : b,
         ),
       }));
-      toast.success(`${kind === "logo" ? "Logo" : "Banner"} updated`);
+      toast.success("Banner updated");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Upload failed");
     } finally {
-      setUploading(null);
+      setUploading(false);
     }
   }
 
@@ -104,7 +106,10 @@ function ProfileEditor({ business }: { business: Business }) {
       ...d,
       businesses: d.businesses.map((b) =>
         b.id === business.id
-          ? { ...b, name, description, address, priceLevel, tags, hours, imageUrl, bannerUrl }
+          ? {
+              ...b, name, description, address, priceLevel, tags, hours, bannerUrl,
+              location: businessLocation ?? business.location,
+            }
           : b,
       ),
     }));
@@ -120,22 +125,12 @@ function ProfileEditor({ business }: { business: Business }) {
       />
 
       <input
-        ref={logoInputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={(e) => {
-          handleUpload("logo", e.target.files?.[0]);
-          e.target.value = "";
-        }}
-      />
-      <input
         ref={bannerInputRef}
         type="file"
         accept="image/*"
         className="hidden"
         onChange={(e) => {
-          handleUpload("banner", e.target.files?.[0]);
+          handleBannerUpload(e.target.files?.[0]);
           e.target.value = "";
         }}
       />
@@ -150,12 +145,12 @@ function ProfileEditor({ business }: { business: Business }) {
               <Button
                 variant="secondary"
                 size="sm"
-                iconLeft={<Icon name={uploading === "banner" ? "clock" : "createOffer"} size={15} />}
+                iconLeft={<Icon name={uploading ? "clock" : "createOffer"} size={15} />}
                 onClick={() => bannerInputRef.current?.click()}
-                disabled={uploading !== null}
+                disabled={uploading}
                 className="shadow-[var(--shadow-card)] backdrop-blur-sm"
               >
-                {uploading === "banner" ? "Uploading…" : "Change banner"}
+                {uploading ? "Uploading…" : "Change banner"}
               </Button>
               <Button
                 variant="secondary"
@@ -166,28 +161,6 @@ function ProfileEditor({ business }: { business: Business }) {
               >
                 View public profile
               </Button>
-            </div>
-
-            {/* Logo / profile picture */}
-            <div className="absolute bottom-4 left-4">
-              <div className="relative">
-                <span className="grid size-[72px] place-items-center overflow-hidden rounded-2xl border-2 border-card bg-card text-primary shadow-[var(--shadow-card)]">
-                  {imageUrl ? (
-                    <img src={imageUrl} alt={`${business.name} logo`} className="size-full object-cover" />
-                  ) : (
-                    <Icon name={meta.icon as IconName} size={26} />
-                  )}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => logoInputRef.current?.click()}
-                  disabled={uploading !== null}
-                  aria-label="Upload logo"
-                  className="absolute -bottom-1 -right-1 grid size-7 cursor-pointer place-items-center rounded-full border border-card bg-primary text-white shadow-[var(--shadow-soft)] transition-transform active:scale-95 disabled:opacity-60"
-                >
-                  <Icon name={uploading === "logo" ? "clock" : "plus"} size={14} />
-                </button>
-              </div>
             </div>
           </BusinessImage>
         </div>
@@ -204,14 +177,6 @@ function ProfileEditor({ business }: { business: Business }) {
           <span className="text-muted-foreground">{meta.label}</span>
           <span aria-hidden className="text-muted-foreground/50">·</span>
           <span className="font-semibold text-foreground">{"$".repeat(business.priceLevel)}</span>
-          <span aria-hidden className="text-muted-foreground/50">·</span>
-          {business.verified ? (
-            <Badge tone="brand" icon={<Icon name="check" size={12} />}>
-              Verified
-            </Badge>
-          ) : (
-            <Badge tone="neutral">Unverified</Badge>
-          )}
         </div>
       </Card>
 
@@ -234,8 +199,14 @@ function ProfileEditor({ business }: { business: Business }) {
             />
           </FormField>
 
-          <FormField label="Address" htmlFor="biz-address">
-            <Input id="biz-address" value={address} onChange={(e) => setAddress(e.target.value)} />
+          <FormField label="Address" htmlFor="biz-address" hint="Search for your location and select from the dropdown.">
+            <AddressAutocomplete
+              value={address}
+              onChange={setAddress}
+              onSelect={handleAddressSelect}
+              placeholder="Search for your business address"
+              id="biz-address"
+            />
           </FormField>
 
           <FormField label="Price level" htmlFor="biz-price">
