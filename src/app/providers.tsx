@@ -50,7 +50,6 @@ const FALLBACK_USER: User = {
   name: "",
   email: "",
   role: "customer",
-  homeLocationId: "origin_school",
   location: null,
   verified: false,
   createdAt: "",

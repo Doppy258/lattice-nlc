@@ -10,13 +10,12 @@ import type {
 import { OFFER_RANK_WEIGHTS, RELATED_CATEGORIES } from "../utils/constants";
 import { distanceKm, roundKm } from "../utils/distance";
 import { isBusinessOpenDuring } from "../utils/dateTime";
-import { DEMO_ORIGINS } from "../data/catalog";
 
-/** Resolves the distance anchor for a user — prefers live geolocation, falls back to seeded home origin. */
+const FALLBACK_ORIGIN: GeoPoint = { lat: 29.4241, lng: -98.4936 };
+
+/** Resolves the distance anchor for a user — uses their live geolocation or a fallback. */
 export function getOriginPoint(user: User | undefined): GeoPoint {
-  if (user?.location) return user.location;
-  const origin = DEMO_ORIGINS.find((o) => o.id === user?.homeLocationId);
-  return (origin ?? DEMO_ORIGINS[0]).location;
+  return user?.location ?? FALLBACK_ORIGIN;
 }
 
 /** 100 exact category, 60 related, 0 unrelated. */
@@ -32,7 +31,7 @@ export function calculateBudgetScore(
   offer: Offer,
   business: Business
 ): number {
-  if (request.budgetMax === undefined) return 100; // "No budget" selected.
+  if (request.budgetMax == null) return 100; // "No budget" selected.
   if (offer.price <= request.budgetMax) return 100;
   if (offer.price <= request.budgetMax * 1.15) return 70;
   if (business.ratingAverage >= 4.5) return 30;

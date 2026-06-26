@@ -17,7 +17,7 @@ import { useGeolocation } from "@/hooks/useGeolocation";
 import { getMatchingOffers, getOriginPoint } from "@/services/offerMatchingService";
 import { distanceForBusiness } from "@/services/businessService";
 import { isOfferSaved, toggleSavedOffer } from "@/services/userService";
-import { DEMO_ORIGINS, NEED_TYPE_LABELS } from "@/data/catalog";
+import { NEED_TYPE_LABELS } from "@/data/catalog";
 import { formatCurrency, formatDistance } from "@/utils/formatting";
 import { offerSavingsPerRedemption } from "@/utils/offerPricing";
 import type { Offer, PingRequest } from "@/models";
@@ -30,8 +30,8 @@ function greeting(): string {
 }
 
 function budgetLabel(r: PingRequest): string {
-  if (r.budgetMax !== undefined) return `under ${formatCurrency(r.budgetMax)}`;
-  if (r.budgetMin !== undefined) return `${formatCurrency(r.budgetMin)}+`;
+  if (r.budgetMax != null) return `under ${formatCurrency(r.budgetMax)}`;
+  if (r.budgetMin != null) return `${formatCurrency(r.budgetMin)}+`;
   return "any budget";
 }
 
@@ -54,8 +54,6 @@ export function HomePage() {
       ),
     }));
   }
-  const originName =
-    DEMO_ORIGINS.find((o) => o.id === activeUser.homeLocationId)?.name ?? DEMO_ORIGINS[0].name;
 
   const now = Date.now();
   const activeOffers = useMemo(
@@ -119,9 +117,10 @@ export function HomePage() {
     <div className="space-y-7">
       <PageHero
         eyebrow={
-          <>
-            <Icon name="location" size={13} /> {originName}
-          </>
+          <span className="inline-flex items-center gap-1.5">
+            <Icon name="location" size={13} />
+            {activeUser.location ? "Using your location" : "Set your location for nearby offers"}
+          </span>
         }
         title="What do you need"
         accent="nearby?"
