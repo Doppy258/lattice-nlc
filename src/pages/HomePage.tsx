@@ -56,7 +56,13 @@ export function HomePage() {
     return getMatchingOffers(latestRequest, data.offers, data.businesses, activeUser).slice(0, 6);
   }, [latestRequest, data.offers, data.businesses, activeUser]);
 
-  // Offers to feature: a request's top matches, else the biggest fresh savings.
+  const prefCategories = activeUser.preferences.preferredCategories;
+  const prefStudent = activeUser.preferences.studentDiscountPreferred;
+  // Whether the fallback feed is personalised from onboarding interests.
+  const personalized = !matches.length && (prefCategories.length > 0 || prefStudent);
+
+  // Offers to feature: a request's top matches, else offers ranked by the
+  // interests + student preference captured during onboarding, then savings.
   const featured = useMemo(() => {
     if (matches.length) {
       return matches.map((m) => ({
@@ -64,12 +70,17 @@ export function HomePage() {
         match: m,
       }));
     }
+    const savings = (o: Offer) => (o.originalPrice ?? o.price) - o.price;
+    const affinity = (o: Offer) =>
+      (prefCategories.includes(o.category) ? 1000 : 0) +
+      (prefStudent && o.studentOnly ? 300 : 0) +
+      savings(o);
     return activeOffers
       .slice()
-      .sort((a, b) => (b.originalPrice ?? b.price) - b.price - ((a.originalPrice ?? a.price) - a.price))
+      .sort((a, b) => affinity(b) - affinity(a))
       .slice(0, 6)
       .map((offer) => ({ offer, match: undefined }));
-  }, [matches, activeOffers, data.offers]);
+  }, [matches, activeOffers, data.offers, prefCategories, prefStudent]);
 
   const myClaims = data.claims.filter((c) => c.userId === activeUser.id);
   const activeClaimCount = myClaims.filter((c) => c.status === "active").length;
@@ -153,15 +164,17 @@ export function HomePage() {
         <div className="flex items-end justify-between gap-4">
           <div>
             <h2 className="font-display text-[22px] font-semibold tracking-[-0.03em]">
-              {matches.length ? "Your top" : "Fresh offers"}{" "}
+              {matches.length ? "Your top " : personalized ? "Picked " : "Fresh offers "}
               <span className="font-accent font-normal text-primary">
-                {matches.length ? "matches" : "nearby"}
+                {matches.length ? "matches" : personalized ? "for you" : "nearby"}
               </span>
             </h2>
             <p className="text-[14px] text-muted-foreground">
               {matches.length
                 ? "Ranked by OfferRank for your latest Lattice."
-                : "Popular active deals from local businesses."}
+                : personalized
+                  ? "Based on the interests you chose during setup."
+                  : "Popular active deals from local businesses."}
             </p>
           </div>
           <button

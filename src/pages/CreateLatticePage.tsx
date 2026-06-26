@@ -75,14 +75,22 @@ export function CreateLatticePage() {
   const [customBudget, setCustomBudget] = useState("");
   const [budgetMin, setBudgetMin] = useState<number>();
   const [budgetMax, setBudgetMax] = useState<number>();
-  const [distanceKm, setDistanceKm] = useState<number>();
+  // Prefill the search radius from the user's onboarding default (if it's a valid option).
+  const [distanceKm, setDistanceKm] = useState<number | undefined>(() =>
+    (DISTANCE_OPTIONS_KM as readonly number[]).includes(activeUser.preferences.maxDefaultDistanceKm)
+      ? activeUser.preferences.maxDefaultDistanceKm
+      : undefined,
+  );
   const [timePreset, setTimePreset] = useState<TimeWindowPresetId>();
   const [customDate, setCustomDate] = useState("");
   const [customStart, setCustomStart] = useState("");
   const [customEnd, setCustomEnd] = useState("");
   const [timeStart, setTimeStart] = useState<string>();
   const [timeEnd, setTimeEnd] = useState<string>();
-  const [preferences, setPreferences] = useState<string[]>([]);
+  // Prefill the student-discount preference from onboarding.
+  const [preferences, setPreferences] = useState<string[]>(() =>
+    activeUser.preferences.studentDiscountPreferred ? ["studentDiscount"] : [],
+  );
   const [note, setNote] = useState("");
   const [verifyOpen, setVerifyOpen] = useState(false);
 

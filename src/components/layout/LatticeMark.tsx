@@ -1,45 +1,41 @@
 import { cn } from "@/lib/utils";
 
-/** The Lattice node-diamond glyph — four rounded cells in a lattice. */
-export function LatticeGlyph({ className, size = 22 }: { className?: string; size?: number }) {
+/**
+ * The Lattice node mark — four offset cells scattered like a lattice, one
+ * accented in brand blue. Recreated from the brand glyph with SOLID fills only
+ * (no gradients); circles use live tokens so it adapts to light/dark and stays
+ * crisp at any size. Geometry mirrors the source artwork (576×554 canvas).
+ */
+export function LatticeGlyph({ className, size = 24 }: { className?: string; size?: number }) {
   return (
     <svg
       width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      aria-hidden="true"
+      height={Math.round(size * (554 / 576))}
+      viewBox="0 0 576 554"
+      fill="none"
+      role="img"
+      aria-label="Lattice"
       className={className}
     >
-      <rect x="9.4" y="2.2" width="5.2" height="5.2" rx="1.7" />
-      <rect x="2.2" y="9.4" width="5.2" height="5.2" rx="1.7" />
-      <rect x="16.6" y="9.4" width="5.2" height="5.2" rx="1.7" />
-      <rect x="9.4" y="16.6" width="5.2" height="5.2" rx="1.7" />
+      <circle cx="211" cy="208" r="89" fill="var(--foreground)" />
+      <circle cx="163" cy="437" r="88" fill="var(--foreground)" />
+      <circle cx="378" cy="366" r="86" fill="var(--foreground)" />
+      <circle cx="453" cy="157" r="85" fill="var(--primary)" />
     </svg>
   );
 }
 
-/** Solid-blue brand tile with the lattice glyph. */
+/** The standalone brand mark (transparent — sits directly on any surface). */
 export function LatticeMark({ className, size = 40 }: { className?: string; size?: number }) {
-  return (
-    <span
-      className={cn(
-        "grid place-items-center rounded-[13px] bg-primary text-white shadow-[var(--shadow-cta)]",
-        className,
-      )}
-      style={{ width: size, height: size }}
-    >
-      <LatticeGlyph size={size * 0.52} />
-    </span>
-  );
+  return <LatticeGlyph className={cn("block", className)} size={size} />;
 }
 
 /** Mark + wordmark lockup for headers. The "tice" is set in the serif accent. */
-export function BrandLockup({ size = 36 }: { size?: number }) {
+export function BrandLockup({ size = 34, className }: { size?: number; className?: string }) {
   return (
-    <span className="flex items-center gap-2.5">
+    <span className={cn("flex items-center gap-2.5", className)}>
       <LatticeMark size={size} />
-      <span className="text-[19px] font-semibold tracking-[-0.03em] text-foreground">
+      <span className="text-[19px] font-semibold leading-none tracking-[-0.03em] text-foreground">
         Lat<span className="font-accent text-[21px] text-primary">tice</span>
       </span>
     </span>
