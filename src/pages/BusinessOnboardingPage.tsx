@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { AuthError, AuthShell } from "./authShared";
 import { ALL_CATEGORIES, CATEGORY_META } from "@/data/catalog";
 import { upsertBusiness } from "@/services/dbService";
+import { geocodeAddress } from "@/utils/geocode";
 import type { Business, BusinessCategory } from "@/models";
 import { createId } from "@/utils/ids";
 
@@ -43,13 +44,14 @@ export function BusinessOnboardingPage() {
     }
 
     setSubmitting(true);
+    const coords = await geocodeAddress(address.trim());
     const business: Business = {
       id: createId("biz"),
       name: name.trim(),
       category,
       description: description.trim(),
       address: address.trim(),
-      location: { lat: 43.6532, lng: -79.3832 },
+      location: coords ?? { lat: 43.6532, lng: -79.3832 },
       hours: [],
       ratingAverage: 0,
       reviewCount: 0,

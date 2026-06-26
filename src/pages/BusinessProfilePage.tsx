@@ -16,6 +16,8 @@ import { OfferCard } from "@/components/domain/OfferCard";
 import { useClaim } from "@/components/domain/useClaim";
 import { ClaimResultModal } from "@/components/domain/ClaimResultModal";
 import { BotCheckModal } from "@/components/domain/BotCheckModal";
+import { ShareLocationButton } from "@/components/common/ShareLocationButton";
+import { useGeolocation } from "@/hooks/useGeolocation";
 import { getOriginPoint } from "@/services/offerMatchingService";
 import { distanceForBusiness, getActiveOffersForBusiness } from "@/services/businessService";
 import { getBusinessReviews } from "@/services/reviewService";
@@ -42,8 +44,22 @@ export function BusinessProfilePage() {
   const { data, activeUser, setData } = useApp();
   const { query } = useHashRoute();
   const { claim, result, clearResult, pendingClaim, confirmClaim, cancelClaim } = useClaim();
+  const geolocation = useGeolocation();
   const origin = getOriginPoint(activeUser);
   const [section, setSection] = useState<Section>("offers");
+
+  function handleShareLocation() {
+    geolocation.requestLocation();
+  }
+
+  if (geolocation.location && !activeUser.location) {
+    setData((d) => ({
+      ...d,
+      users: d.users.map((u) =>
+        u.id === activeUser.id ? { ...u, location: geolocation.location! } : u,
+      ),
+    }));
+  }
 
   const business = useMemo(
     () => data.businesses.find((b) => b.id === query.get("id")),
@@ -156,6 +172,18 @@ export function BusinessProfilePage() {
           </div>
         </div>
       </Reveal>
+
+      {!activeUser.location && !geolocation.loading && !geolocation.error && (
+        <div className="flex items-center justify-between rounded-xl bg-[var(--tint-blue)] px-4 py-3">
+          <span className="text-[13px] text-[var(--primary-strong)]">Enable location for accurate distance</span>
+          <ShareLocationButton loading={false} error={null} onRequest={handleShareLocation} />
+        </div>
+      )}
+      {geolocation.error && (
+        <p className="rounded-xl bg-[var(--danger-tint)] px-3 py-2 text-[13px] font-medium text-destructive">
+          Could not get your location: {geolocation.error}
+        </p>
+      )}
 
       <SegmentedControl
         value={section}

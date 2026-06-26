@@ -12,8 +12,9 @@ import { distanceKm, roundKm } from "../utils/distance";
 import { isBusinessOpenDuring } from "../utils/dateTime";
 import { DEMO_ORIGINS } from "../data/catalog";
 
-/** Resolves the distance anchor for a user (their seeded home origin). */
+/** Resolves the distance anchor for a user — prefers live geolocation, falls back to seeded home origin. */
 export function getOriginPoint(user: User | undefined): GeoPoint {
+  if (user?.location) return user.location;
   const origin = DEMO_ORIGINS.find((o) => o.id === user?.homeLocationId);
   return (origin ?? DEMO_ORIGINS[0]).location;
 }
