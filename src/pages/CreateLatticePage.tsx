@@ -34,8 +34,8 @@ import {
 } from "@/data/catalog";
 import { customTimeWindow, timeWindowForPreset, type TimeWindowPresetId } from "@/utils/timeWindows";
 import { NOTE_MAX } from "@/utils/constants";
-import { toast } from "sonner";
-import { requestRepo } from "@/repositories";
+import { createId } from "@/utils/ids";
+import { upsertRequest } from "@/services/dbService";
 import { formatTimeRange } from "@/utils/formatting";
 import type { BusinessCategory, NeedType, PingRequest } from "@/models";
 import { cn } from "@/lib/utils";
@@ -220,25 +220,29 @@ export function CreateLatticePage() {
     setPreferences((prev) => (prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]));
   }
 
-  async function onVerified() {
-    try {
-      const created = await requestRepo.submit({
-        category: category!,
-        needType: needType!,
-        distanceKm: distanceKm!,
-        timeStart: timeStart!,
-        timeEnd: timeEnd!,
-        budgetMin,
-        budgetMax,
-        preferences,
-        optionalNote: note || undefined,
-        verifiedHuman: true,
-      });
-      setData((d) => ({ ...d, requests: [...d.requests, created] }));
-      navigate(`/matches?request=${created.id}`);
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Could not submit your request.");
-    }
+  function onVerified() {
+    // Build the request locally (works with or without Supabase), append it to
+    // app state, then best-effort sync to the shared backend — a no-op when
+    // Supabase isn't configured (demo mode), matching the claim/offer flows.
+    const request: PingRequest = {
+      id: createId("req"),
+      userId: activeUser.id,
+      category: category!,
+      needType: needType!,
+      budgetMin,
+      budgetMax,
+      distanceKm: distanceKm!,
+      timeStart: timeStart!,
+      timeEnd: timeEnd!,
+      preferences,
+      optionalNote: note || undefined,
+      verifiedHuman: true,
+      status: "submitted",
+      createdAt: new Date().toISOString(),
+    };
+    setData((d) => ({ ...d, requests: [...d.requests, request] }));
+    void upsertRequest(request);
+    navigate(`/matches?request=${request.id}`);
   }
 
   const availablePrefs = PREFERENCE_OPTIONS.filter(
