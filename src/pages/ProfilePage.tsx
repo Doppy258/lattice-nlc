@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useApp } from "@/app/providers";
 import { navigate } from "@/app/navigation";
 import { Button } from "@/components/common/Button";
@@ -18,6 +18,7 @@ import { BusinessImage } from "@/components/domain/BusinessImage";
 import { CATEGORY_META } from "@/data/catalog";
 import { formatRating } from "@/utils/formatting";
 import type { Business } from "@/models";
+import { uploadBusinessImage, type BusinessImageKind } from "@/services/imageService";
 import { toast } from "sonner";
 
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -48,7 +49,7 @@ export function ProfilePage() {
       <EmptyState
         icon="store"
         title="No business selected"
-        body="Switch to a business-owner account (Sam or Nina) from the account menu in the top bar to manage a storefront."
+        body="This is the business workspace. Create your storefront in onboarding, or sign in with a business account to manage your offers."
         action={
           <Button variant="brand" iconLeft={<Icon name="explore" size={17} />} onClick={() => navigate("/home")}>
             Back to Home
@@ -68,6 +69,12 @@ function ProfileEditor({ business }: { business: Business }) {
   const [address, setAddress] = useState(business.address);
   const [priceLevel, setPriceLevel] = useState<1 | 2 | 3 | 4>(business.priceLevel);
   const [tags, setTags] = useState<string[]>(business.tags);
+  const [imageUrl, setImageUrl] = useState<string | undefined>(business.imageUrl);
+  const [bannerUrl, setBannerUrl] = useState<string | undefined>(business.bannerUrl);
+  const [uploading, setUploading] = useState<BusinessImageKind | null>(null);
+
+  const logoInputRef = useRef<HTMLInputElement>(null);
+  const bannerInputRef = useRef<HTMLInputElement>(null);
 
   const meta = CATEGORY_META[business.category];
   const tagOptions = Array.from(new Set([...business.tags, ...TAG_SUGGESTIONS]));
@@ -77,11 +84,35 @@ function ProfileEditor({ business }: { business: Business }) {
     setTags((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]));
   }
 
+  async function handleUpload(kind: BusinessImageKind, file: File | null | undefined) {
+    if (!file) return;
+    setUploading(kind);
+    try {
+      const url = await uploadBusinessImage(file, business.id, kind);
+      if (kind === "logo") setImageUrl(url);
+      else setBannerUrl(url);
+      // Persist the image immediately (sync effect upserts the owned business).
+      setData((d) => ({
+        ...d,
+        businesses: d.businesses.map((b) =>
+          b.id === business.id ? { ...b, [kind === "logo" ? "imageUrl" : "bannerUrl"]: url } : b,
+        ),
+      }));
+      toast.success(`${kind === "logo" ? "Logo" : "Banner"} updated`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Upload failed");
+    } finally {
+      setUploading(null);
+    }
+  }
+
   function save() {
     setData((d) => ({
       ...d,
       businesses: d.businesses.map((b) =>
-        b.id === business.id ? { ...b, name, description, address, priceLevel, tags } : b,
+        b.id === business.id
+          ? { ...b, name, description, address, priceLevel, tags, imageUrl, bannerUrl }
+          : b,
       ),
     }));
     toast.success("Profile saved");
@@ -95,13 +126,44 @@ function ProfileEditor({ business }: { business: Business }) {
         subtitle="Edit how your business appears to customers browsing and matching across Lattice."
       />
 
+      <input
+        ref={logoInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => {
+          handleUpload("logo", e.target.files?.[0]);
+          e.target.value = "";
+        }}
+      />
+      <input
+        ref={bannerInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => {
+          handleUpload("banner", e.target.files?.[0]);
+          e.target.value = "";
+        }}
+      />
+
       <Reveal>
         <div className="overflow-hidden rounded-[var(--tile-radius-lg)]">
-          <BusinessImage business={business} className="h-44 w-full sm:h-56" width={1500} eager>
+          <BusinessImage business={{ ...business, bannerUrl }} className="h-44 w-full sm:h-56" width={1500} eager>
             <span className="pointer-events-none absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full bg-card/85 px-3 py-1 text-xs font-semibold text-[var(--primary-strong)] shadow-[var(--shadow-soft)] backdrop-blur-sm">
               <Icon name={meta.icon as IconName} size={13} /> {meta.label}
             </span>
-            <div className="absolute right-4 top-4">
+            <div className="absolute right-4 top-4 flex gap-2">
+              <Button
+                variant="secondary"
+                size="sm"
+                iconLeft={<Icon name={uploading === "banner" ? "clock" : "createOffer"} size={15} />}
+                onClick={() => bannerInputRef.current?.click()}
+                disabled={uploading !== null}
+                className="shadow-[var(--shadow-card)] backdrop-blur-sm"
+              >
+                {uploading === "banner" ? "Uploading…" : "Change banner"}
+              </Button>
               <Button
                 variant="secondary"
                 size="sm"
@@ -111,6 +173,28 @@ function ProfileEditor({ business }: { business: Business }) {
               >
                 View public profile
               </Button>
+            </div>
+
+            {/* Logo / profile picture */}
+            <div className="absolute bottom-4 left-4">
+              <div className="relative">
+                <span className="grid size-[72px] place-items-center overflow-hidden rounded-2xl border-2 border-card bg-card text-primary shadow-[var(--shadow-card)]">
+                  {imageUrl ? (
+                    <img src={imageUrl} alt={`${business.name} logo`} className="size-full object-cover" />
+                  ) : (
+                    <Icon name={meta.icon as IconName} size={26} />
+                  )}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => logoInputRef.current?.click()}
+                  disabled={uploading !== null}
+                  aria-label="Upload logo"
+                  className="absolute -bottom-1 -right-1 grid size-7 cursor-pointer place-items-center rounded-full border border-card bg-primary text-white shadow-[var(--shadow-soft)] transition-transform active:scale-95 disabled:opacity-60"
+                >
+                  <Icon name={uploading === "logo" ? "clock" : "plus"} size={14} />
+                </button>
+              </div>
             </div>
           </BusinessImage>
         </div>

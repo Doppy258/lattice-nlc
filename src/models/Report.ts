@@ -33,12 +33,20 @@ export type BusinessReport = {
   offerViews: number;
   claims: number;
   redemptions: number;
+  /** Passes currently awaiting business approval. */
+  pending: number;
+  /** Passes that timed out before approval. */
+  expired: number;
   /** redeemed claims / offer views. */
   conversionRate: number;
+  /** redeemed passes / (redeemed + expired) — how many claimed passes get approved. */
+  passApprovalRate: number;
   averageRating: number;
   reviewCount: number;
   repeatCustomers: number;
   revenueInfluenced: number;
+  /** Title of the offer with the most approved redemptions, if any. */
+  topOfferTitle: string | null;
   commonTags: SeriesPoint[];
   claimsByMonth: SeriesPoint[];
 };

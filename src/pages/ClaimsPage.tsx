@@ -11,7 +11,7 @@ import { PageHeader } from "@/components/common/PageHeader";
 import { Modal } from "@/components/common/Modal";
 import { Stagger, StaggerItem } from "@/components/motion/Reveal";
 import { BusinessImage } from "@/components/domain/BusinessImage";
-import { ClaimCodeCard } from "@/components/domain/ClaimCodeCard";
+import { LatticePass } from "@/components/domain/LatticePass";
 import { ReviewModal } from "@/components/domain/ReviewModal";
 import { canUserReviewClaim } from "@/services/reviewService";
 import { calculateEstimatedSavings } from "@/services/reportService";
@@ -151,7 +151,7 @@ export function ClaimsPage() {
                     <div className="flex items-center gap-2">
                       {c.status === "pending" && (
                         <Button variant="brand" size="sm" iconLeft={<Icon name="ticket" size={15} />} onClick={() => setCodeClaim(c)}>
-                          Show code
+                          Show pass
                         </Button>
                       )}
                       {c.status === "redeemed" &&
@@ -178,11 +178,11 @@ export function ClaimsPage() {
       <Modal
         open={!!codeClaim}
         onOpenChange={(o) => !o && setCodeClaim(null)}
-        title="Your pass code"
-        description="Show this at the business to redeem your offer before it expires."
+        title="Your Lattice Pass"
+        description="Show the QR or backup code at the business — they approve to redeem before it expires."
       >
         {codeClaim && codeOffer && codeBiz && (
-          <ClaimCodeCard claim={codeClaim} offer={codeOffer} business={codeBiz} />
+          <LatticePass claim={codeClaim} offer={codeOffer} business={codeBiz} />
         )}
       </Modal>
 

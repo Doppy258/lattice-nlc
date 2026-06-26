@@ -61,7 +61,7 @@ export function DashboardPage() {
       <EmptyState
         icon="store"
         title="No business selected"
-        body="Switch to a business-owner account (Sam or Nina) from the account menu in the top bar to manage a storefront."
+        body="This is the business workspace. Create your storefront in onboarding, or sign in with a business account to manage your offers."
         action={
           <Button variant="brand" iconLeft={<Icon name="explore" size={17} />} onClick={() => navigate("/home")}>
             Back to Home
@@ -117,12 +117,12 @@ export function DashboardPage() {
         title="Performance summary"
         items={[
           { label: "Offer views", value: report.offerViews, detail: "Across all offers" },
-          { label: "Claims", value: report.claims, detail: `${report.redemptions} redeemed` },
-          { label: "Redemptions", value: report.redemptions, detail: "Codes scanned in-store" },
+          { label: "Redemptions", value: report.redemptions, detail: "Approved at the counter" },
+          { label: "Pending passes", value: report.pending, detail: "Awaiting your approval" },
+          { label: "Est. visits driven", value: report.redemptions, detail: "Customers in-store" },
           { label: "Conversion", value: formatPercent(report.conversionRate), detail: "Views to redeemed" },
+          { label: "Top offer", value: report.topOfferTitle ?? "—", detail: "Most redeemed" },
           { label: "Avg rating", value: `${formatRating(report.averageRating)}★`, detail: `${report.reviewCount} reviews` },
-          { label: "Revenue", value: formatCurrency(report.revenueInfluenced), detail: "Influenced by visits" },
-          { label: "Repeat guests", value: report.repeatCustomers, detail: "Returning customers" },
           { label: "Active offers", value: activeOffers.length, detail: "Live right now" },
         ]}
       />

@@ -289,9 +289,10 @@ export async function fetchAllData(): Promise<AppData | null> {
 
 // ── Businesses ───────────────────────────────────────────────
 
-export async function upsertBusiness(business: Business): Promise<void> {
-  if (!supabase) return;
-  await supabase.from("businesses").upsert(businessToRow(business), { onConflict: "id" });
+export async function upsertBusiness(business: Business): Promise<string | null> {
+  if (!supabase) return null;
+  const { error } = await supabase.from("businesses").upsert(businessToRow(business), { onConflict: "id" });
+  return error?.message ?? null;
 }
 
 export async function upsertBusinesses(businesses: Business[]): Promise<void> {
@@ -332,6 +333,24 @@ export async function upsertClaims(claims: Claim[]): Promise<void> {
 export async function fetchClaimById(id: string): Promise<Claim | null> {
   if (!supabase) return null;
   const { data, error } = await supabase.from("claims").select("*").eq("id", id).maybeSingle();
+  if (error || !data) return null;
+  return claimRowToClaim(data as Record<string, unknown>);
+}
+
+/**
+ * Looks up a pass by its 6-digit backup code or QR token — lets a business
+ * verify a pass a customer created after the business already loaded its data.
+ */
+export async function fetchClaimByCode(value: string): Promise<Claim | null> {
+  if (!supabase) return null;
+  const safe = value.trim().replace(/[^A-Za-z0-9_-]/g, "");
+  if (!safe) return null;
+  const { data, error } = await supabase
+    .from("claims")
+    .select("*")
+    .or(`backup_code.eq.${safe},token.eq.${safe}`)
+    .limit(1)
+    .maybeSingle();
   if (error || !data) return null;
   return claimRowToClaim(data as Record<string, unknown>);
 }

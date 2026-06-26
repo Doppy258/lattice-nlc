@@ -18,6 +18,7 @@ import {
   deleteOffer,
   type OfferStatus,
 } from "@/services/offerService";
+import { remainingRedemptions } from "@/services/redemptionService";
 import { OFFER_TYPE_LABELS } from "@/data/catalog";
 import { formatCurrency, relativeTime } from "@/utils/formatting";
 import type { Offer } from "@/models";
@@ -40,7 +41,7 @@ export function OffersPage() {
       <EmptyState
         icon="store"
         title="No business selected"
-        body="Switch to a business-owner account (Sam or Nina) from the account menu in the top bar to manage a storefront."
+        body="This is the business workspace. Create your storefront in onboarding, or sign in with a business account to manage your offers."
         action={
           <Button variant="brand" iconLeft={<Icon name="explore" size={17} />} onClick={() => navigate("/home")}>
             Back to Home
@@ -166,10 +167,13 @@ export function OffersPage() {
                     <div className="flex items-center justify-between text-[13px] text-muted-foreground">
                       <span>
                         <span className="mono font-medium text-foreground">{offer.currentClaims}</span> /{" "}
-                        {offer.maxClaims} claimed
+                        {offer.maxClaims} redeemed
                       </span>
                       <span className="inline-flex items-center gap-1">
-                        <Icon name="analytics" size={13} /> {offer.views} views
+                        <span className="mono font-medium text-foreground">
+                          {remainingRedemptions(offer, data.claims)}
+                        </span>{" "}
+                        left
                       </span>
                     </div>
                   </div>

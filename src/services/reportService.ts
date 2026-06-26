@@ -161,8 +161,25 @@ export function getBusinessReport(
     (c) => c.businessId === businessId && withinFilters(c, undefined, filters)
   );
   const redeemed = bizClaims.filter((c) => c.status === "redeemed");
+  const pending = bizClaims.filter((c) => c.status === "pending");
+  const expired = bizClaims.filter((c) => c.status === "expired" || c.status === "cancelled");
   const reviews = data.reviews.filter((r) => r.businessId === businessId);
   const offerById = new Map(offers.map((o) => [o.id, o]));
+
+  // Most-redeemed offer (by approved redemptions).
+  const redeemedByOffer = new Map<string, number>();
+  for (const c of redeemed) redeemedByOffer.set(c.offerId, (redeemedByOffer.get(c.offerId) ?? 0) + 1);
+  let topOfferTitle: string | null = null;
+  let topCount = 0;
+  for (const [offerId, count] of redeemedByOffer) {
+    if (count > topCount) {
+      topCount = count;
+      topOfferTitle = offerById.get(offerId)?.title ?? null;
+    }
+  }
+
+  const decided = redeemed.length + expired.length;
+  const passApprovalRate = decided === 0 ? 0 : redeemed.length / decided;
 
   const offerViews = offers.reduce((s, o) => s + o.views, 0);
   const revenueInfluenced = redeemed.reduce(
@@ -189,11 +206,15 @@ export function getBusinessReport(
     offerViews,
     claims: bizClaims.length,
     redemptions: redeemed.length,
+    pending: pending.length,
+    expired: expired.length,
     conversionRate: calculateConversionRate(offerViews, redeemed.length),
+    passApprovalRate,
     averageRating: avgRating,
     reviewCount: reviews.length,
     repeatCustomers,
     revenueInfluenced,
+    topOfferTitle,
     commonTags,
     claimsByMonth: monthSeries(bizClaims.map((c) => ({ key: c.id, when: c.createdAt }))),
   };

@@ -291,6 +291,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
     }
 
+    // Businesses owned by the user (profile edits, new storefronts, logo/banner).
+    const prevOwnedBiz = prev.businesses.filter((b) => b.ownerUserId === uid);
+    const curOwnedBiz = data.businesses.filter((b) => b.ownerUserId === uid);
+    if (JSON.stringify(prevOwnedBiz) !== JSON.stringify(curOwnedBiz)) {
+      for (const business of curOwnedBiz) {
+        const before = prevOwnedBiz.find((b) => b.id === business.id);
+        if (!before || JSON.stringify(before) !== JSON.stringify(business)) {
+          upsertBusiness(business);
+        }
+      }
+    }
+
     // Reviews (only insert new ones)
     const prevReviews = prev.reviews.filter((r) => r.userId === uid);
     const curReviews = data.reviews.filter((r) => r.userId === uid);

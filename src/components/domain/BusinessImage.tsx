@@ -5,7 +5,7 @@ import { CATEGORY_META } from "@/data/catalog";
 import { businessImageUrl, unsplash, businessPhotoId } from "@/data/businessImages";
 import { cn } from "@/lib/utils";
 
-type BusinessLike = Pick<Business, "id" | "name" | "category">;
+type BusinessLike = Pick<Business, "id" | "name" | "category"> & { bannerUrl?: string };
 
 /**
  * Storefront photo for a business with a built-in resilient fallback: if the
@@ -33,6 +33,8 @@ export function BusinessImage({
   const [failed, setFailed] = useState(false);
   const meta = CATEGORY_META[business.category];
   const id = businessPhotoId(business);
+  // A business that has uploaded its own banner overrides the auto category photo.
+  const custom = business.bannerUrl?.trim() ? business.bannerUrl : null;
 
   return (
     <div className={cn("relative isolate overflow-hidden bg-[var(--tint-blue)]", className)}>
@@ -44,8 +46,8 @@ export function BusinessImage({
         </div>
       ) : (
         <img
-          src={businessImageUrl(business, width)}
-          srcSet={`${unsplash(id, width)} 1x, ${unsplash(id, width * 2)} 2x`}
+          src={custom ?? businessImageUrl(business, width)}
+          srcSet={custom ? undefined : `${unsplash(id, width)} 1x, ${unsplash(id, width * 2)} 2x`}
           alt={`${business.name} — ${meta.label.toLowerCase()}`}
           loading={eager ? "eager" : "lazy"}
           decoding="async"

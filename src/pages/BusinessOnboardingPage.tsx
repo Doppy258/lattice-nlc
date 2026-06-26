@@ -61,8 +61,14 @@ export function BusinessOnboardingPage() {
       createdAt: new Date().toISOString(),
     };
 
+    const businessError = await upsertBusiness(business);
+    if (businessError) {
+      setSubmitting(false);
+      setError(`Couldn't create your storefront: ${businessError}`);
+      return;
+    }
+
     setData((d) => ({ ...d, businesses: [business, ...d.businesses] }));
-    await upsertBusiness(business);
     const err = await completeOnboarding({
       role: "businessOwner",
       name: activeUser.name,

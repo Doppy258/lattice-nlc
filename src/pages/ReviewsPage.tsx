@@ -22,7 +22,7 @@ export function ReviewsPage() {
       <EmptyState
         icon="store"
         title="No business selected"
-        body="Switch to a business-owner account (Sam or Nina) from the account menu in the top bar to manage a storefront."
+        body="This is the business workspace. Create your storefront in onboarding, or sign in with a business account to manage your offers."
         action={
           <Button variant="brand" iconLeft={<Icon name="explore" size={17} />} onClick={() => navigate("/home")}>
             Back to Home

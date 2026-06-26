@@ -132,7 +132,7 @@ export function CreateOfferPage() {
       <EmptyState
         icon="store"
         title="No business selected"
-        body="Switch to a business-owner account (Sam or Nina) from the account menu in the top bar to manage a storefront."
+        body="This is the business workspace. Create your storefront in onboarding, or sign in with a business account to manage your offers."
         action={
           <Button variant="brand" iconLeft={<Icon name="explore" size={17} />} onClick={() => navigate("/home")}>
             Back to Home
@@ -281,24 +281,42 @@ export function CreateOfferPage() {
             </FormField>
           </div>
 
-          <FormField
-            label="Maximum claims"
-            htmlFor="offer-max-claims"
-            required
-            error={errors.maxClaims}
-            hint="How many people can claim this offer before it fills up."
-          >
-            <Input
-              id="offer-max-claims"
-              type="number"
-              min={1}
-              step={1}
-              inputMode="numeric"
-              value={maxClaims}
-              onChange={(e) => setMaxClaims(Number(e.target.value))}
-              aria-invalid={!!errors.maxClaims}
-            />
-          </FormField>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <FormField
+              label="Total redemption limit"
+              htmlFor="offer-max-claims"
+              required
+              error={errors.maxClaims}
+              hint="How many redemptions before the offer is full."
+            >
+              <Input
+                id="offer-max-claims"
+                type="number"
+                min={1}
+                step={1}
+                inputMode="numeric"
+                value={maxClaims}
+                onChange={(e) => setMaxClaims(Number(e.target.value))}
+                aria-invalid={!!errors.maxClaims}
+              />
+            </FormField>
+            <FormField
+              label="Redemption window (min)"
+              htmlFor="offer-window"
+              hint="How long a customer's pass stays valid after claiming."
+            >
+              <Input
+                id="offer-window"
+                type="number"
+                min={1}
+                max={120}
+                step={1}
+                inputMode="numeric"
+                value={redemptionWindowMinutes}
+                onChange={(e) => setRedemptionWindowMinutes(Math.max(1, Number(e.target.value)))}
+              />
+            </FormField>
+          </div>
 
           <FormField label="Tags" hint="Tap to add tags that help nearby students find this offer.">
             <ChipGroup>
@@ -312,6 +330,14 @@ export function CreateOfferPage() {
 
           <FormField label="Options">
             <ChipGroup>
+              <ToggleChip
+                type="button"
+                active={oneTimePerUser}
+                icon={<Icon name="check" size={14} />}
+                onClick={() => setOneTimePerUser((v) => !v)}
+              >
+                One-time per customer
+              </ToggleChip>
               <ToggleChip
                 type="button"
                 active={studentOnly}

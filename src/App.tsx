@@ -22,11 +22,18 @@ function isSeededUser(id: string | undefined): boolean {
 
 function Shell() {
   const { path } = useHashRoute();
-  const { authState, activeUser } = useApp();
+  const { authState, activeUser, ownedBusinesses } = useApp();
   const needsOnboarding =
     authState === "authenticated" &&
     isSupabaseConfigured &&
     !activeUser?.onboarded &&
+    !isSeededUser(activeUser?.id);
+  const needsBusinessSetup =
+    authState === "authenticated" &&
+    isSupabaseConfigured &&
+    activeUser?.role === "businessOwner" &&
+    activeUser?.onboarded &&
+    ownedBusinesses.length === 0 &&
     !isSeededUser(activeUser?.id);
 
   if (authState === "loading" || (authState === "authenticated" && !activeUser.id)) {
@@ -46,7 +53,7 @@ function Shell() {
 
   // Authenticated users on login/signup get sent to the right place.
   if (authState === "authenticated" && PUBLIC_AUTH_PATHS.includes(path)) {
-    navigate(needsOnboarding ? "/onboarding" : homePathForRole(activeUser.role));
+    navigate(needsOnboarding || needsBusinessSetup ? "/onboarding" : homePathForRole(activeUser.role));
     return null;
   }
 
@@ -61,7 +68,7 @@ function Shell() {
 
   // Authenticated below this point.
 
-  if (needsOnboarding) {
+  if (needsOnboarding || needsBusinessSetup) {
     if (path !== "/onboarding") navigate("/onboarding");
     return activeUser.role === "businessOwner" ? <BusinessOnboardingPage /> : <OnboardingPage />;
   }
