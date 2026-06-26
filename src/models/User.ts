@@ -16,8 +16,6 @@ export type User = {
   name: string;
   email: string;
   role: UserRole;
-  /** Seeded origin location used as the distance anchor for this user's Pings. */
-  homeLocationId: string;
   /** The user's actual geo coordinates, set by browser geolocation. */
   location: GeoPoint | null;
   verified: boolean;

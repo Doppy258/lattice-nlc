@@ -1,6 +1,7 @@
 /** Presentation helpers. Pure functions, no side effects. */
 
 export function formatCurrency(amount: number): string {
+  if (amount == null || Number.isNaN(amount)) return "$0";
   return amount.toLocaleString("en-US", {
     style: "currency",
     currency: "USD",
