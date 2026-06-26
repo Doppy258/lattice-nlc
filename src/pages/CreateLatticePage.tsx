@@ -1,4 +1,5 @@
 import { useMemo, useState, type ReactNode } from "react";
+import { ChevronDown, Check } from "lucide-react";
 import { useApp } from "@/app/providers";
 import { navigate } from "@/app/navigation";
 import { Button } from "@/components/common/Button";
@@ -6,12 +7,17 @@ import { Badge, type BadgeTone } from "@/components/common/Badge";
 import { Card } from "@/components/common/Card";
 import { ChipGroup, ToggleChip } from "@/components/common/ToggleChip";
 import { FormField } from "@/components/common/FormField";
-import { HelpTooltip } from "@/components/common/HelpTooltip";
 import { PageHeader } from "@/components/common/PageHeader";
 import { Icon, type IconName } from "@/components/common/Icon";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Separator } from "@/components/ui/separator";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import { VerificationModal } from "@/components/domain/VerificationModal";
 import { validatePingRequest, getRequestQuality } from "@/services/requestValidationService";
 import { getMatchingOffers } from "@/services/offerMatchingService";
@@ -30,7 +36,7 @@ import { customTimeWindow, timeWindowForPreset, type TimeWindowPresetId } from "
 import { NOTE_MAX } from "@/utils/constants";
 import { toast } from "sonner";
 import { requestRepo } from "@/repositories";
-import { formatCurrency, formatTimeRange } from "@/utils/formatting";
+import { formatTimeRange } from "@/utils/formatting";
 import type { BusinessCategory, NeedType, PingRequest } from "@/models";
 import { cn } from "@/lib/utils";
 
@@ -40,30 +46,61 @@ const QUALITY: Record<string, { tone: BadgeTone; label: string }> = {
   strong: { tone: "success", label: "Strong" },
 };
 
-function Section({
-  step,
-  title,
-  hint,
-  disabled,
+/** An inline, fill-in-the-blank dropdown used to build the mad-libs sentence. */
+function Blank({
+  placeholder,
+  value,
+  invalid,
+  align = "start",
   children,
 }: {
-  step: number;
-  title: string;
-  hint?: ReactNode;
-  disabled?: boolean;
+  placeholder: string;
+  value?: ReactNode;
+  invalid?: boolean;
+  align?: "start" | "center" | "end";
+  children: ReactNode;
+}) {
+  const filled = value !== undefined && value !== null && value !== "";
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        className={cn(
+          "group inline-flex max-w-full cursor-pointer items-center gap-1 rounded-xl px-2.5 py-0.5 align-middle font-semibold outline-none transition-all duration-200",
+          filled
+            ? "bg-secondary text-primary ring-1 ring-inset ring-primary/20 hover:ring-primary/40"
+            : "bg-accent/60 text-primary underline decoration-dashed decoration-primary/40 underline-offset-4 hover:bg-accent",
+          invalid && !filled && "bg-[var(--danger-tint)] text-[var(--danger)] no-underline",
+          "focus-visible:ring-2 focus-visible:ring-primary/40 data-[state=open]:ring-2 data-[state=open]:ring-primary/40",
+        )}
+      >
+        <span className="truncate">{filled ? value : placeholder}</span>
+        <ChevronDown
+          size={16}
+          className="shrink-0 opacity-60 transition-transform duration-200 group-data-[state=open]:rotate-180"
+        />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align={align} className="max-h-[18rem] overflow-y-auto">
+        {children}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+/** A single selectable row inside a Blank's dropdown, with a check when active. */
+function Option({
+  active,
+  onSelect,
+  children,
+}: {
+  active: boolean;
+  onSelect: () => void;
   children: ReactNode;
 }) {
   return (
-    <Card variant="solid" className={cn("p-5", disabled && "pointer-events-none opacity-55")}>
-      <div className="mb-3.5 flex items-center gap-2">
-        <span className="grid size-6 place-items-center rounded-full bg-accent text-[12px] font-bold text-primary">
-          {step}
-        </span>
-        <h3 className="font-display text-[16px] font-semibold tracking-[-0.02em]">{title}</h3>
-        {hint && <HelpTooltip label={hint} />}
-      </div>
-      {children}
-    </Card>
+    <DropdownMenuItem onSelect={onSelect} className="justify-between gap-3">
+      <span className="flex items-center gap-2">{children}</span>
+      {active && <Check size={15} className="shrink-0 text-primary" />}
+    </DropdownMenuItem>
   );
 }
 
@@ -207,150 +244,136 @@ export function CreateLatticePage() {
   const availablePrefs = PREFERENCE_OPTIONS.filter(
     (p) => !p.categories || (category && p.categories.includes(category)),
   );
-  const budgetText =
-    budgetMax !== undefined
-      ? `under ${formatCurrency(budgetMax)}`
-      : budgetMin !== undefined
-        ? `${formatCurrency(budgetMin)}+`
-        : budgetSel !== null
-          ? "Any budget"
-          : "—";
 
-  const summary: Array<{ label: string; value: ReactNode; icon: IconName }> = [
-    { label: "Need", icon: "ping", value: needType ? NEED_TYPE_LABELS[needType] : "—" },
-    { label: "Budget", icon: "ticket", value: budgetText },
-    { label: "Distance", icon: "location", value: distanceKm ? `within ${distanceKm} km` : "—" },
-    {
-      label: "When",
-      icon: "clock",
-      value: timeStart && timeEnd ? formatTimeRange(timeStart, timeEnd) : "—",
-    },
-    {
-      label: "Preferences",
-      icon: "saved",
-      value: preferences.length ? `${preferences.length} selected` : "None",
-    },
-  ];
+  const budgetPresets = needType ? budgetPresetsFor(needType) : [];
+  const budgetValue =
+    typeof budgetSel === "number"
+      ? budgetPresets[budgetSel]?.label
+      : budgetSel === "custom"
+        ? "a custom amount"
+        : undefined;
+
+  const timeValue =
+    timePreset === "custom"
+      ? timeStart && timeEnd
+        ? formatTimeRange(timeStart, timeEnd)
+        : "a custom time"
+      : timePreset
+        ? TIME_WINDOW_PRESETS.find((p) => p.id === timePreset)?.label
+        : undefined;
 
   return (
-    <div className="space-y-6">
+    <div className="mx-auto max-w-2xl space-y-6">
       <PageHeader
         title="Create a"
         accent="Lattice"
-        subtitle="Describe what you need and we'll match you with verified local offers — by budget, timing, distance, and preferences."
+        subtitle="Fill in the blanks and we'll match you with verified local offers — by budget, timing, distance, and preferences."
       />
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
-        {/* Builder */}
-        <div className="space-y-4">
-          <Section step={1} title="What kind of business?">
-            <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
-              {ALL_CATEGORIES.map((cat) => {
-                const meta = CATEGORY_META[cat];
-                const selected = category === cat;
-                return (
-                  <button
-                    key={cat}
-                    type="button"
-                    onClick={() => selectCategory(cat)}
-                    aria-pressed={selected}
-                    className={cn(
-                      "flex cursor-pointer flex-col items-start gap-2 rounded-2xl border p-3.5 text-left transition-all duration-200",
-                      selected
-                        ? "border-primary/40 bg-secondary ring-1 ring-inset ring-primary/15"
-                        : "border-border bg-card hover:-translate-y-0.5 hover:border-[var(--input)]",
-                    )}
-                  >
-                    <span className="grid size-9 place-items-center rounded-xl bg-accent text-primary">
-                      <Icon name={meta.icon as IconName} size={18} />
-                    </span>
-                    <span className="text-sm font-semibold">{meta.label}</span>
-                    <span className="text-[12px] leading-snug text-muted-foreground">{meta.description}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </Section>
+      <Card variant="solid" className="p-6 sm:p-8">
+        {category && (
+          <div className="mb-5 flex items-center justify-between gap-3">
+            <span className="text-[12px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+              Your request
+            </span>
+            <Badge tone={QUALITY[quality].tone}>{QUALITY[quality].label}</Badge>
+          </div>
+        )}
 
-          <Section step={2} title="What do you need?" disabled={!category}>
-            <ChipGroup>
-              {(category ? NEED_TYPES_BY_CATEGORY[category] : []).map((nt) => (
-                <ToggleChip key={nt} active={needType === nt} onClick={() => selectNeed(nt)}>
-                  {NEED_TYPE_LABELS[nt]}
-                </ToggleChip>
-              ))}
-            </ChipGroup>
-          </Section>
-
-          <Section
-            step={3}
-            title="What's your budget?"
-            disabled={!needType}
-            hint="Each need type has a realistic minimum — too low and we'll suggest a better range."
+        {/* Mad-libs sentence — blanks reveal after a business type is picked */}
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-3 font-display text-[21px] leading-[1.65] tracking-[-0.01em] text-foreground sm:text-[25px]">
+          <span>I'm looking for</span>
+          <Blank
+            placeholder="a business type"
+            value={category ? CATEGORY_META[category].label : undefined}
           >
-            <ChipGroup>
-              {(needType ? budgetPresetsFor(needType) : []).map((preset, i) => (
-                <ToggleChip key={preset.label} active={budgetSel === i} onClick={() => selectBudget(i)}>
-                  {preset.label}
-                </ToggleChip>
-              ))}
-              {needType && (
-                <ToggleChip active={budgetSel === "custom"} onClick={() => applyCustomBudget(customBudget || "")}>
-                  Custom
-                </ToggleChip>
+            {ALL_CATEGORIES.map((cat) => {
+              const meta = CATEGORY_META[cat];
+              return (
+                <Option key={cat} active={category === cat} onSelect={() => selectCategory(cat)}>
+                  <Icon name={meta.icon as IconName} size={16} className="text-primary" />
+                  {meta.label}
+                </Option>
+              );
+            })}
+          </Blank>
+
+          {category && (
+            <>
+              <span>for</span>
+              <Blank
+                placeholder="what you need"
+                value={needType ? NEED_TYPE_LABELS[needType] : undefined}
+              >
+                {NEED_TYPES_BY_CATEGORY[category].map((nt) => (
+                  <Option key={nt} active={needType === nt} onSelect={() => selectNeed(nt)}>
+                    {NEED_TYPE_LABELS[nt]}
+                  </Option>
+                ))}
+              </Blank>
+
+              <span>on a budget of</span>
+              <Blank placeholder="anything" value={budgetValue} invalid={!!errors.budget}>
+                {budgetPresets.map((preset, i) => (
+                  <Option key={preset.label} active={budgetSel === i} onSelect={() => selectBudget(i)}>
+                    {preset.label}
+                  </Option>
+                ))}
+                <DropdownMenuSeparator />
+                <Option active={budgetSel === "custom"} onSelect={() => applyCustomBudget(customBudget)}>
+                  Custom amount…
+                </Option>
+              </Blank>
+
+              {budgetSel === "custom" && (
+                <span className="inline-flex items-center gap-1 rounded-xl bg-secondary px-2.5 py-0.5 text-primary ring-1 ring-inset ring-primary/20">
+                  <span>$</span>
+                  <input
+                    type="number"
+                    min={0}
+                    inputMode="decimal"
+                    placeholder="max"
+                    value={customBudget}
+                    onChange={(e) => applyCustomBudget(e.target.value)}
+                    aria-invalid={!!errors.budget}
+                    className="w-16 bg-transparent font-semibold text-primary outline-none placeholder:text-primary/40"
+                  />
+                </span>
               )}
-            </ChipGroup>
-            {budgetSel === "custom" && (
-              <div className="mt-3 max-w-48">
-                <Input
-                  type="number"
-                  min={0}
-                  inputMode="decimal"
-                  placeholder="Max $"
-                  value={customBudget}
-                  onChange={(e) => applyCustomBudget(e.target.value)}
-                  aria-invalid={!!errors.budget}
-                />
-              </div>
-            )}
-            {needType && errors.budget && (
-              <p className="mt-2 text-[13px] font-medium text-destructive">{errors.budget}</p>
-            )}
-          </Section>
 
-          <Section step={4} title="How far will you go?" disabled={!needType}>
-            <ChipGroup>
-              {DISTANCE_OPTIONS_KM.map((km) => (
-                <ToggleChip
-                  key={km}
-                  active={distanceKm === km}
-                  icon={<Icon name="location" size={14} />}
-                  onClick={() => setDistanceKm(km)}
-                >
-                  Within {km} km
-                </ToggleChip>
-              ))}
-            </ChipGroup>
-            <p className="mt-2.5 text-[13px] text-muted-foreground">
-              From <span className="font-medium text-foreground">{originName}</span>
-            </p>
-          </Section>
+              <span>within</span>
+              <Blank placeholder="any distance" value={distanceKm ? `${distanceKm} km` : undefined}>
+                {DISTANCE_OPTIONS_KM.map((km) => (
+                  <Option key={km} active={distanceKm === km} onSelect={() => setDistanceKm(km)}>
+                    <Icon name="location" size={15} className="text-primary" />
+                    Within {km} km
+                  </Option>
+                ))}
+              </Blank>
 
-          <Section step={5} title="When do you need it?" disabled={!needType}>
-            <ChipGroup>
-              {TIME_WINDOW_PRESETS.map((preset) => (
-                <ToggleChip
-                  key={preset.id}
-                  active={timePreset === preset.id}
-                  icon={<Icon name="clock" size={14} />}
-                  onClick={() => selectTime(preset.id)}
-                >
-                  {preset.label}
-                </ToggleChip>
-              ))}
-            </ChipGroup>
+              <span>of {originName},</span>
+              <Blank placeholder="anytime" value={timeValue} invalid={!!errors.time}>
+                {TIME_WINDOW_PRESETS.map((preset) => (
+                  <Option
+                    key={preset.id}
+                    active={timePreset === preset.id}
+                    onSelect={() => selectTime(preset.id)}
+                  >
+                    <Icon name="clock" size={15} className="text-primary" />
+                    {preset.label}
+                  </Option>
+                ))}
+              </Blank>
+              <span>.</span>
+            </>
+          )}
+        </div>
+
+        {category && (
+          <>
+            {/* Custom time window */}
             {timePreset === "custom" && (
-              <div className="mt-3 grid gap-3 sm:grid-cols-3">
+              <div className="mt-5 grid gap-3 rounded-2xl bg-muted/50 p-4 sm:grid-cols-3">
                 <FormField label="Date" htmlFor="c-date">
                   <Input id="c-date" type="date" value={customDate} onChange={(e) => updateCustomTime(e.target.value, customStart, customEnd)} />
                 </FormField>
@@ -362,100 +385,80 @@ export function CreateLatticePage() {
                 </FormField>
               </div>
             )}
-            {timePreset && errors.time && (
-              <p className="mt-2 text-[13px] font-medium text-destructive">{errors.time}</p>
+            {budgetSel !== null && errors.budget && (
+              <p className="mt-3 text-[13px] font-medium text-destructive">{errors.budget}</p>
             )}
-          </Section>
 
-          <Section step={6} title="Any preferences?" disabled={!category}>
-            <ChipGroup>
-              {availablePrefs.map((pref) => (
-                <ToggleChip
-                  key={pref.id}
-                  active={preferences.includes(pref.id)}
-                  onClick={() => togglePref(pref.id)}
-                  icon={preferences.includes(pref.id) ? <Icon name="check" size={14} /> : undefined}
-                >
-                  {pref.label}
-                </ToggleChip>
-              ))}
-            </ChipGroup>
-          </Section>
-
-          <Section step={7} title="Add a note (optional)" disabled={!category}>
-            <Textarea
-              value={note}
-              maxLength={NOTE_MAX}
-              onChange={(e) => setNote(e.target.value)}
-              placeholder="Example: need outlets and a quiet table"
-              aria-invalid={!!errors.note}
-            />
-            <div className="mt-1.5 flex items-center justify-between">
-              {errors.note ? (
-                <p className="text-[13px] font-medium text-destructive">{errors.note}</p>
-              ) : (
-                <span />
-              )}
-              <span className="mono text-[12px] text-muted-foreground">
-                {note.length}/{NOTE_MAX}
-              </span>
-            </div>
-          </Section>
-        </div>
-
-        {/* Live preview */}
-        <aside className="h-fit lg:sticky lg:top-24">
-          <Card variant="glassBlue" className="space-y-4 p-5">
-            <div className="flex items-center justify-between">
-              <h3 className="font-display text-lg font-semibold tracking-[-0.02em]">
-                Your <span className="font-accent font-normal text-primary">Lattice</span>
-              </h3>
-              <Badge tone={QUALITY[quality].tone}>{QUALITY[quality].label}</Badge>
+            {/* Preferences */}
+            <div className="mt-7">
+              <div className="mb-2.5 text-[13px] font-semibold text-muted-foreground">
+                Preferences <span className="font-normal">(optional)</span>
+              </div>
+              <ChipGroup>
+                {availablePrefs.map((pref) => (
+                  <ToggleChip
+                    key={pref.id}
+                    active={preferences.includes(pref.id)}
+                    onClick={() => togglePref(pref.id)}
+                    icon={preferences.includes(pref.id) ? <Icon name="check" size={14} /> : undefined}
+                  >
+                    {pref.label}
+                  </ToggleChip>
+                ))}
+              </ChipGroup>
             </div>
 
-            <div className="space-y-2.5">
-              {summary.map((row) => (
-                <div key={row.label} className="flex items-center gap-2.5 text-sm">
-                  <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-card/70 text-primary">
-                    <Icon name={row.icon} size={14} />
-                  </span>
-                  <span className="w-24 shrink-0 text-muted-foreground">{row.label}</span>
-                  <span className="truncate font-medium text-foreground">{row.value}</span>
-                </div>
-              ))}
-            </div>
-
-            <Separator />
-
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Estimated matches</span>
-              <span className="mono text-lg font-semibold text-foreground">{estMatches ?? "—"}</span>
+            {/* Note */}
+            <div className="mt-6">
+              <div className="mb-2 flex items-center justify-between">
+                <span className="text-[13px] font-semibold text-muted-foreground">
+                  Note <span className="font-normal">(optional)</span>
+                </span>
+                <span className="mono text-[12px] text-muted-foreground">
+                  {note.length}/{NOTE_MAX}
+                </span>
+              </div>
+              <Textarea
+                value={note}
+                maxLength={NOTE_MAX}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="Example: need outlets and a quiet table"
+                aria-invalid={!!errors.note}
+              />
+              {errors.note && <p className="mt-1.5 text-[13px] font-medium text-destructive">{errors.note}</p>}
             </div>
 
             {errors.duplicate && (
-              <p className="rounded-xl bg-[var(--danger-tint)] px-3 py-2 text-[13px] font-medium text-[var(--danger)]">
+              <p className="mt-5 rounded-xl bg-[var(--danger-tint)] px-3 py-2 text-[13px] font-medium text-[var(--danger)]">
                 {errors.duplicate}
               </p>
             )}
 
-            <Button
-              variant="brand"
-              block
-              size="lg"
-              disabled={!validation.valid}
-              onClick={() => setVerifyOpen(true)}
-              iconRight={<Icon name="arrow" size={18} />}
-            >
-              Find matching offers
-            </Button>
+            {/* Footer */}
+            <div className="mt-7 flex flex-col gap-3 border-t border-border pt-5 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Icon name="matches" size={16} className="text-primary" />
+                <span>Estimated matches</span>
+                <span className="mono text-base font-semibold text-foreground">{estMatches ?? "—"}</span>
+              </div>
+              <Button
+                variant="brand"
+                size="lg"
+                disabled={!validation.valid}
+                onClick={() => setVerifyOpen(true)}
+                iconRight={<Icon name="arrow" size={18} />}
+              >
+                Find matching offers
+              </Button>
+            </div>
             {!validation.valid && (
-              <p className="text-center text-[12px] text-muted-foreground">
-                Complete the required steps to match.
+              <p className="mt-2 text-right text-[12px] text-muted-foreground">
+                Fill in every blank to match.
               </p>
             )}
-          </Card>
-        </aside>
-      </div>
+          </>
+        )}
+      </Card>
 
       <VerificationModal open={verifyOpen} onOpenChange={setVerifyOpen} onVerified={onVerified} />
     </div>
