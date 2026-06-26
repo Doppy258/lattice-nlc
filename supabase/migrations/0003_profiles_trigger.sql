@@ -1,3 +1,6 @@
+-- Idempotent / non-destructive: function is replaced; trigger is dropped-if-exists
+-- then recreated.
+
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
@@ -16,6 +19,7 @@ begin
 end;
 $$;
 
+drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();

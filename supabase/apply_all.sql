@@ -1,30 +1,34 @@
 -- Lattice backend — consolidated apply script (slice 1)
--- Generated from supabase/migrations/*.sql + supabase/seed.sql. Run once in the Supabase SQL Editor.
--- Idempotent-ish: enums/tables will error if already present; run on a clean project or drop first.
+-- IDEMPOTENT / NON-DESTRUCTIVE: safe to run against an EXISTING Supabase project.
+-- Existing tables/enums/policies/data are retained; only missing objects are added.
+-- Generated from supabase/migrations/*.sql + supabase/seed.sql.
 
 -- ============================================================
 -- supabase/migrations/0001_core_schema.sql
 -- ============================================================
+-- Idempotent / non-destructive: safe to re-run against an existing database.
+-- Existing objects are kept as-is; only missing ones are created.
+
 -- Extensions
 create extension if not exists pgcrypto;      -- gen_random_uuid(), crypt()
 
--- Enums
-create type user_role         as enum ('customer','businessOwner','admin');
-create type business_category as enum ('food','retail','services','fitness','education','repair','entertainment');
-create type offer_type        as enum ('discount','limitedTime','studentOffer','groupOffer','appointmentSlot','event','freeTrial','bundle');
-create type claim_status      as enum ('active','redeemed','expired','cancelled');
-create type request_status    as enum ('draft','submitted','matched','expired');
-create type need_type         as enum (
+-- Enums (guarded so re-running does not error if the type already exists)
+do $$ begin create type user_role         as enum ('customer','businessOwner','admin'); exception when duplicate_object then null; end $$;
+do $$ begin create type business_category as enum ('food','retail','services','fitness','education','repair','entertainment'); exception when duplicate_object then null; end $$;
+do $$ begin create type offer_type        as enum ('discount','limitedTime','studentOffer','groupOffer','appointmentSlot','event','freeTrial','bundle'); exception when duplicate_object then null; end $$;
+do $$ begin create type claim_status      as enum ('active','redeemed','expired','cancelled'); exception when duplicate_object then null; end $$;
+do $$ begin create type request_status    as enum ('draft','submitted','matched','expired'); exception when duplicate_object then null; end $$;
+do $$ begin create type need_type         as enum (
   'lunch','cafeStudySpot','dessert','dinner','groupMeal','quickSnack',
   'gift','clothing','books','thrift','schoolSupplies','homeItem',
   'haircut','salonService','printing','alterations','tutoring','cleaning',
   'gymTrial','dropInClass','sportsFacility','personalTraining',
   'testPrep','workshop','studySpace',
   'phoneRepair','laptopRepair','bikeRepair','clothingRepair',
-  'escapeRoom','arcade','movieActivity','localEvent','groupHangout');
+  'escapeRoom','arcade','movieActivity','localEvent','groupHangout'); exception when duplicate_object then null; end $$;
 
 -- Profiles (1:1 with auth.users)
-create table public.profiles (
+create table if not exists public.profiles (
   id                  uuid primary key references auth.users(id) on delete cascade,
   name                text not null default '',
   email               text not null default '',
@@ -37,7 +41,7 @@ create table public.profiles (
   created_at          timestamptz not null default now()
 );
 
-create table public.businesses (
+create table if not exists public.businesses (
   id                     uuid primary key default gen_random_uuid(),
   name                   text not null,
   category               business_category not null,
@@ -54,9 +58,9 @@ create table public.businesses (
   owner_user_id          uuid not null references public.profiles(id) on delete cascade,
   created_at             timestamptz not null default now()
 );
-create index businesses_owner_idx on public.businesses(owner_user_id);
+create index if not exists businesses_owner_idx on public.businesses(owner_user_id);
 
-create table public.offers (
+create table if not exists public.offers (
   id                    uuid primary key default gen_random_uuid(),
   business_id           uuid not null references public.businesses(id) on delete cascade,
   title                 text not null,
@@ -76,10 +80,10 @@ create table public.offers (
   active                boolean not null default true,
   created_at            timestamptz not null default now()
 );
-create index offers_business_idx on public.offers(business_id);
-create index offers_active_idx on public.offers(active, valid_until);
+create index if not exists offers_business_idx on public.offers(business_id);
+create index if not exists offers_active_idx on public.offers(active, valid_until);
 
-create table public.claims (
+create table if not exists public.claims (
   id          uuid primary key default gen_random_uuid(),
   user_id     uuid not null references public.profiles(id) on delete cascade,
   offer_id    uuid not null references public.offers(id) on delete cascade,
@@ -90,14 +94,14 @@ create table public.claims (
   expires_at  timestamptz not null,
   redeemed_at timestamptz
 );
-create index claims_user_idx on public.claims(user_id);
-create index claims_business_idx on public.claims(business_id);
+create index if not exists claims_user_idx on public.claims(user_id);
+create index if not exists claims_business_idx on public.claims(business_id);
 -- a user may hold at most one active/redeemed claim per offer
-create unique index claims_one_per_offer_idx
+create unique index if not exists claims_one_per_offer_idx
   on public.claims(user_id, offer_id)
   where status in ('active','redeemed');
 
-create table public.reviews (
+create table if not exists public.reviews (
   id          uuid primary key default gen_random_uuid(),
   user_id     uuid not null references public.profiles(id) on delete cascade,
   business_id uuid not null references public.businesses(id) on delete cascade,
@@ -109,9 +113,9 @@ create table public.reviews (
   verified    boolean not null default true,
   created_at  timestamptz not null default now()
 );
-create index reviews_business_idx on public.reviews(business_id);
+create index if not exists reviews_business_idx on public.reviews(business_id);
 
-create table public.requests (
+create table if not exists public.requests (
   id             uuid primary key default gen_random_uuid(),
   user_id        uuid not null references public.profiles(id) on delete cascade,
   category       business_category not null,
@@ -127,11 +131,14 @@ create table public.requests (
   status         request_status not null default 'submitted',
   created_at     timestamptz not null default now()
 );
-create index requests_user_idx on public.requests(user_id);
+create index if not exists requests_user_idx on public.requests(user_id);
 
 -- ============================================================
 -- supabase/migrations/0002_rls.sql
 -- ============================================================
+-- Idempotent / non-destructive: safe to re-run. Policies are dropped-if-exists
+-- then recreated; the view is replaced; enabling RLS is a no-op if already on.
+
 -- Ownership helper (SECURITY DEFINER so it can read businesses regardless of caller RLS)
 create or replace function public.is_business_owner(biz uuid)
 returns boolean
@@ -146,11 +153,12 @@ as $$
 $$;
 
 -- Display-only projection of profiles (no email/preferences)
+drop view if exists public.public_profiles;
 create view public.public_profiles as
   select id, name, role, verified from public.profiles;
 grant select on public.public_profiles to authenticated;
 
--- Enable RLS
+-- Enable RLS (no error if already enabled)
 alter table public.profiles   enable row level security;
 alter table public.businesses enable row level security;
 alter table public.offers     enable row level security;
@@ -159,40 +167,53 @@ alter table public.reviews    enable row level security;
 alter table public.requests   enable row level security;
 
 -- profiles: self only
+drop policy if exists profiles_select_self on public.profiles;
 create policy profiles_select_self on public.profiles
   for select to authenticated using (id = auth.uid());
+drop policy if exists profiles_update_self on public.profiles;
 create policy profiles_update_self on public.profiles
   for update to authenticated using (id = auth.uid()) with check (id = auth.uid());
 
 -- businesses: read all (authenticated); write own
+drop policy if exists businesses_select on public.businesses;
 create policy businesses_select on public.businesses
   for select to authenticated using (true);
+drop policy if exists businesses_insert_own on public.businesses;
 create policy businesses_insert_own on public.businesses
   for insert to authenticated with check (owner_user_id = auth.uid());
+drop policy if exists businesses_update_own on public.businesses;
 create policy businesses_update_own on public.businesses
   for update to authenticated using (owner_user_id = auth.uid()) with check (owner_user_id = auth.uid());
+drop policy if exists businesses_delete_own on public.businesses;
 create policy businesses_delete_own on public.businesses
   for delete to authenticated using (owner_user_id = auth.uid());
 
 -- offers: read all; write only via owning business
+drop policy if exists offers_select on public.offers;
 create policy offers_select on public.offers
   for select to authenticated using (true);
+drop policy if exists offers_insert_owner on public.offers;
 create policy offers_insert_owner on public.offers
   for insert to authenticated with check (public.is_business_owner(business_id));
+drop policy if exists offers_update_owner on public.offers;
 create policy offers_update_owner on public.offers
   for update to authenticated using (public.is_business_owner(business_id)) with check (public.is_business_owner(business_id));
+drop policy if exists offers_delete_owner on public.offers;
 create policy offers_delete_owner on public.offers
   for delete to authenticated using (public.is_business_owner(business_id));
 
 -- claims: read own or as owning business; NO direct write (RPC only)
+drop policy if exists claims_select on public.claims;
 create policy claims_select on public.claims
   for select to authenticated using (user_id = auth.uid() or public.is_business_owner(business_id));
 
 -- reviews: read all; NO direct write (RPC only)
+drop policy if exists reviews_select on public.reviews;
 create policy reviews_select on public.reviews
   for select to authenticated using (true);
 
 -- requests: read own; NO direct write (RPC only)
+drop policy if exists requests_select on public.requests;
 create policy requests_select on public.requests
   for select to authenticated using (user_id = auth.uid());
 
@@ -205,6 +226,9 @@ grant update on public.profiles to authenticated;
 -- ============================================================
 -- supabase/migrations/0003_profiles_trigger.sql
 -- ============================================================
+-- Idempotent / non-destructive: function is replaced; trigger is dropped-if-exists
+-- then recreated.
+
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
@@ -223,6 +247,7 @@ begin
 end;
 $$;
 
+drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
