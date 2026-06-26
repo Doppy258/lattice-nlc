@@ -1,8 +1,8 @@
 -- Demo auth users (local only; hosted uses scripts/seed-auth-users.mjs).
 -- The handle_new_user trigger creates matching profiles automatically.
-insert into auth.users (instance_id, id, aud, role, email, encrypted_password, email_confirmed_at, created_at, updated_at, raw_app_meta_data, raw_user_meta_data) values
- ('00000000-0000-0000-0000-000000000000','d0000000-0000-0000-0000-0000000000c1','authenticated','authenticated','demo.customer@lattice.test', crypt('Demo1234!', gen_salt('bf')), now(), now(), now(), '{"provider":"email","providers":["email"]}','{"name":"Demo Customer"}'),
- ('00000000-0000-0000-0000-000000000000','d0000000-0000-0000-0000-0000000000b1','authenticated','authenticated','demo.owner@lattice.test',   crypt('Demo1234!', gen_salt('bf')), now(), now(), now(), '{"provider":"email","providers":["email"]}','{"name":"Demo Owner"}')
+insert into auth.users (instance_id, id, aud, role, email, encrypted_password, email_confirmed_at, created_at, updated_at, raw_app_meta_data, raw_user_meta_data, confirmation_token, email_change, email_change_token_new, recovery_token) values
+ ('00000000-0000-0000-0000-000000000000','d0000000-0000-0000-0000-0000000000c1','authenticated','authenticated','demo.customer@lattice.test', crypt('Demo1234!', gen_salt('bf')), now(), now(), now(), '{"provider":"email","providers":["email"]}','{"name":"Demo Customer"}', '', '', '', ''),
+ ('00000000-0000-0000-0000-000000000000','d0000000-0000-0000-0000-0000000000b1','authenticated','authenticated','demo.owner@lattice.test',   crypt('Demo1234!', gen_salt('bf')), now(), now(), now(), '{"provider":"email","providers":["email"]}','{"name":"Demo Owner"}', '', '', '', '')
 on conflict (id) do nothing;
 insert into auth.identities (id, user_id, provider_id, identity_data, provider, created_at, updated_at, last_sign_in_at) values
  (gen_random_uuid(),'d0000000-0000-0000-0000-0000000000c1','d0000000-0000-0000-0000-0000000000c1', json_build_object('sub','d0000000-0000-0000-0000-0000000000c1','email','demo.customer@lattice.test'), 'email', now(), now(), now()),
