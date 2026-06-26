@@ -149,7 +149,7 @@ export function getRequestQuality(request: PingDraft, existing: PingRequest[] = 
   const { valid } = validatePingRequest(request, existing);
   if (!valid) return "invalid";
 
-  const hasBudget = request.budgetMax !== undefined || request.budgetMin !== undefined;
+  const hasBudget = request.budgetMax != null || request.budgetMin != null;
   const hasTime = !!request.timeStart && !!request.timeEnd;
   const veryBroadDistance = (request.distanceKm ?? 0) >= 10;
   const hasPreferences = (request.preferences?.length ?? 0) > 0;

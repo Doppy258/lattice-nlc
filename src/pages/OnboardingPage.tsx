@@ -89,7 +89,6 @@ export function OnboardingPage() {
     setSubmitting(true);
     const err = await completeOnboarding({
       name: activeUser.name,
-      homeLocationId: activeUser.homeLocationId || "origin_school",
       preferences: {
         ...activeUser.preferences,
         preferredCategories: categories,

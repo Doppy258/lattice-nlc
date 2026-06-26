@@ -132,9 +132,9 @@ export function MatchesPage() {
     {
       icon: "ticket" as IconName,
       text:
-        request.budgetMax !== undefined
+        request.budgetMax != null
           ? `under ${formatCurrency(request.budgetMax)}`
-          : request.budgetMin !== undefined
+          : request.budgetMin != null
             ? `${formatCurrency(request.budgetMin)}+`
             : "any budget",
     },

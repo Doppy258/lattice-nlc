@@ -1,7 +1,7 @@
 import type { Business, Claim, Offer, PingRequest, Review, User, UserPreferences } from "@/models";
 
 export type ProfileRow = {
-  id: string; name: string; email: string; role: User["role"]; home_location_id: string;
+  id: string; name: string; email: string; role: User["role"];
   verified: boolean; preferences: UserPreferences | null; onboarding_complete: boolean; created_at: string;
 };
 export type PublicProfileRow = { id: string; name: string; role: User["role"]; verified: boolean };
@@ -38,13 +38,13 @@ const DEFAULT_PREFS: UserPreferences = {
 
 export const rowToProfile = (r: ProfileRow): User => ({
   id: r.id, name: r.name, email: r.email, role: r.role,
-  homeLocationId: r.home_location_id, location: null, verified: r.verified, createdAt: r.created_at,
+  location: null, verified: r.verified, createdAt: r.created_at,
   preferences: r.preferences ?? DEFAULT_PREFS, onboarded: r.onboarding_complete,
 });
 
 export const publicRowToUser = (r: PublicProfileRow): User => ({
   id: r.id, name: r.name, email: "", role: r.role,
-  homeLocationId: "origin_school", location: null, verified: r.verified, createdAt: "", preferences: DEFAULT_PREFS, onboarded: true,
+  location: null, verified: r.verified, createdAt: "", preferences: DEFAULT_PREFS, onboarded: true,
 });
 
 export const rowToBusiness = (r: BusinessRow): Business => ({

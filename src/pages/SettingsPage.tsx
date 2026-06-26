@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Reveal, Stagger, StaggerItem } from "@/components/motion/Reveal";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { ALL_CATEGORIES, CATEGORY_META, DEMO_ORIGINS } from "@/data/catalog";
+import { ALL_CATEGORIES, CATEGORY_META } from "@/data/catalog";
 import { initials, formatRating } from "@/utils/formatting";
 import { toast } from "sonner";
 import type { BusinessCategory } from "@/models";
@@ -21,7 +21,6 @@ const DISTANCE_OPTIONS = [1, 3, 5, 10];
 export function SettingsPage() {
   const { activeUser, setData, signOut } = useApp();
   const [name, setName] = useState(activeUser.name);
-  const [homeLocationId, setHomeLocationId] = useState(activeUser.homeLocationId);
   const [maxDistance, setMaxDistance] = useState(activeUser.preferences.maxDefaultDistanceKm);
   const [studentDiscount, setStudentDiscount] = useState(activeUser.preferences.studentDiscountPreferred);
   const [preferredCategories, setPreferredCategories] = useState<BusinessCategory[]>(activeUser.preferences.preferredCategories);
@@ -40,7 +39,6 @@ export function SettingsPage() {
           ? {
               ...u,
               name,
-              homeLocationId,
               preferences: {
                 ...u.preferences,
                 maxDefaultDistanceKm: maxDistance,
@@ -104,18 +102,6 @@ export function SettingsPage() {
                 disabled
                 className="opacity-60"
               />
-            </FormField>
-
-            <FormField label="Home location" htmlFor="settings-location">
-              <Select
-                id="settings-location"
-                value={homeLocationId}
-                onChange={(e) => setHomeLocationId(e.target.value)}
-              >
-                {DEMO_ORIGINS.map((o) => (
-                  <option key={o.id} value={o.id}>{o.name}</option>
-                ))}
-              </Select>
             </FormField>
 
             <FormField label="Max search distance" htmlFor="settings-distance" hint="How far Lattice will search for offers.">
