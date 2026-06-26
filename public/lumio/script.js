@@ -876,7 +876,6 @@
           }
           const centerLogo = document.getElementById('introCenterLogo');
           const navEl      = document.getElementById('nav');
-          const pill       = document.querySelector('.hero .pill');
           const h1         = document.querySelector('.hero h1');
           const sub        = document.querySelector('.hero p.sub');
           const ctasBtns   = document.querySelector('.hero .ctas');
@@ -914,9 +913,6 @@
           setTimeout(() => {
             ctaBtn.classList.add('intro-cta-expand');
           }, linksEnd + 240);
-
-
-          setTimeout(() => pill.classList.add('intro-pill-in'), linksEnd + 120);
 
 
           splitLetters(h1);
