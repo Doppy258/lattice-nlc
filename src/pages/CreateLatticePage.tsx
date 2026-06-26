@@ -26,7 +26,6 @@ import { getMatchingOffers } from "@/services/offerMatchingService";
 import {
   ALL_CATEGORIES,
   CATEGORY_META,
-  DEMO_ORIGINS,
   DISTANCE_OPTIONS_KM,
   NEED_TYPES_BY_CATEGORY,
   NEED_TYPE_LABELS,
@@ -147,9 +146,6 @@ export function CreateLatticePage() {
   );
   const [note, setNote] = useState("");
   const [verifyOpen, setVerifyOpen] = useState(false);
-
-  const originName =
-    DEMO_ORIGINS.find((o) => o.id === activeUser.homeLocationId)?.name ?? DEMO_ORIGINS[0].name;
 
   const draft = useMemo(
     () => ({
@@ -371,7 +367,7 @@ export function CreateLatticePage() {
                 ))}
               </Blank>
 
-              <span>of {originName},</span>
+              <span>of your location,</span>
               <Blank placeholder="anytime" value={timeValue} invalid={!!errors.time}>
                 {TIME_WINDOW_PRESETS.map((preset) => (
                   <Option
