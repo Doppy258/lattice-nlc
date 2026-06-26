@@ -159,7 +159,7 @@ export function MatchesPage() {
             ))}
           </div>
         </div>
-        <Button variant="secondary" iconLeft={<Icon name="ping" size={16} />} onClick={() => navigate("/create")}>
+        <Button variant="secondary" iconLeft={<Icon name="ping" size={16} />} onClick={() => navigate(`/create?edit=${request.id}`)}>
           Edit request
         </Button>
       </Card>
