@@ -1,4 +1,3 @@
-import { toast } from "sonner";
 import { useApp } from "@/app/providers";
 import { useHashRoute } from "@/app/navigation";
 import { Icon } from "@/components/common/Icon";
@@ -11,7 +10,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { initials } from "@/utils/formatting";
 import type { User } from "@/models";
 import { LatticeMark } from "./LatticeMark";
@@ -98,7 +96,6 @@ function BusinessSwitcher() {
 
 export function TopBar() {
   const { path } = useHashRoute();
-  const { resetDemo } = useApp();
   const title = titleForPath(path);
 
   return (
@@ -119,22 +116,6 @@ export function TopBar() {
 
       <div className="ml-auto flex items-center gap-2">
         <BusinessSwitcher />
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button
-              type="button"
-              onClick={() => {
-                resetDemo();
-                toast.success("Demo data reset", { description: "Seeded data restored to its original state." });
-              }}
-              aria-label="Reset demo data"
-              className="grid size-10 cursor-pointer place-items-center rounded-full border border-border bg-card/70 text-muted-foreground shadow-[var(--shadow-soft)] transition-[transform,color,background-color] duration-200 hover:bg-card hover:text-foreground active:scale-95"
-            >
-              <Icon name="demo" size={17} />
-            </button>
-          </TooltipTrigger>
-          <TooltipContent>Reset demo data</TooltipContent>
-        </Tooltip>
         <UserSwitcher />
       </div>
     </header>
