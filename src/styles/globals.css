@@ -362,3 +362,39 @@
     transition-duration: 0.001ms !important;
   }
 }
+
+/* Print: strip the app chrome (sidebar, top bar, mobile nav, toolbars) so only
+   the report content prints — a clean, presentable PDF via the browser dialog. */
+@media print {
+  @page {
+    margin: 16mm;
+  }
+
+  aside,
+  header,
+  nav,
+  .print\:hidden {
+    display: none !important;
+  }
+
+  body * {
+    box-shadow: none !important;
+  }
+
+  /* Drop the sidebar offset so the report prints full-width. */
+  .min-\[900px\]\:pl-\[var\(--sidebar-w\)\] {
+    padding-left: 0 !important;
+  }
+
+  main {
+    max-width: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Force a white canvas so charts and cards read on paper. */
+  html,
+  body {
+    background: #fff !important;
+  }
+}

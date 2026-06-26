@@ -9,10 +9,25 @@ import { InsightSummary } from "@/components/common/InsightSummary";
 import { PageHeader } from "@/components/common/PageHeader";
 import { Select } from "@/components/ui/select";
 import { BarColumns, BarList, Donut } from "@/components/charts/Charts";
-import { getUserReport } from "@/services/reportService";
+import {
+  getUserReport,
+  rangeToFromDate,
+  RANGE_PRESETS,
+  type RangePreset,
+} from "@/services/reportService";
 import { ALL_CATEGORIES, CATEGORY_META } from "@/data/catalog";
-import { formatCurrency } from "@/utils/formatting";
+import { formatCurrency, formatRating } from "@/utils/formatting";
+import { downloadCsv, dateStamp, printReport, type CsvSection } from "@/utils/export";
 import type { BusinessCategory, ClaimStatus, ReportFilters } from "@/models";
+
+/** Turns a chart's SeriesPoint[] into a labelled CSV section. */
+function seriesSection(title: string, points: { label: string; value: number }[]): CsvSection {
+  return {
+    title,
+    headers: ["Label", "Value"],
+    rows: points.length > 0 ? points.map((p) => [p.label, p.value]) : [["No data", 0]],
+  };
+}
 
 function ChartCard({ title, sub, children }: { title: string; sub?: string; children: React.ReactNode }) {
   return (
@@ -30,9 +45,11 @@ export function ReportsPage() {
   const { data, activeUser } = useApp();
   const [category, setCategory] = useState<BusinessCategory | "all">("all");
   const [status, setStatus] = useState<ClaimStatus | "all">("all");
+  const [range, setRange] = useState<RangePreset>("all");
 
   const report = useMemo(() => {
     const filters: ReportFilters = {
+      fromDate: rangeToFromDate(range),
       category: category === "all" ? undefined : category,
       claimStatus: status === "all" ? undefined : status,
     };
@@ -42,7 +59,37 @@ export function ReportsPage() {
       businesses: data.businesses,
       reviews: data.reviews,
     });
-  }, [activeUser.id, category, status, data.claims, data.offers, data.businesses, data.reviews]);
+  }, [activeUser.id, range, category, status, data.claims, data.offers, data.businesses, data.reviews]);
+
+  function exportCsv() {
+    const rangeLabel = RANGE_PRESETS.find((r) => r.value === range)?.label ?? "All time";
+    const sections: CsvSection[] = [
+      {
+        title: "Impact report — summary",
+        headers: ["Metric", "Value"],
+        rows: [
+          ["Date range", rangeLabel],
+          ["Category filter", category === "all" ? "All categories" : CATEGORY_META[category].label],
+          ["Status filter", status === "all" ? "Any status" : status],
+          ["Estimated saved", formatCurrency(report.estimatedSavings)],
+          ["Offers claimed", report.totalClaimed],
+          ["Offers redeemed", report.totalRedeemed],
+          ["Businesses supported", report.businessesSupported],
+          ["Reviews submitted", report.reviewsSubmitted],
+          ["Average rating given", report.averageRatingGiven > 0 ? formatRating(report.averageRatingGiven) : "—"],
+          [
+            "Favourite category",
+            report.favoriteCategory ? CATEGORY_META[report.favoriteCategory].label : "—",
+          ],
+        ],
+      },
+      seriesSection("Claims by category", report.claimsByCategory),
+      seriesSection("Savings by month", report.savingsByMonth),
+      seriesSection("Ratings you've given", report.ratingDistribution),
+      seriesSection("Businesses supported by month", report.businessesByMonth),
+    ];
+    downloadCsv(`lattice-impact-report-${dateStamp()}.csv`, sections);
+  }
 
   const hasClaims = data.claims.some((c) => c.userId === activeUser.id);
 
@@ -71,7 +118,14 @@ export function ReportsPage() {
         accent="impact report"
         subtitle="How much you've saved, what you claim most, and the local businesses you support — generated from your activity."
         actions={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 print:hidden">
+            <Select value={range} onChange={(e) => setRange(e.target.value as RangePreset)} className="w-40" aria-label="Filter by date range">
+              {RANGE_PRESETS.map((r) => (
+                <option key={r.value} value={r.value}>
+                  {r.label}
+                </option>
+              ))}
+            </Select>
             <Select value={category} onChange={(e) => setCategory(e.target.value as BusinessCategory | "all")} className="w-40" aria-label="Filter by category">
               <option value="all">All categories</option>
               {ALL_CATEGORIES.map((c) => (
@@ -86,6 +140,12 @@ export function ReportsPage() {
               <option value="redeemed">Redeemed</option>
               <option value="expired">Expired</option>
             </Select>
+            <Button variant="secondary" iconLeft={<Icon name="download" size={16} />} onClick={exportCsv}>
+              Export CSV
+            </Button>
+            <Button variant="secondary" iconLeft={<Icon name="print" size={16} />} onClick={printReport}>
+              Print
+            </Button>
           </div>
         }
       />

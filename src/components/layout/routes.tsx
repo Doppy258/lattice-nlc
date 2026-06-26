@@ -16,6 +16,7 @@ import { RedeemPage } from "@/pages/RedeemPage";
 import { ReviewsPage } from "@/pages/ReviewsPage";
 import { ProfilePage } from "@/pages/ProfilePage";
 import { SettingsPage } from "@/pages/SettingsPage";
+import { HelpPage } from "@/pages/HelpPage";
 import { ComingSoon } from "./ComingSoon";
 
 /** Maps the current hash route to a page. Unbuilt routes fall back to ComingSoon. */
@@ -56,6 +57,8 @@ export function RouteView() {
       return <ProfilePage />;
     case "/settings":
       return <SettingsPage />;
+    case "/help":
+      return <HelpPage />;
     default:
       return <ComingSoon path={path} />;
   }

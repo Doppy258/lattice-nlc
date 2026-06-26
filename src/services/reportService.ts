@@ -22,6 +22,25 @@ function monthLabel(iso: string): string {
   return new Date(iso).toLocaleString("en-US", { month: "short", year: "2-digit" });
 }
 
+/** Date-range presets that customize how far back a report looks. */
+export const RANGE_PRESETS = [
+  { value: "all", label: "All time", days: null },
+  { value: "30d", label: "Last 30 days", days: 30 },
+  { value: "90d", label: "Last 90 days", days: 90 },
+  { value: "12mo", label: "Last 12 months", days: 365 },
+] as const;
+
+export type RangePreset = (typeof RANGE_PRESETS)[number]["value"];
+
+/** Converts a range preset to a `fromDate` ISO string (undefined for "all time"). */
+export function rangeToFromDate(preset: RangePreset, now = new Date()): string | undefined {
+  const found = RANGE_PRESETS.find((r) => r.value === preset);
+  if (!found || found.days == null) return undefined;
+  const from = new Date(now);
+  from.setDate(from.getDate() - found.days);
+  return from.toISOString();
+}
+
 /** Estimated savings = Σ(originalPrice − price) over redeemed claims. */
 export function calculateEstimatedSavings(claims: Claim[], offers: Offer[]): number {
   const byId = new Map(offers.map((o) => [o.id, o]));

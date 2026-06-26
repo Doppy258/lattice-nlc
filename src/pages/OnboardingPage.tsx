@@ -79,7 +79,7 @@ export function OnboardingPage() {
     if (step < STEPS.length - 1) setStep((s) => s + 1);
   };
 
-  const handleFinish = async async (e: FormEvent) => {
+  const handleFinish = async (e: FormEvent) => {
     e.preventDefault();
     if (categories.length === 0) {
       setStep(0);
@@ -87,7 +87,7 @@ export function OnboardingPage() {
       return;
     }
     setSubmitting(true);
-    const err = await await completeOnboarding({
+    const err = await completeOnboarding({
       name: activeUser.name,
       homeLocationId: activeUser.homeLocationId || "origin_school",
       preferences: {

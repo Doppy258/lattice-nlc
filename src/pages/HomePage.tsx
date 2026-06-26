@@ -11,6 +11,7 @@ import { Stagger, StaggerItem } from "@/components/motion/Reveal";
 import { OfferCard } from "@/components/domain/OfferCard";
 import { useClaim } from "@/components/domain/useClaim";
 import { ClaimResultModal } from "@/components/domain/ClaimResultModal";
+import { BotCheckModal } from "@/components/domain/BotCheckModal";
 import { getMatchingOffers, getOriginPoint } from "@/services/offerMatchingService";
 import { distanceForBusiness } from "@/services/businessService";
 import { isOfferSaved, toggleSavedOffer } from "@/services/userService";
@@ -33,7 +34,7 @@ function budgetLabel(r: PingRequest): string {
 
 export function HomePage() {
   const { data, activeUser, setData } = useApp();
-  const { claim, result, clearResult } = useClaim();
+  const { claim, result, clearResult, pendingClaim, confirmClaim, cancelClaim } = useClaim();
   const origin = getOriginPoint(activeUser);
   const firstName = activeUser.name.split(" ")[0];
   const originName =
@@ -235,6 +236,12 @@ export function HomePage() {
       </section>
 
       <ClaimResultModal result={result} onClose={clearResult} />
+      <BotCheckModal
+        open={!!pendingClaim}
+        onOpenChange={(o) => !o && cancelClaim()}
+        onVerified={confirmClaim}
+        description="Confirm you're human before claiming this offer."
+      />
     </div>
   );
 }
