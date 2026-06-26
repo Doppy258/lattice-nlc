@@ -2,7 +2,6 @@ import type { Business, BusinessCategory, BusinessHours, GeoPoint, Offer } from 
 import { distanceKm } from "../utils/distance";
 import { byNumber, byString } from "../utils/sorting";
 import { createId } from "../utils/ids";
-import { DEMO_ORIGINS } from "../data/catalog";
 
 /** Fields a new owner supplies at onboarding; the rest get sensible defaults. */
 export type BusinessInput = {
@@ -10,6 +9,7 @@ export type BusinessInput = {
   category: BusinessCategory;
   address: string;
   description: string;
+  location: GeoPoint;
 };
 
 /** Default storefront hours — Mon–Sat, 9am–6pm — editable later on the Profile page. */
@@ -27,7 +27,7 @@ export function createBusiness(input: BusinessInput, ownerUserId: string, now = 
     category: input.category,
     description: input.description.trim(),
     address: input.address.trim(),
-    location: DEMO_ORIGINS[0].location,
+    location: input.location,
     hours: DEFAULT_HOURS,
     ratingAverage: 0,
     reviewCount: 0,

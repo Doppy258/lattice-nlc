@@ -1,4 +1,4 @@
-import type { BusinessCategory } from "./Business";
+import type { BusinessCategory, GeoPoint } from "./Business";
 
 export type UserRole = "customer" | "businessOwner" | "admin";
 
@@ -18,6 +18,8 @@ export type User = {
   role: UserRole;
   /** Seeded origin location used as the distance anchor for this user's Pings. */
   homeLocationId: string;
+  /** The user's actual geo coordinates, set by browser geolocation. */
+  location: GeoPoint | null;
   verified: boolean;
   createdAt: string;
   preferences: UserPreferences;
