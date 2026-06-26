@@ -18,7 +18,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { VerificationModal } from "@/components/domain/VerificationModal";
+import { BotCheckModal } from "@/components/domain/BotCheckModal";
 import { ShareLocationButton } from "@/components/common/ShareLocationButton";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { validatePingRequest, getRequestQuality } from "@/services/requestValidationService";
@@ -488,7 +488,13 @@ export function CreateLatticePage() {
         )}
       </Card>
 
-      <VerificationModal open={verifyOpen} onOpenChange={setVerifyOpen} onVerified={onVerified} />
+      <BotCheckModal
+        open={verifyOpen}
+        onOpenChange={setVerifyOpen}
+        onVerified={onVerified}
+        title="Quick verification"
+        description="A quick human check keeps offers fair before we match your Lattice."
+      />
     </div>
   );
 }

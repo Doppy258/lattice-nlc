@@ -83,6 +83,5 @@ export const REVIEW_TEXT_MAX = 300;
 /** Optional note bound (section 10.2). */
 export const NOTE_MAX = 120;
 
-/** Mock human-verification code (section 10.3). */
-export const VERIFICATION_CODE = "2468";
+/** Max attempts for the distorted-image human check (section 10.3). */
 export const VERIFICATION_MAX_ATTEMPTS = 3;
