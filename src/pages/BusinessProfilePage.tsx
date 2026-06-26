@@ -16,6 +16,8 @@ import { OfferCard } from "@/components/domain/OfferCard";
 import { useClaim } from "@/components/domain/useClaim";
 import { ClaimResultModal } from "@/components/domain/ClaimResultModal";
 import { BotCheckModal } from "@/components/domain/BotCheckModal";
+import { ShareLocationButton } from "@/components/common/ShareLocationButton";
+import { useGeolocation } from "@/hooks/useGeolocation";
 import { getOriginPoint } from "@/services/offerMatchingService";
 import { distanceForBusiness, getActiveOffersForBusiness } from "@/services/businessService";
 import { getBusinessReviews } from "@/services/reviewService";
@@ -42,8 +44,22 @@ export function BusinessProfilePage() {
   const { data, activeUser, setData } = useApp();
   const { query } = useHashRoute();
   const { claim, result, clearResult, pendingClaim, confirmClaim, cancelClaim } = useClaim();
+  const geolocation = useGeolocation();
   const origin = getOriginPoint(activeUser);
   const [section, setSection] = useState<Section>("offers");
+
+  function handleShareLocation() {
+    geolocation.requestLocation();
+  }
+
+  if (geolocation.location && !activeUser.location) {
+    setData((d) => ({
+      ...d,
+      users: d.users.map((u) =>
+        u.id === activeUser.id ? { ...u, location: geolocation.location! } : u,
+      ),
+    }));
+  }
 
   const business = useMemo(
     () => data.businesses.find((b) => b.id === query.get("id")),
@@ -119,11 +135,6 @@ export function BusinessProfilePage() {
                 <h1 className="font-display text-[26px] font-semibold tracking-[-0.035em] sm:text-[32px]">
                   {business.name}
                 </h1>
-                {business.verified && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-[var(--brand-tint)] px-2 py-0.5 text-[11px] font-semibold text-[var(--primary-strong)]">
-                    <Icon name="check" size={12} /> Verified
-                  </span>
-                )}
               </div>
               <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[13px] text-muted-foreground">
                 <span className="inline-flex items-center gap-1.5">
@@ -156,6 +167,18 @@ export function BusinessProfilePage() {
           </div>
         </div>
       </Reveal>
+
+      {!activeUser.location && !geolocation.loading && !geolocation.error && (
+        <div className="flex items-center justify-between rounded-xl bg-[var(--tint-blue)] px-4 py-3">
+          <span className="text-[13px] text-[var(--primary-strong)]">Enable location for accurate distance</span>
+          <ShareLocationButton loading={false} error={null} onRequest={handleShareLocation} />
+        </div>
+      )}
+      {geolocation.error && (
+        <p className="rounded-xl bg-[var(--danger-tint)] px-3 py-2 text-[13px] font-medium text-destructive">
+          Could not get your location: {geolocation.error}
+        </p>
+      )}
 
       <SegmentedControl
         value={section}

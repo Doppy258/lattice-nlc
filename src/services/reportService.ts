@@ -10,6 +10,7 @@ import type {
   BusinessReport,
 } from "../models";
 import { CATEGORY_META } from "../data/catalog";
+import { offerSavingsPerRedemption } from "../utils/offerPricing";
 
 export type ReportData = {
   claims: Claim[];
@@ -41,15 +42,14 @@ export function rangeToFromDate(preset: RangePreset, now = new Date()): string |
   return from.toISOString();
 }
 
-/** Estimated savings = Σ(originalPrice − price) over redeemed claims. */
+/** Estimated savings summed over redeemed claims (percent offers contribute 0). */
 export function calculateEstimatedSavings(claims: Claim[], offers: Offer[]): number {
   const byId = new Map(offers.map((o) => [o.id, o]));
   return claims
     .filter((c) => c.status === "redeemed")
     .reduce((sum, c) => {
       const offer = byId.get(c.offerId);
-      if (offer?.originalPrice) return sum + (offer.originalPrice - offer.price);
-      return sum;
+      return offer ? sum + offerSavingsPerRedemption(offer) : sum;
     }, 0);
 }
 
@@ -80,7 +80,7 @@ export function groupSavingsByMonth(claims: Claim[], offers: Offer[]): SeriesPoi
   for (const c of claims) {
     if (c.status !== "redeemed") continue;
     const offer = byId.get(c.offerId);
-    const saving = offer?.originalPrice ? offer.originalPrice - offer.price : 0;
+    const saving = offer ? offerSavingsPerRedemption(offer) : 0;
     const label = monthLabel(c.redeemedAt ?? c.createdAt);
     months.set(label, (months.get(label) ?? 0) + saving);
   }

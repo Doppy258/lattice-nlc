@@ -8,10 +8,11 @@ import { LatticeMark } from "@/components/layout/LatticeMark";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { AddressAutocomplete } from "@/components/common/AddressAutocomplete";
 import { AuthError, AuthShell } from "./authShared";
 import { ALL_CATEGORIES, CATEGORY_META } from "@/data/catalog";
 import { upsertBusiness } from "@/services/dbService";
-import type { Business, BusinessCategory } from "@/models";
+import type { Business, BusinessCategory, GeoPoint } from "@/models";
 import { createId } from "@/utils/ids";
 
 export function BusinessOnboardingPage() {
@@ -20,10 +21,16 @@ export function BusinessOnboardingPage() {
   const [category, setCategory] = useState<BusinessCategory>("food");
   const [description, setDescription] = useState("");
   const [address, setAddress] = useState("");
+  const [businessLocation, setBusinessLocation] = useState<GeoPoint | null>(null);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const categoryLabel = useMemo(() => CATEGORY_META[category].label.toLowerCase(), [category]);
+
+  function handleAddressSelect(fullAddress: string, location: GeoPoint) {
+    setAddress(fullAddress);
+    setBusinessLocation(location);
+  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -37,8 +44,8 @@ export function BusinessOnboardingPage() {
       setError("Add a short description so customers know what you offer.");
       return;
     }
-    if (address.trim().length < 4) {
-      setError("Enter a storefront address.");
+    if (!businessLocation) {
+      setError("Select a location from the address dropdown.");
       return;
     }
 
@@ -49,7 +56,7 @@ export function BusinessOnboardingPage() {
       category,
       description: description.trim(),
       address: address.trim(),
-      location: { lat: 43.6532, lng: -79.3832 },
+      location: businessLocation,
       hours: [],
       ratingAverage: 0,
       reviewCount: 0,
@@ -72,7 +79,6 @@ export function BusinessOnboardingPage() {
     const err = await completeOnboarding({
       role: "businessOwner",
       name: activeUser.name,
-      homeLocationId: activeUser.homeLocationId || "origin_school",
       preferences: activeUser.preferences,
     });
     setSubmitting(false);
@@ -138,12 +144,19 @@ export function BusinessOnboardingPage() {
         </FormField>
 
         <FormField label="Address" htmlFor="business-address" required>
-          <Input
+          <AddressAutocomplete
             id="business-address"
             value={address}
-            onChange={(e) => setAddress(e.target.value)}
-            placeholder="123 College Street"
+            onChange={setAddress}
+            onSelect={handleAddressSelect}
+            placeholder="Search for your business address"
+            autoFocus={false}
           />
+          {businessLocation && (
+            <p className="flex items-center gap-1 text-[12px] text-[var(--success)]">
+              <Icon name="check" size={13} /> Location set from dropdown
+            </p>
+          )}
         </FormField>
 
         <Button

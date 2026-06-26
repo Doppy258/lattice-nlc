@@ -6,7 +6,6 @@ export type AuthError = { message: string };
 
 const DEFAULT_METADATA = {
   role: "customer",
-  homeLocationId: "origin_school",
   onboarded: false,
   preferredCategories: [] as string[],
   maxDefaultDistanceKm: 3,
@@ -31,7 +30,7 @@ export function userFromSession(s: Session): User {
     name: m.name ?? s.user.email?.split("@")[0] ?? "User",
     email: s.user.email ?? "",
     role: m.role ?? "customer",
-    homeLocationId: m.homeLocationId ?? "origin_school",
+    location: null,
     verified: false,
     createdAt: s.user.created_at ?? new Date().toISOString(),
     preferences: {
@@ -138,7 +137,6 @@ export async function saveOnboardingMetadata(
   const metadata = {
     onboarded: true,
     ...(updates.role ? { role: updates.role } : {}),
-    ...(updates.homeLocationId ? { homeLocationId: updates.homeLocationId } : {}),
     ...(updates.preferences ?? {}),
   };
 
