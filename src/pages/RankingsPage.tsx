@@ -22,6 +22,7 @@ import {
   type ComparisonAnswer,
   type InsertionSession,
 } from "@/services/rankingService";
+import { getUserClaimedBusinessIds } from "@/services/claimService";
 import { ALL_CATEGORIES, CATEGORY_META } from "@/data/catalog";
 import { formatRating } from "@/utils/formatting";
 import type { BusinessCategory } from "@/models";
@@ -38,9 +39,16 @@ export function RankingsPage() {
     [activeUser.id, category, data.rankings],
   );
 
+  // You can only rank businesses you've actually claimed an offer from — ranking
+  // is a verified, post-claim action, mirroring how reviews unlock after redemption.
+  const claimedBusinessIds = useMemo(
+    () => getUserClaimedBusinessIds(activeUser.id, data.claims),
+    [activeUser.id, data.claims],
+  );
+
   const inCategory = useMemo(
-    () => data.businesses.filter((b) => b.category === category),
-    [data.businesses, category],
+    () => data.businesses.filter((b) => b.category === category && claimedBusinessIds.has(b.id)),
+    [data.businesses, category, claimedBusinessIds],
   );
   const rankedBusinesses = ranking.rankedBusinessIds
     .map((id) => inCategory.find((b) => b.id === id))
@@ -97,7 +105,7 @@ export function RankingsPage() {
       <PageHeader
         title="Your personal"
         accent="rankings"
-        subtitle="Rank the businesses you've tried with quick head-to-head comparisons. Lattice uses binary insertion, so you only answer a handful of questions to place each one."
+        subtitle="Rank the businesses whose offers you've claimed with quick head-to-head comparisons. Lattice uses binary insertion, so you only answer a handful of questions to place each one."
       />
 
       <ChipGroup>
@@ -166,11 +174,22 @@ export function RankingsPage() {
 
         <section className="space-y-3">
           <h2 className="font-display text-[20px] font-semibold tracking-[-0.03em]">Add to your ranking</h2>
-          {unranked.length === 0 ? (
+          {inCategory.length === 0 ? (
+            <EmptyState
+              icon="claims"
+              title="Nothing to rank yet"
+              body={`Claim an offer from a ${CATEGORY_META[category].label.toLowerCase()} business and it'll show up here, ready to rank.`}
+              action={
+                <Button variant="brand" iconLeft={<Icon name="explore" size={17} />} onClick={() => navigate("/explore")}>
+                  Explore offers
+                </Button>
+              }
+            />
+          ) : unranked.length === 0 ? (
             <EmptyState
               icon="rankings"
               title="Everything's ranked"
-              body={`You've ranked every ${CATEGORY_META[category].label.toLowerCase()} business. Try another category.`}
+              body={`You've ranked every ${CATEGORY_META[category].label.toLowerCase()} business you've claimed. Try another category.`}
             />
           ) : (
             <div className="space-y-2.5">
