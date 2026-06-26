@@ -10,6 +10,13 @@ export type OfferType =
   | "freeTrial"
   | "bundle";
 
+/**
+ * How a discount is expressed. Determines what the card shows and which
+ * pricing fields are meaningful. `undefined` is treated as "fixedPrice"
+ * for backward compatibility with offers created before this field existed.
+ */
+export type DiscountKind = "fixedPrice" | "percent" | "amountOff";
+
 export type Offer = {
   id: string;
   businessId: string;
@@ -17,8 +24,15 @@ export type Offer = {
   description: string;
   category: BusinessCategory;
   offerType: OfferType;
+  /** Defaults to "fixedPrice" when absent. */
+  discountKind?: DiscountKind;
+  /** Final price the customer pays. 0 for percent/amountOff offers (no fixed price). */
   price: number;
   originalPrice?: number;
+  /** Percentage off (1–100), used when discountKind === "percent". */
+  percentOff?: number;
+  /** Flat dollars off, used when discountKind === "amountOff". */
+  amountOff?: number;
   validFrom: string;
   validUntil: string;
   /** Total redemption limit across all customers. */

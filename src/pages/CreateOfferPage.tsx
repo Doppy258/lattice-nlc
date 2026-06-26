@@ -23,7 +23,13 @@ import {
   type OfferInput,
 } from "@/services/offerService";
 import { ALL_OFFER_TYPES, OFFER_TYPE_LABELS } from "@/data/catalog";
-import type { Offer, OfferType } from "@/models";
+import type { DiscountKind, Offer, OfferType } from "@/models";
+
+const DISCOUNT_KINDS: { value: DiscountKind; label: string }[] = [
+  { value: "fixedPrice", label: "Fixed price" },
+  { value: "percent", label: "Percent off" },
+  { value: "amountOff", label: "Amount off" },
+];
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 const DESC_MAX = 240;
@@ -59,10 +65,15 @@ export function CreateOfferPage() {
   const [title, setTitle] = useState(() => existing?.title ?? "");
   const [description, setDescription] = useState(() => existing?.description ?? "");
   const [offerType, setOfferType] = useState<OfferType>(() => existing?.offerType ?? "discount");
+  const [discountKind, setDiscountKind] = useState<DiscountKind>(
+    () => existing?.discountKind ?? "fixedPrice",
+  );
   const [price, setPrice] = useState<number>(() => existing?.price ?? 0);
   const [originalPrice, setOriginalPrice] = useState<number | undefined>(
     () => existing?.originalPrice,
   );
+  const [percentOff, setPercentOff] = useState<number | undefined>(() => existing?.percentOff);
+  const [amountOff, setAmountOff] = useState<number | undefined>(() => existing?.amountOff);
   const [validFrom, setValidFrom] = useState(() =>
     toLocalInputValue(existing ? new Date(existing.validFrom) : new Date()),
   );
@@ -85,8 +96,11 @@ export function CreateOfferPage() {
       title,
       description,
       offerType,
+      discountKind,
       price,
       originalPrice,
+      percentOff,
+      amountOff,
       validFrom: localToIso(validFrom),
       validUntil: localToIso(validUntil),
       maxClaims,
@@ -100,8 +114,11 @@ export function CreateOfferPage() {
       title,
       description,
       offerType,
+      discountKind,
       price,
       originalPrice,
+      percentOff,
+      amountOff,
       validFrom,
       validUntil,
       maxClaims,
@@ -232,40 +249,106 @@ export function CreateOfferPage() {
             </Select>
           </FormField>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <FormField label="Price" htmlFor="offer-price" required error={errors.price}>
-              <Input
-                id="offer-price"
-                type="number"
-                min={0}
-                step={0.01}
-                inputMode="decimal"
-                placeholder="0.00"
-                value={price === 0 ? "" : price}
-                onChange={(e) => setPrice(e.target.value === "" ? 0 : Number(e.target.value))}
-                aria-invalid={!!errors.price}
-              />
-            </FormField>
+          <FormField label="Discount type" hint="Choose how this deal is priced.">
+            <ChipGroup>
+              {DISCOUNT_KINDS.map((k) => (
+                <ToggleChip
+                  key={k.value}
+                  type="button"
+                  active={discountKind === k.value}
+                  onClick={() => setDiscountKind(k.value)}
+                >
+                  {k.label}
+                </ToggleChip>
+              ))}
+            </ChipGroup>
+          </FormField>
+
+          {discountKind === "fixedPrice" && (
+            <div className="grid gap-4 sm:grid-cols-2">
+              <FormField label="Price" htmlFor="offer-price" required error={errors.price}>
+                <Input
+                  id="offer-price"
+                  type="number"
+                  min={0}
+                  step={0.01}
+                  inputMode="decimal"
+                  placeholder="0.00"
+                  value={price === 0 ? "" : price}
+                  onChange={(e) => setPrice(e.target.value === "" ? 0 : Number(e.target.value))}
+                  aria-invalid={!!errors.price}
+                />
+              </FormField>
+              <FormField
+                label="Original price"
+                htmlFor="offer-original-price"
+                error={errors.originalPrice}
+                hint="Optional — shown struck-through to highlight savings."
+              >
+                <Input
+                  id="offer-original-price"
+                  type="number"
+                  min={0}
+                  step={0.01}
+                  inputMode="decimal"
+                  value={originalPrice ?? ""}
+                  onChange={(e) =>
+                    setOriginalPrice(e.target.value === "" ? undefined : Number(e.target.value))
+                  }
+                  aria-invalid={!!errors.originalPrice}
+                />
+              </FormField>
+            </div>
+          )}
+
+          {discountKind === "percent" && (
             <FormField
-              label="Original price"
-              htmlFor="offer-original-price"
-              error={errors.originalPrice}
-              hint="Optional — shown struck-through to highlight savings."
+              label="Percent off"
+              htmlFor="offer-percent-off"
+              required
+              error={errors.percentOff}
+              hint="Shown on the card as e.g. “20% off”."
             >
               <Input
-                id="offer-original-price"
+                id="offer-percent-off"
+                type="number"
+                min={1}
+                max={100}
+                step={1}
+                inputMode="numeric"
+                placeholder="20"
+                value={percentOff ?? ""}
+                onChange={(e) =>
+                  setPercentOff(e.target.value === "" ? undefined : Number(e.target.value))
+                }
+                aria-invalid={!!errors.percentOff}
+              />
+            </FormField>
+          )}
+
+          {discountKind === "amountOff" && (
+            <FormField
+              label="Amount off ($)"
+              htmlFor="offer-amount-off"
+              required
+              error={errors.amountOff}
+              hint="Shown on the card as e.g. “$5 off”."
+            >
+              <Input
+                id="offer-amount-off"
                 type="number"
                 min={0}
                 step={0.01}
                 inputMode="decimal"
-                value={originalPrice ?? ""}
+                placeholder="5.00"
+                value={amountOff ?? ""}
                 onChange={(e) =>
-                  setOriginalPrice(e.target.value === "" ? undefined : Number(e.target.value))
+                  setAmountOff(e.target.value === "" ? undefined : Number(e.target.value))
                 }
-                aria-invalid={!!errors.originalPrice}
+                aria-invalid={!!errors.amountOff}
               />
             </FormField>
-          </div>
+          )}
 
           <div className="grid gap-4 sm:grid-cols-2">
             <FormField label="Starts" htmlFor="offer-valid-from">

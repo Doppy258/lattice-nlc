@@ -7,10 +7,11 @@ import { Card } from "@/components/common/Card";
 import { Icon } from "@/components/common/Icon";
 import { RatingStars } from "@/components/common/RatingStars";
 import { formatCurrency, formatDistance, formatRating, relativeTime } from "@/utils/formatting";
+import { getOfferPricing } from "@/utils/offerPricing";
 import { cn } from "@/lib/utils";
 import { BusinessImage } from "./BusinessImage";
 import { MatchScoreBadge } from "./MatchScoreBadge";
-import { MatchReasons } from "./MatchReasons";
+import { MatchReasonsDisclosure } from "./MatchReasonsDisclosure";
 
 export function OfferCard({
   offer,
@@ -36,17 +37,14 @@ export function OfferCard({
   className?: string;
 }) {
   const full = offer.currentClaims >= offer.maxClaims;
-  const savings =
-    offer.originalPrice && offer.originalPrice > offer.price
-      ? offer.originalPrice - offer.price
-      : 0;
+  const pricing = getOfferPricing(offer);
 
   return (
     <Card variant="interactive" className={cn("flex flex-col overflow-hidden", className)}>
       <BusinessImage business={business} className="h-40 w-full">
-        {savings > 0 && (
+        {pricing.badge && (
           <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-card/85 px-2.5 py-1 text-xs font-semibold text-[var(--success)] shadow-[var(--shadow-soft)] backdrop-blur-sm">
-            Save {formatCurrency(savings)}
+            {pricing.badge}
           </span>
         )}
         {onSave && (
@@ -79,17 +77,17 @@ export function OfferCard({
           </h3>
         </div>
 
-        <p className="line-clamp-2 text-[13px] leading-relaxed text-muted-foreground">
+        <p className="line-clamp-2 min-h-[2.5rem] text-[13px] leading-relaxed text-muted-foreground">
           {offer.description}
         </p>
 
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
           <span className="font-display text-[26px] font-semibold leading-none tracking-[-0.03em] text-foreground">
-            {formatCurrency(offer.price)}
+            {pricing.headline}
           </span>
-          {savings > 0 && (
+          {pricing.kind === "fixedPrice" && pricing.savings > 0 && (
             <span className="text-sm text-muted-foreground line-through">
-              {formatCurrency(offer.originalPrice!)}
+              {formatCurrency(pricing.originalPrice!)}
             </span>
           )}
           {offer.studentOnly && (
@@ -116,9 +114,7 @@ export function OfferCard({
         </div>
 
         {match && match.reasons.length > 0 && (
-          <div className="rounded-2xl border border-[var(--tint-blue-border)] bg-[var(--tint-blue)] p-3.5">
-            <MatchReasons reasons={match.reasons} />
-          </div>
+          <MatchReasonsDisclosure reasons={match.reasons} score={match.score} />
         )}
 
         <div className="mt-auto pt-1">
