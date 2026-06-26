@@ -23,6 +23,7 @@ import {
 } from "@/services/redemptionService";
 import { getUserById } from "@/services/userService";
 import { formatCurrency, initials, relativeTime } from "@/utils/formatting";
+import { getOfferPricing, offerSavingsPerRedemption } from "@/utils/offerPricing";
 import type { Claim, Offer } from "@/models";
 import { toast } from "sonner";
 
@@ -137,7 +138,8 @@ export function RedeemPage() {
     // Persist the redeemed status so the customer's pass updates on their device.
     void upsertClaim(redeemedPass);
     const offer = candidate.offer;
-    const savings = offer?.originalPrice != null ? offer.originalPrice - offer.price : null;
+    const saved = offer ? offerSavingsPerRedemption(offer) : 0;
+    const savings = saved > 0 ? saved : null;
     setSuccess({
       offerTitle: offer?.title ?? "Offer",
       customerName: candidate.customerName,
@@ -226,17 +228,24 @@ export function RedeemPage() {
                       <span className="text-muted-foreground">Offer</span>
                       <span className="font-semibold text-foreground">{candidate.offer?.title ?? "Offer"}</span>
                     </div>
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="text-muted-foreground">Price</span>
-                      <span className="font-semibold text-foreground">
-                        {candidate.offer ? formatCurrency(candidate.offer.price) : "—"}
-                        {candidate.offer?.originalPrice != null && (
-                          <span className="ml-1.5 text-[13px] font-normal text-muted-foreground line-through">
-                            {formatCurrency(candidate.offer.originalPrice)}
+                    {(() => {
+                      const pricing = candidate.offer ? getOfferPricing(candidate.offer) : null;
+                      return (
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="text-muted-foreground">
+                            {pricing?.kind === "fixedPrice" ? "Price" : "Discount"}
                           </span>
-                        )}
-                      </span>
-                    </div>
+                          <span className="font-semibold text-foreground">
+                            {pricing ? pricing.headline : "—"}
+                            {pricing?.kind === "fixedPrice" && pricing.savings > 0 && (
+                              <span className="ml-1.5 text-[13px] font-normal text-muted-foreground line-through">
+                                {formatCurrency(pricing.originalPrice!)}
+                              </span>
+                            )}
+                          </span>
+                        </div>
+                      );
+                    })()}
                     <div className="flex items-center justify-between gap-3">
                       <span className="text-muted-foreground">Pass expires</span>
                       <span className="font-medium text-foreground">{relativeTime(candidate.pass.expiresAt)}</span>

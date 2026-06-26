@@ -10,17 +10,24 @@ import type {
 import { OFFER_RANK_WEIGHTS, RELATED_CATEGORIES } from "../utils/constants";
 import { distanceKm, roundKm } from "../utils/distance";
 import { isBusinessOpenDuring } from "../utils/dateTime";
-import { DEMO_ORIGINS } from "../data/catalog";
 
-/** Resolves the distance anchor for a user (their seeded home origin). */
+const FALLBACK_ORIGIN: GeoPoint = { lat: 29.4241, lng: -98.4936 };
+
+/** Resolves the distance anchor for a user — uses their live geolocation or a fallback. */
 export function getOriginPoint(user: User | undefined): GeoPoint {
-  const origin = DEMO_ORIGINS.find((o) => o.id === user?.homeLocationId);
-  return (origin ?? DEMO_ORIGINS[0]).location;
+  return user?.location ?? FALLBACK_ORIGIN;
 }
 
-/** 100 exact category, 60 related, 0 unrelated. */
+/**
+ * 100 exact category + exact need, 75 same category but a different need,
+ * 60 related category, 0 unrelated. Offers without a declared need fall back to
+ * a full category match (100) so legacy offers aren't penalized.
+ */
 export function calculateCategoryScore(request: PingRequest, offer: Offer): number {
-  if (offer.category === request.category) return 100;
+  if (offer.category === request.category) {
+    if (offer.needType === undefined) return 100; // legacy offer, no need declared
+    return offer.needType === request.needType ? 100 : 75; // exact need vs other need in-category
+  }
   if (RELATED_CATEGORIES[request.category]?.includes(offer.category)) return 60;
   return 0;
 }
@@ -31,7 +38,7 @@ export function calculateBudgetScore(
   offer: Offer,
   business: Business
 ): number {
-  if (request.budgetMax === undefined) return 100; // "No budget" selected.
+  if (request.budgetMax == null) return 100; // "No budget" selected.
   if (offer.price <= request.budgetMax) return 100;
   if (offer.price <= request.budgetMax * 1.15) return 70;
   if (business.ratingAverage >= 4.5) return 30;
@@ -55,16 +62,21 @@ export function calculateRatingScore(business: Business): number {
   return Math.round((business.ratingAverage / 5) * 100);
 }
 
+/** Whether the offer is live at any point during the request's time window. */
+export function offerOverlapsWindow(offer: Offer, request: PingRequest): boolean {
+  return (
+    Date.parse(offer.validUntil) >= Date.parse(request.timeStart) &&
+    Date.parse(offer.validFrom) <= Date.parse(request.timeEnd)
+  );
+}
+
 /** 100 fully available, 50 partially, 0 unavailable during the window. */
 export function calculateTimeScore(
   request: PingRequest,
   offer: Offer,
   business: Business
 ): number {
-  const offerOverlaps =
-    Date.parse(offer.validUntil) >= Date.parse(request.timeStart) &&
-    Date.parse(offer.validFrom) <= Date.parse(request.timeEnd);
-  if (!offerOverlaps) return 0;
+  if (!offerOverlapsWindow(offer, request)) return 0;
   const open = isBusinessOpenDuring(business.hours, request.timeStart, request.timeEnd);
   return open === "full" ? 100 : open === "partial" ? 50 : 0;
 }
@@ -158,6 +170,9 @@ export function generateMatchReasons(
   origin: GeoPoint
 ): string[] {
   const reasons: string[] = [];
+  if (offer.needType && offer.needType === request.needType) {
+    reasons.push("Exactly what you're looking for");
+  }
   if (breakdown.budgetScore >= 70) reasons.push("Fits your budget");
   if (breakdown.timeScore >= 100) reasons.push("Open during your requested time");
   else if (breakdown.timeScore >= 50) reasons.push("Partly open during your window");
@@ -171,8 +186,28 @@ export function generateMatchReasons(
 }
 
 /**
+ * Hard eligibility gate: an offer must satisfy every spec the user set before it
+ * can be ranked. OfferRank then orders the survivors — this is what makes the
+ * Create-a-Lattice specs actually constrain the result set rather than just
+ * reorder the whole catalog. Each clause reuses the corresponding subscore.
+ */
+export function isOfferEligible(
+  request: PingRequest,
+  offer: Offer,
+  business: Business,
+  origin: GeoPoint
+): boolean {
+  if (calculateCategoryScore(request, offer) <= 0) return false; // right category (exact/related)
+  if (calculateDistanceScore(request, business, origin) <= 0) return false; // within the radius
+  if (calculateBudgetScore(request, offer, business) <= 0) return false; // within (or near) budget
+  if (calculateTimeScore(request, offer, business) <= 0) return false; // business open + offer valid in-window
+  return true;
+}
+
+/**
  * Ranks active offers for a request, best match first. Each result carries its
- * score, breakdown, and reasons (the OfferRank intelligent feature).
+ * score, breakdown, and reasons (the OfferRank intelligent feature). Offers that
+ * fail the hard eligibility gate (isOfferEligible) are excluded before ranking.
  */
 export function getMatchingOffers(
   request: PingRequest,
@@ -189,6 +224,7 @@ export function getMatchingOffers(
     if (!offer.active) continue;
     const business = byId.get(offer.businessId);
     if (!business) continue;
+    if (!isOfferEligible(request, offer, business, origin)) continue;
     const { score, breakdown } = calculateOfferScore(request, offer, business, user, origin);
     if (score <= 0) continue;
     results.push({

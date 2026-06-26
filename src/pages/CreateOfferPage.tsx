@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef } from "react";
 import { useApp } from "@/app/providers";
 import { useHashRoute, navigate } from "@/app/navigation";
 import { toast } from "sonner";
@@ -15,6 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select } from "@/components/ui/select";
 import { OfferCard } from "@/components/domain/OfferCard";
 import { upsertOffer } from "@/services/dbService";
+import { cn } from "@/lib/utils";
 import {
   createOffer,
   updateOffer,
@@ -22,8 +23,19 @@ import {
   getOwnerOffers,
   type OfferInput,
 } from "@/services/offerService";
-import { ALL_OFFER_TYPES, OFFER_TYPE_LABELS } from "@/data/catalog";
-import type { Offer, OfferType } from "@/models";
+import {
+  ALL_OFFER_TYPES,
+  OFFER_TYPE_LABELS,
+  NEED_TYPES_BY_CATEGORY,
+  NEED_TYPE_LABELS,
+} from "@/data/catalog";
+import type { DiscountKind, NeedType, Offer, OfferType } from "@/models";
+
+const DISCOUNT_KINDS: { value: DiscountKind; label: string }[] = [
+  { value: "fixedPrice", label: "Fixed price" },
+  { value: "percent", label: "Percent off" },
+  { value: "amountOff", label: "Amount off" },
+];
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 const DESC_MAX = 240;
@@ -59,10 +71,18 @@ export function CreateOfferPage() {
   const [title, setTitle] = useState(() => existing?.title ?? "");
   const [description, setDescription] = useState(() => existing?.description ?? "");
   const [offerType, setOfferType] = useState<OfferType>(() => existing?.offerType ?? "discount");
+  const [needType, setNeedType] = useState<NeedType | undefined>(
+    () => existing?.needType ?? (activeBusiness ? NEED_TYPES_BY_CATEGORY[activeBusiness.category][0] : undefined),
+  );
+  const [discountKind, setDiscountKind] = useState<DiscountKind>(
+    () => existing?.discountKind ?? "fixedPrice",
+  );
   const [price, setPrice] = useState<number>(() => existing?.price ?? 0);
   const [originalPrice, setOriginalPrice] = useState<number | undefined>(
     () => existing?.originalPrice,
   );
+  const [percentOff, setPercentOff] = useState<number | undefined>(() => existing?.percentOff);
+  const [amountOff, setAmountOff] = useState<number | undefined>(() => existing?.amountOff);
   const [validFrom, setValidFrom] = useState(() =>
     toLocalInputValue(existing ? new Date(existing.validFrom) : new Date()),
   );
@@ -79,14 +99,33 @@ export function CreateOfferPage() {
   const [redemptionWindowMinutes, setRedemptionWindowMinutes] = useState<number>(
     () => existing?.redemptionWindowMinutes ?? 5,
   );
+  const [imageUrl, setImageUrl] = useState<string | undefined>(() => existing?.imageUrl);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setImageUrl(reader.result as string);
+    reader.readAsDataURL(file);
+  }
+
+  function clearImage() {
+    setImageUrl(undefined);
+    if (fileRef.current) fileRef.current.value = "";
+  }
 
   const input: OfferInput = useMemo(
     () => ({
       title,
       description,
       offerType,
+      needType,
+      discountKind,
       price,
       originalPrice,
+      percentOff,
+      amountOff,
       validFrom: localToIso(validFrom),
       validUntil: localToIso(validUntil),
       maxClaims,
@@ -95,13 +134,18 @@ export function CreateOfferPage() {
       verificationRequired,
       oneTimePerUser,
       redemptionWindowMinutes,
+      imageUrl,
     }),
     [
       title,
       description,
       offerType,
+      needType,
+      discountKind,
       price,
       originalPrice,
+      percentOff,
+      amountOff,
       validFrom,
       validUntil,
       maxClaims,
@@ -110,6 +154,7 @@ export function CreateOfferPage() {
       verificationRequired,
       oneTimePerUser,
       redemptionWindowMinutes,
+      imageUrl,
     ],
   );
 
@@ -232,40 +277,124 @@ export function CreateOfferPage() {
             </Select>
           </FormField>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <FormField label="Price" htmlFor="offer-price" required error={errors.price}>
-              <Input
-                id="offer-price"
-                type="number"
-                min={0}
-                step={0.01}
-                inputMode="decimal"
-                placeholder="0.00"
-                value={price === 0 ? "" : price}
-                onChange={(e) => setPrice(e.target.value === "" ? 0 : Number(e.target.value))}
-                aria-invalid={!!errors.price}
-              />
-            </FormField>
+          <FormField
+            label="What's this offer for?"
+            htmlFor="offer-need-type"
+            hint="Helps students who request this exact need find you first."
+          >
+            <Select
+              id="offer-need-type"
+              value={needType ?? ""}
+              onChange={(e) => setNeedType(e.target.value as NeedType)}
+            >
+              {NEED_TYPES_BY_CATEGORY[activeBusiness.category].map((nt) => (
+                <option key={nt} value={nt}>
+                  {NEED_TYPE_LABELS[nt]}
+                </option>
+              ))}
+            </Select>
+          </FormField>
+
+          <FormField label="Discount type" hint="Choose how this deal is priced.">
+            <ChipGroup>
+              {DISCOUNT_KINDS.map((k) => (
+                <ToggleChip
+                  key={k.value}
+                  type="button"
+                  active={discountKind === k.value}
+                  onClick={() => setDiscountKind(k.value)}
+                >
+                  {k.label}
+                </ToggleChip>
+              ))}
+            </ChipGroup>
+          </FormField>
+
+          {discountKind === "fixedPrice" && (
+            <div className="grid gap-4 sm:grid-cols-2">
+              <FormField label="Price" htmlFor="offer-price" required error={errors.price}>
+                <Input
+                  id="offer-price"
+                  type="number"
+                  min={0}
+                  step={0.01}
+                  inputMode="decimal"
+                  placeholder="0.00"
+                  value={price === 0 ? "" : price}
+                  onChange={(e) => setPrice(e.target.value === "" ? 0 : Number(e.target.value))}
+                  aria-invalid={!!errors.price}
+                />
+              </FormField>
+              <FormField
+                label="Original price"
+                htmlFor="offer-original-price"
+                error={errors.originalPrice}
+                hint="Optional — shown struck-through to highlight savings."
+              >
+                <Input
+                  id="offer-original-price"
+                  type="number"
+                  min={0}
+                  step={0.01}
+                  inputMode="decimal"
+                  value={originalPrice ?? ""}
+                  onChange={(e) =>
+                    setOriginalPrice(e.target.value === "" ? undefined : Number(e.target.value))
+                  }
+                  aria-invalid={!!errors.originalPrice}
+                />
+              </FormField>
+            </div>
+          )}
+
+          {discountKind === "percent" && (
             <FormField
-              label="Original price"
-              htmlFor="offer-original-price"
-              error={errors.originalPrice}
-              hint="Optional — shown struck-through to highlight savings."
+              label="Percent off"
+              htmlFor="offer-percent-off"
+              required
+              error={errors.percentOff}
+              hint="Shown on the card as e.g. “20% off”."
             >
               <Input
-                id="offer-original-price"
+                id="offer-percent-off"
+                type="number"
+                min={1}
+                max={100}
+                step={1}
+                inputMode="numeric"
+                placeholder="20"
+                value={percentOff ?? ""}
+                onChange={(e) =>
+                  setPercentOff(e.target.value === "" ? undefined : Number(e.target.value))
+                }
+                aria-invalid={!!errors.percentOff}
+              />
+            </FormField>
+          )}
+
+          {discountKind === "amountOff" && (
+            <FormField
+              label="Amount off ($)"
+              htmlFor="offer-amount-off"
+              required
+              error={errors.amountOff}
+              hint="Shown on the card as e.g. “$5 off”."
+            >
+              <Input
+                id="offer-amount-off"
                 type="number"
                 min={0}
                 step={0.01}
                 inputMode="decimal"
-                value={originalPrice ?? ""}
+                placeholder="5.00"
+                value={amountOff ?? ""}
                 onChange={(e) =>
-                  setOriginalPrice(e.target.value === "" ? undefined : Number(e.target.value))
+                  setAmountOff(e.target.value === "" ? undefined : Number(e.target.value))
                 }
-                aria-invalid={!!errors.originalPrice}
+                aria-invalid={!!errors.amountOff}
               />
             </FormField>
-          </div>
+          )}
 
           <div className="grid gap-4 sm:grid-cols-2">
             <FormField label="Starts" htmlFor="offer-valid-from">
@@ -361,6 +490,50 @@ export function CreateOfferPage() {
                 Requires verification
               </ToggleChip>
             </ChipGroup>
+          </FormField>
+
+          <FormField label="Offer image" hint="Optional. Upload a photo to make your offer stand out.">
+            <div className="flex items-center gap-3">
+              {imageUrl ? (
+                <div className="relative size-20 shrink-0 overflow-hidden rounded-xl">
+                  <img
+                    src={imageUrl}
+                    alt="Offer preview"
+                    className="size-full object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={clearImage}
+                    className="absolute right-0.5 top-0.5 grid size-5 cursor-pointer place-items-center rounded-full bg-black/50 text-white text-[11px] hover:bg-black/70"
+                  >
+                    ×
+                  </button>
+                </div>
+              ) : (
+                <div
+                  onClick={() => fileRef.current?.click()}
+                  className="flex size-20 shrink-0 cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-border bg-muted/30 text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
+                >
+                  <Icon name="store" size={22} />
+                </div>
+              )}
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="hidden"
+              />
+              {!imageUrl && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => fileRef.current?.click()}
+                >
+                  Browse…
+                </Button>
+              )}
+            </div>
           </FormField>
 
           <div className="space-y-2 pt-1">

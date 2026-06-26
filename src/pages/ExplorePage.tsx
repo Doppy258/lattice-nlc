@@ -10,6 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Stagger, StaggerItem } from "@/components/motion/Reveal";
 import { BusinessCard } from "@/components/domain/BusinessCard";
+import { ShareLocationButton } from "@/components/common/ShareLocationButton";
+import { useGeolocation } from "@/hooks/useGeolocation";
 import { getOriginPoint } from "@/services/offerMatchingService";
 import {
   activeDealCount,
@@ -32,12 +34,25 @@ const SORTS: { value: BusinessSort; label: string }[] = [
 
 export function ExplorePage() {
   const { data, activeUser, setData } = useApp();
+  const geolocation = useGeolocation();
   const origin = getOriginPoint(activeUser);
+
+  function handleShareLocation() {
+    geolocation.requestLocation();
+  }
+
+  if (geolocation.location && !activeUser.location) {
+    setData((d) => ({
+      ...d,
+      users: d.users.map((u) =>
+        u.id === activeUser.id ? { ...u, location: geolocation.location! } : u,
+      ),
+    }));
+  }
 
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<BusinessCategory | "all">("all");
   const [sort, setSort] = useState<BusinessSort>("highestRating");
-  const [dealsOnly, setDealsOnly] = useState(false);
 
   const results = useMemo(() => {
     const filtered = filterBusinesses(
@@ -45,13 +60,12 @@ export function ExplorePage() {
       {
         query: query.trim() || undefined,
         category: category === "all" ? undefined : category,
-        hasDeals: dealsOnly || undefined,
       },
       data.offers,
       origin,
     );
     return sortBusinesses(filtered, sort, data.offers, origin);
-  }, [data.businesses, data.offers, query, category, dealsOnly, sort, origin]);
+  }, [data.businesses, data.offers, query, category, sort, origin]);
 
   return (
     <div className="space-y-7">
@@ -110,15 +124,20 @@ export function ExplorePage() {
               </ToggleChip>
             ))}
           </ChipGroup>
-          <ToggleChip
-            active={dealsOnly}
-            onClick={() => setDealsOnly((v) => !v)}
-            icon={<Icon name="ticket" size={14} />}
-          >
-            Deals only
-          </ToggleChip>
         </div>
       </div>
+
+      {!activeUser.location && !geolocation.loading && !geolocation.error && (
+        <div className="flex items-center justify-between rounded-xl bg-[var(--tint-blue)] px-4 py-3">
+          <span className="text-[13px] text-[var(--primary-strong)]">Enable location for accurate distances</span>
+          <ShareLocationButton loading={false} error={null} onRequest={handleShareLocation} />
+        </div>
+      )}
+      {geolocation.error && (
+        <p className="rounded-xl bg-[var(--danger-tint)] px-3 py-2 text-[13px] font-medium text-destructive">
+          Could not get your location: {geolocation.error}
+        </p>
+      )}
 
       <div className="flex items-center justify-between">
         <p className="text-[13px] text-muted-foreground">
@@ -131,7 +150,7 @@ export function ExplorePage() {
           )}
         </p>
         <Badge tone="brand" icon={<Icon name="location" size={12} />}>
-          Near you
+          {activeUser.location ? "Live location" : "Near you"}
         </Badge>
       </div>
 

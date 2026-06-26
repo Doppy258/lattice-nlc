@@ -15,7 +15,7 @@ describe("hydrateAppData", () => {
   it("assembles AppData from all tables and de-dupes self from public_profiles", async () => {
     const client = fakeClient({
       profiles: [{
-        id: "self", name: "Me", email: "me@x.io", role: "customer", home_location_id: "origin_school",
+        id: "self", name: "Me", email: "me@x.io", role: "customer",
         verified: true, preferences: null, onboarding_complete: true, created_at: "t",
       }],
       public_profiles: [

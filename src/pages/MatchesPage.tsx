@@ -10,9 +10,12 @@ import { Icon, type IconName } from "@/components/common/Icon";
 import { Select } from "@/components/ui/select";
 import { Stagger, StaggerItem } from "@/components/motion/Reveal";
 import { OfferCard } from "@/components/domain/OfferCard";
+import { LatticeMap } from "@/components/domain/LatticeMap";
+import { ShareLocationButton } from "@/components/common/ShareLocationButton";
 import { useClaim } from "@/components/domain/useClaim";
 import { ClaimResultModal } from "@/components/domain/ClaimResultModal";
 import { BotCheckModal } from "@/components/domain/BotCheckModal";
+import { useGeolocation } from "@/hooks/useGeolocation";
 import { getMatchingOffers, getOriginPoint } from "@/services/offerMatchingService";
 import { distanceForBusiness } from "@/services/businessService";
 import { isBusinessSaved, isOfferSaved, toggleSavedOffer } from "@/services/userService";
@@ -36,10 +39,28 @@ export function MatchesPage() {
   const { data, activeUser, setData } = useApp();
   const { query } = useHashRoute();
   const { claim, result, clearResult, pendingClaim, confirmClaim, cancelClaim } = useClaim();
+  const geolocation = useGeolocation();
   const origin = getOriginPoint(activeUser);
 
+  function handleShareLocation() {
+    geolocation.requestLocation();
+  }
+
+  function saveLocation(loc: { lat: number; lng: number }) {
+    setData((d) => ({
+      ...d,
+      users: d.users.map((u) =>
+        u.id === activeUser.id ? { ...u, location: loc } : u,
+      ),
+    }));
+  }
+
+  if (geolocation.location && !activeUser.location) {
+    saveLocation(geolocation.location);
+  }
+
   const [sort, setSort] = useState<SortKey>("best");
-  const [filters, setFilters] = useState({ deals: false, student: false, verified: false, saved: false });
+  const [filters, setFilters] = useState({ deals: false, student: false, saved: false });
   const toggle = (k: keyof typeof filters) => setFilters((f) => ({ ...f, [k]: !f[k] }));
 
   const request: PingRequest | undefined = useMemo(() => {
@@ -67,7 +88,6 @@ export function MatchesPage() {
     let list = rows.filter((r) => {
       if (filters.deals && !(r.offer.originalPrice && r.offer.originalPrice > r.offer.price)) return false;
       if (filters.student && !r.offer.studentOnly) return false;
-      if (filters.verified && !r.business.verified) return false;
       if (filters.saved && !isBusinessSaved(activeUser, r.business.id)) return false;
       return true;
     });
@@ -110,9 +130,9 @@ export function MatchesPage() {
     {
       icon: "ticket" as IconName,
       text:
-        request.budgetMax !== undefined
+        request.budgetMax != null
           ? `under ${formatCurrency(request.budgetMax)}`
-          : request.budgetMin !== undefined
+          : request.budgetMin != null
             ? `${formatCurrency(request.budgetMin)}+`
             : "any budget",
     },
@@ -138,10 +158,22 @@ export function MatchesPage() {
             ))}
           </div>
         </div>
-        <Button variant="secondary" iconLeft={<Icon name="ping" size={16} />} onClick={() => navigate("/create")}>
+        <Button variant="secondary" iconLeft={<Icon name="ping" size={16} />} onClick={() => navigate(`/create?edit=${request.id}`)}>
           Edit request
         </Button>
       </Card>
+
+      {!activeUser.location && !geolocation.loading && !geolocation.error && (
+        <div className="flex items-center justify-between rounded-xl bg-[var(--tint-blue)] px-4 py-3">
+          <span className="text-[13px] text-[var(--primary-strong)]">Enable location for accurate distances</span>
+          <ShareLocationButton loading={false} error={null} onRequest={handleShareLocation} />
+        </div>
+      )}
+      {geolocation.error && (
+        <p className="rounded-xl bg-[var(--danger-tint)] px-3 py-2 text-[13px] font-medium text-destructive">
+          Could not get your location: {geolocation.error}
+        </p>
+      )}
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <ChipGroup>
@@ -150,9 +182,6 @@ export function MatchesPage() {
           </ToggleChip>
           <ToggleChip active={filters.student} onClick={() => toggle("student")}>
             Student discount
-          </ToggleChip>
-          <ToggleChip active={filters.verified} onClick={() => toggle("verified")}>
-            Verified only
           </ToggleChip>
           <ToggleChip active={filters.saved} onClick={() => toggle("saved")}>
             Saved
@@ -169,6 +198,19 @@ export function MatchesPage() {
           </Select>
         </div>
       </div>
+
+      {rows.length > 0 && (
+        <LatticeMap
+          userLocation={activeUser.location}
+          businesses={rows.map((r) => ({
+            id: r.business.id,
+            name: r.business.name,
+            location: r.business.location,
+          }))}
+          radiusKm={request.distanceKm}
+          onBusinessClick={(id) => navigate(`/business?id=${id}`)}
+        />
+      )}
 
       {visible.length === 0 ? (
         <EmptyState
@@ -189,7 +231,7 @@ export function MatchesPage() {
       ) : (
         <Stagger className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {visible.map((r) => (
-            <StaggerItem key={r.offer.id}>
+            <StaggerItem key={r.offer.id} className="h-full">
               <OfferCard
                 offer={r.offer}
                 business={r.business}
@@ -199,6 +241,7 @@ export function MatchesPage() {
                 onClaim={(o) => claim(o, request.id)}
                 onSave={(o) => setData((d) => toggleSavedOffer(d, activeUser.id, o.id))}
                 onView={(b) => navigate(`/business?id=${b.id}`)}
+                className="h-full"
               />
             </StaggerItem>
           ))}

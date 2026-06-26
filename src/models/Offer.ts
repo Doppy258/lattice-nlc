@@ -1,4 +1,5 @@
 import type { BusinessCategory } from "./Business";
+import type { NeedType } from "./PingRequest";
 
 export type OfferType =
   | "discount"
@@ -10,6 +11,13 @@ export type OfferType =
   | "freeTrial"
   | "bundle";
 
+/**
+ * How a discount is expressed. Determines what the card shows and which
+ * pricing fields are meaningful. `undefined` is treated as "fixedPrice"
+ * for backward compatibility with offers created before this field existed.
+ */
+export type DiscountKind = "fixedPrice" | "percent" | "amountOff";
+
 export type Offer = {
   id: string;
   businessId: string;
@@ -17,8 +25,21 @@ export type Offer = {
   description: string;
   category: BusinessCategory;
   offerType: OfferType;
+  /**
+   * The specific customer need this offer serves (e.g. "lunch", "haircut").
+   * Refines the category match so a request for the exact need ranks highest.
+   * Optional for backward compatibility with offers created before this field.
+   */
+  needType?: NeedType;
+  /** Defaults to "fixedPrice" when absent. */
+  discountKind?: DiscountKind;
+  /** Final price the customer pays. 0 for percent/amountOff offers (no fixed price). */
   price: number;
   originalPrice?: number;
+  /** Percentage off (1–100), used when discountKind === "percent". */
+  percentOff?: number;
+  /** Flat dollars off, used when discountKind === "amountOff". */
+  amountOff?: number;
   validFrom: string;
   validUntil: string;
   /** Total redemption limit across all customers. */
@@ -33,6 +54,8 @@ export type Offer = {
   oneTimePerUser: boolean;
   /** Minutes a Lattice Pass stays valid after a customer claims it (default 5). */
   redemptionWindowMinutes: number;
+  /** Optional offer-specific image (data URL or uploaded URL). Overrides business image when set. */
+  imageUrl?: string;
   active: boolean;
   createdAt: string;
 };

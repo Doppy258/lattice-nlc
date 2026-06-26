@@ -9,14 +9,17 @@ import { InsightSummary } from "@/components/common/InsightSummary";
 import { EmptyState } from "@/components/common/EmptyState";
 import { Stagger, StaggerItem } from "@/components/motion/Reveal";
 import { OfferCard } from "@/components/domain/OfferCard";
+import { ShareLocationButton } from "@/components/common/ShareLocationButton";
 import { useClaim } from "@/components/domain/useClaim";
 import { ClaimResultModal } from "@/components/domain/ClaimResultModal";
 import { BotCheckModal } from "@/components/domain/BotCheckModal";
+import { useGeolocation } from "@/hooks/useGeolocation";
 import { getMatchingOffers, getOriginPoint } from "@/services/offerMatchingService";
 import { distanceForBusiness } from "@/services/businessService";
 import { isOfferSaved, toggleSavedOffer } from "@/services/userService";
-import { DEMO_ORIGINS, NEED_TYPE_LABELS } from "@/data/catalog";
+import { NEED_TYPE_LABELS } from "@/data/catalog";
 import { formatCurrency, formatDistance } from "@/utils/formatting";
+import { offerSavingsPerRedemption } from "@/utils/offerPricing";
 import type { Offer, PingRequest } from "@/models";
 
 function greeting(): string {
@@ -27,18 +30,30 @@ function greeting(): string {
 }
 
 function budgetLabel(r: PingRequest): string {
-  if (r.budgetMax !== undefined) return `under ${formatCurrency(r.budgetMax)}`;
-  if (r.budgetMin !== undefined) return `${formatCurrency(r.budgetMin)}+`;
+  if (r.budgetMax != null) return `under ${formatCurrency(r.budgetMax)}`;
+  if (r.budgetMin != null) return `${formatCurrency(r.budgetMin)}+`;
   return "any budget";
 }
 
 export function HomePage() {
   const { data, activeUser, setData } = useApp();
   const { claim, result, clearResult, pendingClaim, confirmClaim, cancelClaim } = useClaim();
+  const geolocation = useGeolocation();
   const origin = getOriginPoint(activeUser);
   const firstName = activeUser.name.split(" ")[0];
-  const originName =
-    DEMO_ORIGINS.find((o) => o.id === activeUser.homeLocationId)?.name ?? DEMO_ORIGINS[0].name;
+
+  function handleShareLocation() {
+    geolocation.requestLocation();
+  }
+
+  if (geolocation.location && !activeUser.location) {
+    setData((d) => ({
+      ...d,
+      users: d.users.map((u) =>
+        u.id === activeUser.id ? { ...u, location: geolocation.location! } : u,
+      ),
+    }));
+  }
 
   const now = Date.now();
   const activeOffers = useMemo(
@@ -71,11 +86,10 @@ export function HomePage() {
         match: m,
       }));
     }
-    const savings = (o: Offer) => (o.originalPrice ?? o.price) - o.price;
     const affinity = (o: Offer) =>
       (prefCategories.includes(o.category) ? 1000 : 0) +
       (prefStudent && o.studentOnly ? 300 : 0) +
-      savings(o);
+      offerSavingsPerRedemption(o);
     return activeOffers
       .slice()
       .sort((a, b) => affinity(b) - affinity(a))
@@ -93,7 +107,7 @@ export function HomePage() {
       .filter((c) => c.status === "redeemed")
       .reduce((sum, c) => {
         const offer = data.offers.find((o) => o.id === c.offerId);
-        return offer?.originalPrice ? sum + (offer.originalPrice - offer.price) : sum;
+        return offer ? sum + offerSavingsPerRedemption(offer) : sum;
       }, 0);
   }, [myClaims, data.offers]);
 
@@ -103,9 +117,10 @@ export function HomePage() {
     <div className="space-y-7">
       <PageHero
         eyebrow={
-          <>
-            <Icon name="location" size={13} /> {originName}
-          </>
+          <span className="inline-flex items-center gap-1.5">
+            <Icon name="location" size={13} />
+            {activeUser.location ? "Using your location" : "Set your location for nearby offers"}
+          </span>
         }
         title="What do you need"
         accent="nearby?"
@@ -177,6 +192,18 @@ export function HomePage() {
             View matches <Icon name="arrow" size={16} />
           </span>
         </button>
+      )}
+
+      {!activeUser.location && !geolocation.loading && !geolocation.error && (
+        <div className="flex items-center justify-between rounded-xl bg-[var(--tint-blue)] px-4 py-3">
+          <span className="text-[13px] text-[var(--primary-strong)]">Enable location for nearby offers</span>
+          <ShareLocationButton loading={false} error={null} onRequest={handleShareLocation} />
+        </div>
+      )}
+      {geolocation.error && (
+        <p className="rounded-xl bg-[var(--danger-tint)] px-3 py-2 text-[13px] font-medium text-destructive">
+          Could not get your location: {geolocation.error}
+        </p>
       )}
 
       <section className="space-y-4">

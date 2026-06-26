@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Modal } from "@/components/common/Modal";
 import { Button } from "@/components/common/Button";
 import { Icon } from "@/components/common/Icon";
@@ -16,6 +16,90 @@ function newChallenge(length = 5): string {
     out += CHALLENGE_CHARS[Math.floor(Math.random() * CHALLENGE_CHARS.length)];
   }
   return out;
+}
+
+/**
+ * Paints the challenge onto a <canvas> as a genuinely distorted image — each
+ * glyph gets its own rotation, skew, offset and colour over a noisy background,
+ * so the text is human-readable but can't be copied or scraped from the DOM.
+ * A fresh drawing is produced whenever `text` changes.
+ */
+function CaptchaImage({ text }: { text: string }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext("2d");
+    if (!canvas || !ctx) return;
+
+    const rand = (min: number, max: number) => min + Math.random() * (max - min);
+    const W = 260;
+    const H = 88;
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
+    ctx.scale(dpr, dpr);
+
+    // Tinted background.
+    ctx.fillStyle = "#eef3fb";
+    ctx.fillRect(0, 0, W, H);
+
+    // Faint diagonal hatching for texture.
+    ctx.strokeStyle = "rgba(24,73,139,0.06)";
+    ctx.lineWidth = 1;
+    for (let x = -H; x < W; x += 9) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x + H, H);
+      ctx.stroke();
+    }
+
+    // Wavy lines drawn across the glyphs to defeat simple OCR.
+    for (let i = 0; i < 3; i++) {
+      ctx.strokeStyle = `rgba(24,73,139,${rand(0.14, 0.26)})`;
+      ctx.lineWidth = rand(1, 2);
+      ctx.beginPath();
+      ctx.moveTo(0, rand(12, H - 12));
+      for (let x = 0; x <= W; x += 14) ctx.lineTo(x, rand(8, H - 8));
+      ctx.stroke();
+    }
+
+    // Each character: own size, rotation, skew, vertical offset and blue shade.
+    const blues = ["#13386b", "#18498b", "#1f5fb0", "#2b6fc4"];
+    const slot = W / (text.length + 1);
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    for (let i = 0; i < text.length; i++) {
+      ctx.save();
+      ctx.translate(slot * (i + 1) + rand(-4, 4), H / 2 + rand(-7, 7));
+      ctx.rotate(rand(-0.42, 0.42));
+      ctx.transform(1, rand(-0.12, 0.12), rand(-0.28, 0.28), 1, 0, 0);
+      ctx.font = `700 ${rand(34, 44)}px ui-monospace, "SFMono-Regular", Menlo, monospace`;
+      ctx.fillStyle = blues[Math.floor(Math.random() * blues.length)];
+      ctx.shadowColor = "rgba(0,0,0,0.12)";
+      ctx.shadowBlur = 1.5;
+      ctx.shadowOffsetY = 1;
+      ctx.fillText(text[i], 0, 0);
+      ctx.restore();
+    }
+
+    // Speckle noise.
+    for (let i = 0; i < 42; i++) {
+      ctx.fillStyle = `rgba(24,73,139,${rand(0.05, 0.18)})`;
+      ctx.beginPath();
+      ctx.arc(rand(0, W), rand(0, H), rand(0.5, 1.6), 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }, [text]);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      role="img"
+      aria-label="Distorted verification code image"
+      className="h-[64px] w-full select-none rounded-2xl border border-border"
+    />
+  );
 }
 
 /**
@@ -109,29 +193,10 @@ export function BotCheckModal({
           </span>
         </label>
 
-        {/* Distorted CAPTCHA-style code (not plain selectable text). */}
+        {/* Distorted CAPTCHA image — randomized glyphs, not selectable text. */}
         <div className="flex items-center gap-3">
-          <div
-            aria-hidden
-            className="relative flex-1 select-none overflow-hidden rounded-2xl border border-border bg-[var(--brand-tint)] px-4 py-3 text-center"
-            style={{
-              backgroundImage:
-                "repeating-linear-gradient(45deg, transparent, transparent 7px, rgba(24,73,139,0.08) 7px, rgba(24,73,139,0.08) 8px)",
-            }}
-          >
-            <span className="mono inline-flex gap-1.5 text-[26px] font-bold tracking-[0.25em] text-[var(--primary-strong)]">
-              {challenge.split("").map((ch, i) => (
-                <span
-                  key={i}
-                  className="inline-block"
-                  style={{
-                    transform: `rotate(${(i % 2 === 0 ? -1 : 1) * (6 + i * 2)}deg) translateY(${i % 2 === 0 ? -1 : 2}px)`,
-                  }}
-                >
-                  {ch}
-                </span>
-              ))}
-            </span>
+          <div className="min-w-0 flex-1">
+            <CaptchaImage text={challenge} />
           </div>
           <Button
             type="button"
