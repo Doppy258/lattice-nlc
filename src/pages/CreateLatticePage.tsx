@@ -72,7 +72,7 @@ function Blank({
         className={cn(
           "group inline-flex max-w-full cursor-pointer items-center gap-1 rounded-xl px-2.5 py-0.5 align-middle font-semibold outline-none transition-all duration-200",
           filled
-            ? "bg-secondary text-primary ring-1 ring-inset ring-primary/20 hover:ring-primary/40"
+            ? "bg-secondary text-primary-strong ring-1 ring-inset ring-primary/20 hover:ring-primary/40"
             : "bg-accent/60 text-primary underline decoration-dashed decoration-primary/40 underline-offset-4 hover:bg-accent",
           invalid && !filled && "bg-[var(--danger-tint)] text-[var(--danger)] no-underline",
           "focus-visible:ring-2 focus-visible:ring-primary/40 data-[state=open]:ring-2 data-[state=open]:ring-primary/40",
@@ -189,9 +189,8 @@ export function CreateLatticePage() {
       timeStart,
       timeEnd,
       preferences,
-      optionalNote: note || undefined,
     }),
-    [activeUser.id, category, needType, budgetMin, budgetMax, distanceKm, timeStart, timeEnd, preferences, note],
+    [activeUser.id, category, needType, budgetMin, budgetMax, distanceKm, timeStart, timeEnd, preferences],
   );
 
   const validationExisting = useMemo(
@@ -304,7 +303,6 @@ export function CreateLatticePage() {
       timeStart: timeStart!,
       timeEnd: timeEnd!,
       preferences,
-      optionalNote: note || undefined,
       verifiedHuman: true,
       status: "submitted",
       createdAt: new Date().toISOString(),
@@ -350,7 +348,16 @@ export function CreateLatticePage() {
         subtitle="Fill in the blanks and we'll match you with verified local offers — by budget, timing, distance, and preferences."
       />
 
-      <Card variant="solid" className="p-6 sm:p-8">
+      <Card variant="solid" className="p-7 sm:p-9">
+        {/* Step marker — this card is the request, the first move in the flow — beside a live quality read */}
+        <div className="flex items-center justify-between gap-3">
+          <span className="mono inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+            <span className="size-1.5 rounded-[2px] bg-primary" aria-hidden="true" />
+            <span className="text-foreground">01</span>
+            <span className="text-muted-foreground/50">—</span>
+            Request
+          </span>
+        </div>
         <AnimatePresence>
           {category && (
             <motion.div
@@ -369,7 +376,7 @@ export function CreateLatticePage() {
         </AnimatePresence>
 
         {/* Mad-libs sentence — blanks reveal after a business type is picked */}
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-3 font-display text-[21px] leading-[1.65] tracking-[-0.01em] text-foreground sm:text-[25px]">
+        <div className="mt-7 flex flex-wrap items-center gap-x-2 gap-y-3 font-display text-[22px] leading-[1.7] tracking-[-0.015em] text-foreground sm:text-[26px]">
           <motion.span
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
@@ -442,7 +449,7 @@ export function CreateLatticePage() {
           </AnimatePresence>
 
               {budgetSel === "custom" && (
-                <span className="inline-flex items-center gap-1 rounded-xl bg-secondary px-2.5 py-0.5 text-primary ring-1 ring-inset ring-primary/20">
+                <span className="inline-flex items-center gap-1 rounded-xl bg-secondary px-2.5 py-0.5 text-primary-strong ring-1 ring-inset ring-primary/20">
                   <span>$</span>
                   <input
                     type="number"
@@ -452,7 +459,7 @@ export function CreateLatticePage() {
                     value={customBudget}
                     onChange={(e) => applyCustomBudget(e.target.value)}
                     aria-invalid={!!errors.budget}
-                    className="w-16 bg-transparent font-semibold text-primary outline-none placeholder:text-primary/40"
+                    className="w-16 bg-transparent font-semibold text-primary-strong outline-none placeholder:text-primary/40"
                   />
                 </span>
               )}
@@ -511,6 +518,11 @@ export function CreateLatticePage() {
               </motion.span>
             )}
           </AnimatePresence>
+          {!category && (
+            <span className="ml-2 text-[16px] leading-relaxed text-muted-foreground">
+              Choose a business type to begin.
+            </span>
+          )}
         </div>
 
         <AnimatePresence>
@@ -526,8 +538,11 @@ export function CreateLatticePage() {
                 transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
                 className="overflow-hidden"
               >
-                <div className="mt-5 grid gap-3 rounded-2xl bg-muted/50 p-4 sm:grid-cols-3">
-                  <FormField label="Date" htmlFor="c-date">
+                <div className="mt-6 grid gap-3 rounded-[16px] bg-muted/60 p-4 ring-1 ring-inset ring-border/70 sm:grid-cols-3">
+                  <div className="mono text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground sm:col-span-3">
+                  Custom window
+                </div>
+                <FormField label="Date" htmlFor="c-date">
                     <Input id="c-date" type="date" value={customDate} onChange={(e) => updateCustomTime(e.target.value, customStart, customEnd)} />
                   </FormField>
                   <FormField label="Start" htmlFor="c-start">
@@ -559,10 +574,10 @@ export function CreateLatticePage() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
-              className="mt-7"
+              className="mt-8 border-t border-border/70 pt-6"
             >
-              <div className="mb-2.5 text-[13px] font-semibold text-muted-foreground">
-                Preferences <span className="font-normal">(optional)</span>
+              <div className="mb-3 mono text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                Preferences <span className="text-muted-foreground/55">· Optional</span>
               </div>
               <Stagger>
                 <ChipGroup>
@@ -667,22 +682,23 @@ export function CreateLatticePage() {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1], delay: 0.3 }}
-              className="mt-7 flex flex-col gap-3 border-t border-border pt-5 sm:flex-row sm:items-center sm:justify-between">
+              className="mt-7 flex flex-col gap-3 border-t border-border pt-5 sm:flex-row sm:items-center sm:justify-between"
+            >
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Icon name="matches" size={16} className="text-primary" />
                 <span>Estimated matches</span>
                 <span className="mono text-base font-semibold text-foreground">{estMatches ?? "—"}</span>
               </div>
               <motion.div whileTap={validation.valid ? { scale: 0.97 } : undefined}>
-              <Button
-                variant="brand"
-                size="lg"
-                disabled={!validation.valid}
-                onClick={() => setVerifyOpen(true)}
-                iconRight={<Icon name="arrow" size={18} />}
-              >
-                Find matching offers
-              </Button>
+                <Button
+                  variant="brand"
+                  size="lg"
+                  disabled={!validation.valid}
+                  onClick={() => setVerifyOpen(true)}
+                  iconRight={<Icon name="arrow" size={18} />}
+                >
+                  Find matching offers
+                </Button>
               </motion.div>
             </motion.div>
             <AnimatePresence>
