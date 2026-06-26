@@ -9,7 +9,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { initials } from "@/utils/formatting";
 import { LatticeMark } from "./LatticeMark";
 import { homePathForRole, titleForPath } from "./navConfig";
@@ -102,6 +101,7 @@ export function TopBar() {
       <div className="ml-auto flex items-center gap-2">
         <BusinessSwitcher />
         <ProfileMenu />
+        <UserSwitcher />
       </div>
     </header>
   );
