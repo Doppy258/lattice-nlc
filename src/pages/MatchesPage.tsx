@@ -40,7 +40,6 @@ export function MatchesPage() {
   const { query } = useHashRoute();
   const { claim, result, clearResult, pendingClaim, confirmClaim, cancelClaim } = useClaim();
   const geolocation = useGeolocation();
-  const [showMap, setShowMap] = useState(false);
   const origin = getOriginPoint(activeUser);
 
   function handleShareLocation() {
@@ -193,14 +192,6 @@ export function MatchesPage() {
           </ToggleChip>
         </ChipGroup>
         <div className="flex items-center gap-2">
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => setShowMap((v) => !v)}
-            iconLeft={<Icon name="location" size={15} />}
-          >
-            {showMap ? "Hide map" : "Show map"}
-          </Button>
           <span className="hidden text-[13px] text-muted-foreground sm:block">Sort</span>
           <Select value={sort} onChange={(e) => setSort(e.target.value as SortKey)} className="w-44">
             {SORTS.map((s) => (
@@ -212,16 +203,16 @@ export function MatchesPage() {
         </div>
       </div>
 
-      {showMap && (
+      {rows.length > 0 && (
         <LatticeMap
           userLocation={activeUser.location}
           businesses={rows.map((r) => ({
             id: r.business.id,
             name: r.business.name,
             location: r.business.location,
-            type: "business" as const,
           }))}
           radiusKm={request.distanceKm}
+          onBusinessClick={(id) => navigate(`/business?id=${id}`)}
         />
       )}
 
