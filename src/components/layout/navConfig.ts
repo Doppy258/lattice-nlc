@@ -11,7 +11,7 @@ export const CUSTOMER_NAV: NavItem[] = [
   { path: "/saved", label: "Saved", icon: "saved" },
   { path: "/claims", label: "Claims", icon: "claims" },
   { path: "/rankings", label: "Rankings", icon: "rankings" },
-  { path: "/reports", label: "Reports", icon: "reports" },
+  { path: "/reports", label: "Impact", icon: "reports" },
   { path: "/settings", label: "Settings", icon: "settings" },
 ];
 

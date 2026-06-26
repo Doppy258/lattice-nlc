@@ -11,6 +11,7 @@ import { FormField } from "@/components/common/FormField";
 import { PageHeader } from "@/components/common/PageHeader";
 import { Icon, type IconName } from "@/components/common/Icon";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -35,6 +36,7 @@ import {
 } from "@/data/catalog";
 import { customTimeWindow, timeWindowForPreset, type TimeWindowPresetId } from "@/utils/timeWindows";
 import { createId } from "@/utils/ids";
+import { NOTE_MAX } from "@/utils/constants";
 import { upsertRequest } from "@/services/dbService";
 import { formatTimeRange } from "@/utils/formatting";
 import type { BusinessCategory, NeedType, PingRequest } from "@/models";
@@ -361,24 +363,6 @@ export function CreateLatticePage() {
             </Badge>
           )}
         </div>
-      <Card variant="solid" className="p-6 sm:p-8">
-        <AnimatePresence>
-          {category && (
-            <motion.div
-              key="request-badge"
-              {...slideFade}
-              className="mb-5 flex items-center justify-between gap-3"
-            >
-              <span className="text-[12px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
-                Your request
-              </span>
-              <motion.div whileTap={{ scale: 0.95 }}>
-                <Badge tone={QUALITY[quality].tone}>{QUALITY[quality].label}</Badge>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
         {/* Mad-libs sentence — blanks reveal after a business type is picked */}
         <div className="flex flex-wrap items-center gap-x-2 gap-y-3 font-display text-[21px] leading-[1.65] tracking-[-0.01em] text-foreground sm:text-[25px]">
           <motion.span
@@ -388,8 +372,6 @@ export function CreateLatticePage() {
           >
             I'm looking for
           </motion.span>
-        <div className="mt-7 flex flex-wrap items-center gap-x-2 gap-y-3 font-display text-[22px] leading-[1.7] tracking-[-0.015em] text-foreground sm:text-[26px]">
-          <span>I'm looking for</span>
           <Blank
             placeholder="a business type"
             value={category ? CATEGORY_META[category].label : undefined}
@@ -682,34 +664,14 @@ export function CreateLatticePage() {
                 </motion.p>
               )}
             </AnimatePresence>
-              <ChipGroup>
-                {availablePrefs.map((pref) => (
-                  <ToggleChip
-                    key={pref.id}
-                    active={preferences.includes(pref.id)}
-                    onClick={() => togglePref(pref.id)}
-                    icon={preferences.includes(pref.id) ? <Icon name="check" size={14} /> : undefined}
-                  >
-                    {pref.label}
-                  </ToggleChip>
-                ))}
-              </ChipGroup>
-            </div>
-
-            {errors.duplicate && (
-              <p className="mt-6 rounded-xl bg-[var(--danger-tint)] px-3 py-2 text-[13px] font-medium text-[var(--danger)]">
-                {errors.duplicate}
-              </p>
-            )}
-
             {/* Footer */}
             <motion.div
               key="footer"
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1], delay: 0.3 }}
-              className="mt-7 flex flex-col gap-3 border-t border-border pt-5 sm:flex-row sm:items-center sm:justify-between">
-            <div className="mt-8 flex flex-col gap-4 border-t border-border/70 pt-6 sm:flex-row sm:items-center sm:justify-between">
+              className="mt-8 flex flex-col gap-4 border-t border-border/70 pt-6 sm:flex-row sm:items-center sm:justify-between"
+            >
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Icon name="matches" size={16} className="text-primary" />
                 <span>Estimated matches</span>
@@ -731,33 +693,7 @@ export function CreateLatticePage() {
                   </p>
                 )}
               </div>
-            </div>
-          </>
-              <motion.div whileTap={validation.valid ? { scale: 0.97 } : undefined}>
-              <Button
-                variant="brand"
-                size="lg"
-                disabled={!validation.valid}
-                onClick={() => setVerifyOpen(true)}
-                iconRight={<Icon name="arrow" size={18} />}
-              >
-                Find matching offers
-              </Button>
-              </motion.div>
             </motion.div>
-            <AnimatePresence>
-              {!validation.valid && (
-                <motion.p
-                  key="validation-hint"
-                  initial={{ opacity: 0, y: -4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -4 }}
-                  className="mt-2 text-right text-[12px] text-muted-foreground"
-                >
-                  Fill in every blank to match.
-                </motion.p>
-              )}
-            </AnimatePresence>
           </motion.div>
         )}
       </AnimatePresence>
