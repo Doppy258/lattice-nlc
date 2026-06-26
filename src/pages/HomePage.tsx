@@ -128,8 +128,13 @@ export function HomePage() {
             items={[
               {
                 label: "Claims",
-                value: activeClaimCount,
-                detail: activeClaimCount === 1 ? "Ready to redeem" : "Active now",
+                value: myClaims.length,
+                detail:
+                  activeClaimCount > 0
+                    ? `${activeClaimCount} ready to redeem`
+                    : redeemedClaimCount > 0
+                      ? `${redeemedClaimCount} redeemed`
+                      : "Offers you've claimed",
               },
               {
                 label: "Saved",

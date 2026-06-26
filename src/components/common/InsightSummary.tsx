@@ -17,50 +17,68 @@ const COLUMN_CLASSES: Record<Columns, string> = {
   four: "sm:grid-cols-2 lg:grid-cols-4",
 };
 
+type Density = "compact" | "comfortable";
+
 /** Compact metric band for contextual counts without turning KPIs into page heroes. */
 export function InsightSummary({
   title,
   items,
   columns = "four",
+  density = "compact",
   className,
 }: {
   title?: ReactNode;
   items: InsightSummaryItem[];
   columns?: Columns;
+  density?: Density;
   className?: string;
 }) {
+  const roomy = density === "comfortable";
   return (
     <section
       className={cn(
-        "rounded-[var(--tile-radius)] border border-border bg-card/85 p-3 shadow-[var(--shadow-soft)]",
+        "rounded-[var(--tile-radius)] border border-border bg-card/85 shadow-[var(--shadow-soft)]",
+        roomy ? "p-5 sm:p-6" : "p-3",
         className,
       )}
     >
       {title && (
-        <div className="mb-2.5 px-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+        <div
+          className={cn(
+            "px-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground",
+            roomy ? "mb-4" : "mb-2.5",
+          )}
+        >
           {title}
         </div>
       )}
-      <div className={cn("grid gap-2.5", COLUMN_CLASSES[columns])}>
+      <div className={cn("grid", roomy ? "gap-3.5" : "gap-2.5", COLUMN_CLASSES[columns])}>
         {items.map((item, index) => {
           const content = (
             <>
               <div className="truncate text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
                 {item.label}
               </div>
-              <div className="mt-1 truncate font-display text-[20px] font-semibold leading-none tracking-[-0.025em] text-foreground">
+              <div
+                className={cn(
+                  "truncate font-display font-semibold leading-none tracking-[-0.025em] text-foreground",
+                  roomy ? "mt-2 text-[26px]" : "mt-1 text-[20px]",
+                )}
+              >
                 {item.value}
               </div>
               {item.detail && (
-                <div className="mt-1 text-[12px] leading-snug text-muted-foreground">
+                <div className={cn("text-[12px] leading-snug text-muted-foreground", roomy ? "mt-2" : "mt-1")}>
                   {item.detail}
                 </div>
               )}
             </>
           );
 
-          const itemClassName =
-            "min-w-0 rounded-2xl bg-muted/35 px-3 py-2.5 text-left";
+          const itemClassName = cn(
+            "min-w-0 rounded-2xl bg-muted/35 text-left",
+            roomy ? "px-4 py-4" : "px-3 py-2.5",
+          );
 
           if (item.onClick) {
             return (

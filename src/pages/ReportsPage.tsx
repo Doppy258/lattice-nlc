@@ -31,8 +31,8 @@ function seriesSection(title: string, points: { label: string; value: number }[]
 
 function ChartCard({ title, sub, children }: { title: string; sub?: string; children: React.ReactNode }) {
   return (
-    <Card variant="solid" className="space-y-4 p-5">
-      <div>
+    <Card variant="solid" className="space-y-6 p-6 sm:p-7">
+      <div className="space-y-1">
         <h3 className="font-display text-[17px] font-semibold tracking-[-0.02em]">{title}</h3>
         {sub && <p className="text-[13px] text-muted-foreground">{sub}</p>}
       </div>
@@ -95,7 +95,7 @@ export function ReportsPage() {
 
   if (!hasClaims) {
     return (
-      <div className="space-y-7">
+      <div className="space-y-8">
         <PageHeader title="Your" accent="impact report" subtitle="See how much you've saved and which local businesses you support most." />
         <EmptyState
           icon="reports"
@@ -112,7 +112,7 @@ export function ReportsPage() {
   }
 
   return (
-    <div className="space-y-7">
+    <div className="space-y-8">
       <PageHeader
         title="Your"
         accent="impact report"
@@ -152,6 +152,7 @@ export function ReportsPage() {
 
       <InsightSummary
         title="Report summary"
+        density="comfortable"
         items={[
           {
             label: "Est. saved",
@@ -168,7 +169,7 @@ export function ReportsPage() {
         ]}
       />
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2">
         <ChartCard title="Claims by category" sub="Where you use Lattice most">
           <Donut data={report.claimsByCategory} centerLabel={String(report.totalClaimed)} centerSub="Claims" />
         </ChartCard>
@@ -184,7 +185,7 @@ export function ReportsPage() {
       </div>
 
       {report.favoriteCategory && (
-        <Card variant="glassBlue" className="flex items-center gap-4 p-5">
+        <Card variant="glassBlue" className="flex items-center gap-4 p-6">
           <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-card/70 text-primary shadow-[var(--shadow-soft)]">
             <Icon name={CATEGORY_META[report.favoriteCategory].icon as never} size={24} />
           </span>
