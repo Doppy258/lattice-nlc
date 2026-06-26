@@ -945,7 +945,29 @@
         background:#fff;border:1px solid rgba(14,10,7,.08);
         box-shadow:0 6px 14px rgba(14,10,7,.04);
       }
-      .orbit-ring .tile.cat{color:#fff;border:1px solid rgba(255,255,255,.14)}
+      /* Glass finish for the orbiting category tiles — same premium look as the center glass tile, brand colour kept as the tint */
+      .orbit-ring .tile.cat{
+        color:#fff;
+        position:relative;
+        overflow:hidden;
+        border:1px solid rgba(255,255,255,.28);
+        box-shadow:
+          inset 0 1.5px 1px rgba(255,255,255,.6),
+          inset 0 0 16px rgba(255,255,255,.16),
+          inset 0 -14px 30px rgba(0,0,0,.26),
+          0 20px 40px rgba(8,23,79,.18);
+      }
+      .orbit-ring .tile.cat::before{
+        content:"";
+        position:absolute;inset:0;
+        border-radius:inherit;
+        background:
+          radial-gradient(125% 85% at 22% 12%, rgba(255,255,255,.6) 0%, rgba(255,255,255,.18) 30%, rgba(255,255,255,0) 58%),
+          linear-gradient(150deg, rgba(255,255,255,.24) 0%, rgba(255,255,255,0) 42%);
+        pointer-events:none;
+        z-index:1;
+      }
+      .orbit-ring .tile.cat .cat-in{position:relative;z-index:2}
       .tile.cat .cat-in{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
       .tile.cat .cat-in svg{width:calc(var(--tile-w) * 0.32);height:auto;color:#fff}
       .tile.cat .cat-l{font-size:calc(var(--tile-w) * 0.135);font-weight:600;letter-spacing:-0.02em;line-height:1;color:#fff}
@@ -961,7 +983,10 @@
         border:1px solid rgba(14,10,7,.04);
         display:flex;align-items:center;justify-content:center;color:#fff;
         z-index:3;
+        /* traveling shiny highlight ring (same beam as the 01 - REQUEST boxes) */
+        --bb-radius:30px; --bb-size:150px; --bb-ring:1.5px; isolation:isolate;
       }
+      .tile.lumio > svg{position:relative;z-index:1}
 
       .orbit-ring .tile svg{
         width:calc(var(--tile-w) * 0.33);
