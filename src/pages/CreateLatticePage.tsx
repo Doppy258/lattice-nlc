@@ -28,7 +28,8 @@ import {
 } from "@/data/catalog";
 import { customTimeWindow, timeWindowForPreset, type TimeWindowPresetId } from "@/utils/timeWindows";
 import { NOTE_MAX } from "@/utils/constants";
-import { createId } from "@/utils/ids";
+import { toast } from "sonner";
+import { requestRepo } from "@/repositories";
 import { formatCurrency, formatTimeRange } from "@/utils/formatting";
 import type { BusinessCategory, NeedType, PingRequest } from "@/models";
 import { cn } from "@/lib/utils";
@@ -182,25 +183,25 @@ export function CreateLatticePage() {
     setPreferences((prev) => (prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]));
   }
 
-  function onVerified() {
-    const req: PingRequest = {
-      id: createId("request"),
-      userId: activeUser.id,
-      category: category!,
-      needType: needType!,
-      budgetMin,
-      budgetMax,
-      distanceKm: distanceKm!,
-      timeStart: timeStart!,
-      timeEnd: timeEnd!,
-      preferences,
-      optionalNote: note || undefined,
-      verifiedHuman: true,
-      status: "submitted",
-      createdAt: new Date().toISOString(),
-    };
-    setData((d) => ({ ...d, requests: [...d.requests, req] }));
-    navigate(`/matches?request=${req.id}`);
+  async function onVerified() {
+    try {
+      const created = await requestRepo.submit({
+        category: category!,
+        needType: needType!,
+        distanceKm: distanceKm!,
+        timeStart: timeStart!,
+        timeEnd: timeEnd!,
+        budgetMin,
+        budgetMax,
+        preferences,
+        optionalNote: note || undefined,
+        verifiedHuman: true,
+      });
+      setData((d) => ({ ...d, requests: [...d.requests, created] }));
+      navigate(`/matches?request=${created.id}`);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not submit your request.");
+    }
   }
 
   const availablePrefs = PREFERENCE_OPTIONS.filter(
