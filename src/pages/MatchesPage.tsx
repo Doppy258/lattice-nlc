@@ -12,6 +12,7 @@ import { Stagger, StaggerItem } from "@/components/motion/Reveal";
 import { OfferCard } from "@/components/domain/OfferCard";
 import { useClaim } from "@/components/domain/useClaim";
 import { ClaimResultModal } from "@/components/domain/ClaimResultModal";
+import { BotCheckModal } from "@/components/domain/BotCheckModal";
 import { getMatchingOffers, getOriginPoint } from "@/services/offerMatchingService";
 import { distanceForBusiness } from "@/services/businessService";
 import { isBusinessSaved, isOfferSaved, toggleSavedOffer } from "@/services/userService";
@@ -34,7 +35,7 @@ type Row = { match: MatchResult; offer: Offer; business: Business; distanceKm: n
 export function MatchesPage() {
   const { data, activeUser, setData } = useApp();
   const { query } = useHashRoute();
-  const { claim, result, clearResult } = useClaim();
+  const { claim, result, clearResult, pendingClaim, confirmClaim, cancelClaim } = useClaim();
   const origin = getOriginPoint(activeUser);
 
   const [sort, setSort] = useState<SortKey>("best");
@@ -205,6 +206,12 @@ export function MatchesPage() {
       )}
 
       <ClaimResultModal result={result} onClose={clearResult} />
+      <BotCheckModal
+        open={!!pendingClaim}
+        onOpenChange={(o) => !o && cancelClaim()}
+        onVerified={confirmClaim}
+        description="Confirm you're human before claiming this offer."
+      />
     </div>
   );
 }

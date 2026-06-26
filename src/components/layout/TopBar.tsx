@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { initials } from "@/utils/formatting";
 import { LatticeMark } from "./LatticeMark";
-import { titleForPath } from "./navConfig";
+import { homePathForRole, titleForPath } from "./navConfig";
 
 function ProfileMenu() {
   const { activeUser, signOut } = useApp();
@@ -31,6 +31,10 @@ function ProfileMenu() {
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-52">
+        <DropdownMenuItem onClick={() => navigate("/help")} className="cursor-pointer gap-2.5">
+          <Icon name="help" size={16} />
+          Help
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={() => navigate("/settings")} className="cursor-pointer gap-2.5">
           <Icon name="settings" size={16} />
           Settings
@@ -79,6 +83,7 @@ function BusinessSwitcher() {
 
 export function TopBar() {
   const { path } = useHashRoute();
+  const { activeUser } = useApp();
   const title = titleForPath(path);
 
   return (
@@ -88,7 +93,7 @@ export function TopBar() {
         type="button"
         className="flex cursor-pointer items-center gap-2.5 min-[900px]:hidden"
         aria-label="Lattice home"
-        onClick={() => (window.location.hash = "#/home")}
+        onClick={() => navigate(homePathForRole(activeUser.role))}
       >
         <LatticeMark size={34} />
       </button>
@@ -100,7 +105,6 @@ export function TopBar() {
       <div className="ml-auto flex items-center gap-2">
         <BusinessSwitcher />
         <ProfileMenu />
-        <UserSwitcher />
       </div>
     </header>
   );

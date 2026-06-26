@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Reveal, Stagger, StaggerItem } from "@/components/motion/Reveal";
 import { QrScanModal } from "@/components/domain/QrScanModal";
 import { getBusinessClaims } from "@/services/claimService";
-import { fetchClaimByCode } from "@/services/dbService";
+import { fetchClaimByCode, upsertClaim } from "@/services/dbService";
 import {
   approveRedemption,
   findPass,
@@ -134,6 +134,8 @@ export function RedeemPage() {
         o.id === redeemedPass.offerId ? { ...o, currentClaims: o.currentClaims + 1 } : o,
       ),
     }));
+    // Persist the redeemed status so the customer's pass updates on their device.
+    void upsertClaim(redeemedPass);
     const offer = candidate.offer;
     const savings = offer?.originalPrice != null ? offer.originalPrice - offer.price : null;
     setSuccess({

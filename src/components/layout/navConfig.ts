@@ -46,5 +46,6 @@ const TITLES: Record<string, string> = Object.fromEntries(
 export function titleForPath(path: string): string {
   if (path === "/create") return "Create a Lattice";
   if (path === "/business") return "Business";
+  if (path === "/help") return "Help";
   return TITLES[path] ?? "Lattice";
 }

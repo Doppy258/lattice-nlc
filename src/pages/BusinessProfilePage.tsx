@@ -15,6 +15,7 @@ import { BusinessImage } from "@/components/domain/BusinessImage";
 import { OfferCard } from "@/components/domain/OfferCard";
 import { useClaim } from "@/components/domain/useClaim";
 import { ClaimResultModal } from "@/components/domain/ClaimResultModal";
+import { BotCheckModal } from "@/components/domain/BotCheckModal";
 import { getOriginPoint } from "@/services/offerMatchingService";
 import { distanceForBusiness, getActiveOffersForBusiness } from "@/services/businessService";
 import { getBusinessReviews } from "@/services/reviewService";
@@ -40,7 +41,7 @@ type Section = "offers" | "reviews" | "about";
 export function BusinessProfilePage() {
   const { data, activeUser, setData } = useApp();
   const { query } = useHashRoute();
-  const { claim, result, clearResult } = useClaim();
+  const { claim, result, clearResult, pendingClaim, confirmClaim, cancelClaim } = useClaim();
   const origin = getOriginPoint(activeUser);
   const [section, setSection] = useState<Section>("offers");
 
@@ -297,6 +298,12 @@ export function BusinessProfilePage() {
       )}
 
       <ClaimResultModal result={result} onClose={clearResult} />
+      <BotCheckModal
+        open={!!pendingClaim}
+        onOpenChange={(o) => !o && cancelClaim()}
+        onVerified={confirmClaim}
+        description="Confirm you're human before claiming this offer."
+      />
     </div>
   );
 }
