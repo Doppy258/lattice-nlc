@@ -1,3 +1,8 @@
+/**
+ * shadcn/ui Dropdown Menu primitive — Radix-based popover menu.
+ * Provides content, items, checkbox items, labels, separators, and
+ * groups with a glass-styled surface and entrance animations.
+ */
 import * as React from "react";
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 import { Check } from "lucide-react";

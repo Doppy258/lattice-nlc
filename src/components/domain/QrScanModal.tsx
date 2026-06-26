@@ -1,3 +1,14 @@
+/**
+ * QrScanModal - camera-based QR scanner for the business Redeem console.
+ * Requests webcam permission, shows a live feed with a scan-frame overlay,
+ * and reports the decoded pass value back so the verify flow can stage it for
+ * approval. Falls back gracefully on error (permission denied, no camera, etc.)
+ * with a friendly message; manual entry remains available as an alternative.
+ * Also exports extractPassCode for parsing QR content (deep-link token or plain).
+ * Props: open (boolean), onClose (() => void), onResult ((string) => void)
+ * Role in architecture: Domain — the primary hardware-interaction component
+ * for the business-side claim verification flow.
+ */
 import { useEffect, useRef, useState } from "react";
 import { BrowserQRCodeReader, type IScannerControls } from "@zxing/browser";
 import { Camera, ScanLine } from "lucide-react";

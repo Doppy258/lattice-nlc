@@ -1,3 +1,9 @@
+/**
+ * LatticeMap — Leaflet map that pins the user's location and nearby
+ * businesses. Renders a radius circle when `radiusKm` is provided.
+ * Markers re-render on location/business changes; the map instance is
+ * initialised once and reused via ref. Cleanup on unmount.
+ */
 import { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";

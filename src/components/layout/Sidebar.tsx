@@ -1,3 +1,11 @@
+/**
+ * Sidebar — desktop primary navigation rail (≥900px).
+ * Renders the Lattice mark at top, then nav items from `navForRole`
+ * (different links for consumer vs. business). Active state uses the
+ * brand colour with a white icon; idle items are muted. Tooltips
+ * provide the label on hover. Below 900px this is hidden in favour of
+ * <MobileNav>.
+ */
 import { motion } from "motion/react";
 import { useApp } from "@/app/providers";
 import { useHashRoute, navigate } from "@/app/navigation";

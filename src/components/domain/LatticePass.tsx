@@ -1,3 +1,12 @@
+/**
+ * LatticePass - customer-facing pass view: QR code, 6-digit backup code, and
+ * a live countdown. Polls the claim row every 3s while pending so that
+ * business-side approval flips the UI to "Redeemed successfully" in real time.
+ * The offer is never redeemed until that approval happens.
+ * Props: claim (Claim), offer (Offer), business (Business), className?
+ * Role in architecture: Domain — the primary artefact of the claim flow,
+ * displayed both inline (ClaimCodeCard) and inside a modal (ClaimResultModal).
+ */
 import { useEffect, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { Check, Copy } from "lucide-react";

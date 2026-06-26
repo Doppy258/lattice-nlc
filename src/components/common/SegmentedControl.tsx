@@ -1,8 +1,14 @@
+/**
+ * SegmentedControl - classic tab-like segmented control (pill-shaped). The
+ * active segment is elevated with a card-style background and shadow.
+ * Props: options (SegmentOption<T>[]), value (T), onChange (T => void), className?
+ * Role in architecture: Common UI — used anywhere the user picks between a
+ * small set of mutually exclusive views (e.g. chart period, filter mode).
+ */
 import { cn } from "@/lib/utils";
 
 export type SegmentOption<T extends string> = { value: T; label: string };
 
-/** Classic segmented control with a card-highlighted active segment. */
 export function SegmentedControl<T extends string>({
   options,
   value,

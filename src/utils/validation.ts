@@ -2,10 +2,12 @@
 
 const URL_PATTERN = /(https?:\/\/|www\.|\.[a-z]{2,}\/)/i;
 
+/** Type guard: finite number (rejects NaN/Infinity). */
 export function isNumber(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value);
 }
 
+/** Checks for a non-blank string; null/undefined/whitespace-only → false. */
 export function isNonEmpty(value: string | undefined | null): boolean {
   return typeof value === "string" && value.trim().length > 0;
 }
@@ -31,10 +33,12 @@ export function isRepeatedNonsense(text: string): boolean {
   return false;
 }
 
+/** Safely constrains a number to [min, max]; used for budget and rating clamping. */
 export function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
 }
 
+/** Trimmed-string length check; shared by title/description validation on both offers and reviews. */
 export function lengthWithin(text: string, min: number, max: number): boolean {
   const len = text.trim().length;
   return len >= min && len <= max;

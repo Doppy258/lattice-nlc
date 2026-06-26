@@ -1,3 +1,9 @@
+/**
+ * Date/time arithmetic used by the time-window validation, business-hours
+ * overlap checks, and the ranking engine's time-sensitivity score. All
+ * operations work on ISO 8601 strings or minutes-since-midnight integers.
+ */
+
 import type { BusinessHours } from "../models";
 
 export const MS_PER_DAY = 24 * 60 * 60 * 1000;
@@ -23,6 +29,7 @@ export function hoursBetween(aIso: string, bIso: string): number {
   return Math.floor((Date.parse(bIso) - Date.parse(aIso)) / (60 * 60 * 1000));
 }
 
+/** Fractional days between two ISO dates (b − a), used in request-window-days checks. */
 export function daysBetween(aIso: string, bIso: string): number {
   return (Date.parse(bIso) - Date.parse(aIso)) / MS_PER_DAY;
 }

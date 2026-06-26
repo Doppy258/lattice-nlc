@@ -1,3 +1,9 @@
+/**
+ * shadcn/ui Select primitive — styled native `<select>` wrapped in a
+ * relative container with a custom chevron. Deliberately uses the
+ * platform control (not Radix) to stay dependency-light and fully
+ * keyboard-accessible.
+ */
 import * as React from "react";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";

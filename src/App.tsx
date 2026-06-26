@@ -1,3 +1,11 @@
+/**
+ * App - root component that manages the full auth lifecycle: loading spinner,
+ * unauthenticated landing/auth pages, onboarding gate, and the authenticated
+ * app shell. Demuxes pages based on hash route and auth state.
+ * Props: none (reads route + AppProvider context)
+ * Role in architecture: Application entry component — owns the auth FSM and
+ * delegates to AppLayout + RouteView for the authenticated experience.
+ */
 import { AppProvider, useApp } from "./app/providers";
 import { useHashRoute, isLanding, navigate } from "./app/navigation";
 import { MotionProvider } from "@/components/motion/MotionProvider";

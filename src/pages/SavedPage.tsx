@@ -1,3 +1,10 @@
+/**
+ * SavedPage - /saved.
+ * Purpose: Customer's bookmarked businesses and offers, split into two
+ * tabs. Supports claim flow with bot-check verification.
+ * Key flows: Tab-switch between saved businesses and offers; claim an
+ * offer via useClaim hook with BotCheckModal gate.
+ */
 import { useMemo, useState } from "react";
 import { useApp } from "@/app/providers";
 import { navigate } from "@/app/navigation";

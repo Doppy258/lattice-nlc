@@ -1,3 +1,11 @@
+/**
+ * authService - Supabase Auth wrapper.
+ * Purpose: Handles all authentication operations — sign-up, sign-in, sign-out,
+ * session retrieval, auth state listening, and onboarding metadata persistence.
+ * User profiles are stored entirely in Supabase Auth user_metadata (no public
+ * users table). Business accounts start un-onboarded to route to business onboarding.
+ * Key exports: signUp, signIn, signOut, getSession, listenAuth, saveOnboardingMetadata, userFromSession
+ */
 import type { Session, User as SupabaseUser } from "@supabase/supabase-js";
 import { supabase } from "./supabaseClient";
 import type { User, UserRole } from "../models";

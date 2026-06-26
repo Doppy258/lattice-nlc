@@ -1,3 +1,11 @@
+/**
+ * HelpPage — route: /help
+ *
+ * Searchable FAQ organised by category. Topics are role-filtered
+ * (customer vs businessOwner) and can link directly to app routes
+ * via action buttons. Uses an accordion pattern with AnimatePresence.
+ */
+
 import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { useApp } from "@/app/providers";

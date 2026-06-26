@@ -1,3 +1,11 @@
+/**
+ * ClaimResultModal - success modal displayed after a claim is completed.
+ * Wraps the live LatticePass (QR + backup code + countdown) and provides
+ * navigation to the /claims page or dismissal.
+ * Props: result (ClaimResult | null), onClose (() => void)
+ * Role in architecture: Domain — bridges the claim flow and the pass display,
+ * giving users a clear next step after claiming an offer.
+ */
 import { navigate } from "@/app/navigation";
 import { Button } from "@/components/common/Button";
 import { Icon } from "@/components/common/Icon";
@@ -5,7 +13,7 @@ import { Modal } from "@/components/common/Modal";
 import { LatticePass } from "./LatticePass";
 import type { ClaimResult } from "./useClaim";
 
-/** Success modal shown after a claim, wrapping the live LatticePass. */
+
 export function ClaimResultModal({
   result,
   onClose,

@@ -1,3 +1,13 @@
+/**
+ * catalog.ts
+ *
+ * Central taxonomy for the Lattice domain: category metadata (labels,
+ * icons, descriptions), need types organised by category, offer type
+ * labels, distance presets, time-window presets, preference options,
+ * and budget-chip presets per need type. Every other module imports
+ * from here rather than duplicating business logic strings.
+ */
+
 import type { BusinessCategory, NeedType, OfferType } from "../models";
 
 export type CategoryMeta = {

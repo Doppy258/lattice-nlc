@@ -1,3 +1,10 @@
+/**
+ * Supabase-backed repository layer that bridges the domain models and the
+ * Postgres/Supabase backend. `hydrateAppData` fetches all tables in parallel
+ * and maps rows to domain models. Individual repos (`claimRepo`, `requestRepo`,
+ * `reviewRepo`, `profileRepo`) wrap Postgres RPC calls so higher layers never
+ * touch raw Supabase types or snake_case column names.
+ */
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { AppData, BusinessCategory, NeedType } from "@/models";
 import { supabase as defaultClient } from "@/services/supabaseClient";

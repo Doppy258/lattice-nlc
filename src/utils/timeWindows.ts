@@ -1,3 +1,10 @@
+/**
+ * Time-window preset logic for the request-creation flow. Maps friendly labels
+ * like "now" / "after school" / "tonight" into concrete ISO ranges, and builds
+ * a window from raw date+time inputs. Ensures windows always end in the future
+ * so downstream validation passes.
+ */
+
 import { MS_PER_DAY } from "./dateTime";
 
 /** Identifiers for the time-window presets offered on the request page. */

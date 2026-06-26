@@ -1,3 +1,7 @@
+/**
+ * Button — app-level semantic shortcut over shadcn/ui Button.
+ * See component for prop details.
+ */
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { Button as UIButton } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -23,7 +27,11 @@ const variantMap = {
 
 const sizeMap = { sm: "sm", md: "default", lg: "lg" } as const;
 
-/** App button. Public API unchanged; now rendered on the shadcn button primitive. */
+/**
+ * Button — semantic shortcut over shadcn's <Button>.
+ * Maps app-level variant/size names to the shadcn props so call sites
+ * are decoupled from the underlying UI library. Supports left/right icons.
+ */
 export function Button({
   variant = "primary",
   size = "md",

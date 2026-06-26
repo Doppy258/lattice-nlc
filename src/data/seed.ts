@@ -1,3 +1,10 @@
+/**
+ * Assembles the complete bootstrapped demo dataset — users, businesses, offers,
+ * claims, reviews, rankings, saves — all keyed off a single `now` timestamp so
+ * relative dates (expiry, recency) stay consistent no matter when the demo runs.
+ * The caller (`buildSeedData`) is invoked once at app startup to hydrate the
+ * in-memory store when no Supabase backend is connected.
+ */
 import type { AppData, SavedBusiness, SavedOffer } from "../models";
 import { MS_PER_DAY } from "../utils/dateTime";
 import { seedUsers, DEFAULT_USER_ID } from "./seedUsers";

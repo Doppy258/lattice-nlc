@@ -1,3 +1,9 @@
+/**
+ * Unit tests for the row-to-model mapper layer. Verifies snake_case →
+ * camelCase mapping, numeric-string coercion for DB columns typed as
+ * `decimal`/`numeric`, optional field handling with `undefined` vs null,
+ * and default value injection for public-profile display-only rows.
+ */
 import { describe, it, expect } from "vitest";
 import { rowToClaim, rowToOffer, rowToRequest, publicRowToUser } from "./mappers";
 

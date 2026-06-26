@@ -1,3 +1,11 @@
+/**
+ * OffersPage - /offers.
+ * Purpose: Business owner's offer management dashboard — view, edit, pause,
+ * resume, and delete offers. Shows status badges, capacity progress, and
+ * pricing at a glance.
+ * Key flows: Filter by status (active/paused/expired/full); toggle offer
+ * active state; delete with cascading claim cleanup.
+ */
 import { useState } from "react";
 import { useApp } from "@/app/providers";
 import { navigate } from "@/app/navigation";
@@ -18,7 +26,7 @@ import {
   deleteOffer,
   type OfferStatus,
 } from "@/services/offerService";
-import { deleteOffer as deleteOfferFromDb } from "@/services/dbService";
+import { deleteOffer as deleteOfferFromDb, upsertOffer } from "@/services/dbService";
 import { remainingRedemptions } from "@/services/redemptionService";
 import { OFFER_TYPE_LABELS } from "@/data/catalog";
 import { formatCurrency, relativeTime } from "@/utils/formatting";
@@ -75,7 +83,9 @@ export function OffersPage() {
   const filtered = filter === "all" ? offers : offers.filter((o) => classifyOffer(o) === filter);
 
   function handleToggle(o: Offer) {
+    const updated = { ...o, active: !o.active };
     setData((d) => ({ ...d, offers: toggleOfferActive(o.id, d.offers) }));
+    void upsertOffer(updated); // persist pause/resume so customers stop/start seeing it
     toast.success(o.active ? "Offer paused" : "Offer resumed");
   }
 

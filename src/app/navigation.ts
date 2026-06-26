@@ -1,3 +1,13 @@
+/**
+ * Hash-based routing for the SPA. The app lives under a static Vite build and
+ * relies on URL hashes (not <BrowserRouter>) — this module parses the hash
+ * into a {path, query} pair, provides a programmatic `navigate()` helper,
+ * and exposes the `useHashRoute` hook for React components.
+ *
+ * Hash routing was chosen so the marketing landing page (rendered at #/ or #)
+ * can coexist with the app under a single domain without server-side rewrites.
+ */
+
 import { useEffect, useState } from "react";
 
 /** Hash paths that should render the marketing landing page. */

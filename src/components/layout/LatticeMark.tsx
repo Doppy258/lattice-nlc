@@ -1,11 +1,16 @@
+/**
+ * LatticeMark - the Lattice brand mark: four offset cells (like a lattice),
+ * one accented in primary blue. Recreated as pure SVG from the brand glyph
+ * with solid fills that reference CSS variables (foreground/primary) so it
+ * adapts to light/dark mode. Exports LatticeGlyph (mark only), LatticeMark
+ * (standalone mark), and BrandLockup (mark + wordmark).
+ * Props: size?, className?
+ * Role in architecture: Layout — the visual identity element used in the
+ * TopBar, sidebar, landing page, and any branded surface.
+ */
 import { cn } from "@/lib/utils";
 
-/**
- * The Lattice node mark — four offset cells scattered like a lattice, one
- * accented in brand blue. Recreated from the brand glyph with SOLID fills only
- * (no gradients); circles use live tokens so it adapts to light/dark and stays
- * crisp at any size. Geometry mirrors the source artwork (576×554 canvas).
- */
+
 export function LatticeGlyph({ className, size = 24 }: { className?: string; size?: number }) {
   return (
     <svg

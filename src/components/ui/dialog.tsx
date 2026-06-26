@@ -1,3 +1,8 @@
+/**
+ * shadcn/ui Dialog primitive — Radix-based modal overlay. Composes
+ * Overlay, Content, Header, Footer, Title, Description, and optional
+ * close button with animated entrance/exit transitions.
+ */
 import * as React from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { X } from "lucide-react";

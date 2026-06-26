@@ -1,3 +1,9 @@
+/**
+ * User — account model shared across customer, businessOwner, and admin roles.
+ * Location is set via browser geolocation (user-initiated) and powers every
+ * distance-based feature. Preferences control default filters, saved items, and
+ * accessibility signals.
+ */
 import type { BusinessCategory, GeoPoint } from "./Business";
 
 export type UserRole = "customer" | "businessOwner" | "admin";

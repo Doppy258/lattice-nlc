@@ -1,3 +1,9 @@
+/**
+ * 20 seeded businesses across all 7 categories (food, retail, services, fitness,
+ * education, repair, entertainment) with real-world coordinates around downtown
+ * San Antonio, TX. Drives the demo's explore/matching experience with diverse
+ * storefronts, price levels, accessibility features, and owner assignments.
+ */
 import type { Business, BusinessHours } from "../models";
 
 /** Builds a weekly-hours array; days default to all seven (0=Sun..6=Sat). */
