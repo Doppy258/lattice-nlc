@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select } from "@/components/ui/select";
 import { OfferCard } from "@/components/domain/OfferCard";
+import { upsertOffer } from "@/services/dbService";
 import {
   createOffer,
   updateOffer,
@@ -156,10 +157,13 @@ export function CreateOfferPage() {
     ...input,
   };
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (!validation.valid || !activeBusiness) return;
     if (editId) {
+      const updatedOffers = updateOffer(editId, input, data.offers);
       setData((d) => ({ ...d, offers: updateOffer(editId, input, d.offers) }));
+      const edited = updatedOffers.find((o) => o.id === editId);
+      if (edited) await upsertOffer(edited); // persist edit so it's visible to everyone
       toast.success("Offer updated");
       navigate("/offers");
       return;
@@ -167,6 +171,7 @@ export function CreateOfferPage() {
     const res = createOffer(input, activeBusiness.id, activeBusiness.category);
     if (res.ok) {
       setData((d) => ({ ...d, offers: [...d.offers, res.offer] }));
+      await upsertOffer(res.offer); // persist to Supabase so other browsers/customers see it
       toast.success("Offer published");
       navigate("/offers");
     } else {

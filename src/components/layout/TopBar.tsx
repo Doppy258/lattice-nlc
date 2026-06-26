@@ -31,6 +31,10 @@ function ProfileMenu() {
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-52">
+        <DropdownMenuItem onClick={() => navigate("/help")} className="cursor-pointer gap-2.5">
+          <Icon name="help" size={16} />
+          Help
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={() => navigate("/settings")} className="cursor-pointer gap-2.5">
           <Icon name="settings" size={16} />
           Settings
@@ -101,7 +105,6 @@ export function TopBar() {
       <div className="ml-auto flex items-center gap-2">
         <BusinessSwitcher />
         <ProfileMenu />
-        <UserSwitcher />
       </div>
     </header>
   );

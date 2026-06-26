@@ -11,6 +11,7 @@ import { BusinessCard } from "@/components/domain/BusinessCard";
 import { OfferCard } from "@/components/domain/OfferCard";
 import { useClaim } from "@/components/domain/useClaim";
 import { ClaimResultModal } from "@/components/domain/ClaimResultModal";
+import { BotCheckModal } from "@/components/domain/BotCheckModal";
 import { getOriginPoint } from "@/services/offerMatchingService";
 import { activeDealCount, distanceForBusiness } from "@/services/businessService";
 import { isOfferSaved, toggleSavedBusiness, toggleSavedOffer } from "@/services/userService";
@@ -19,7 +20,7 @@ type Tab = "businesses" | "offers";
 
 export function SavedPage() {
   const { data, activeUser, setData } = useApp();
-  const { claim, result, clearResult } = useClaim();
+  const { claim, result, clearResult, pendingClaim, confirmClaim, cancelClaim } = useClaim();
   const origin = getOriginPoint(activeUser);
   const [tab, setTab] = useState<Tab>("businesses");
 
@@ -122,6 +123,12 @@ export function SavedPage() {
         ))}
 
       <ClaimResultModal result={result} onClose={clearResult} />
+      <BotCheckModal
+        open={!!pendingClaim}
+        onOpenChange={(o) => !o && cancelClaim()}
+        onVerified={confirmClaim}
+        description="Confirm you're human before claiming this offer."
+      />
     </div>
   );
 }
