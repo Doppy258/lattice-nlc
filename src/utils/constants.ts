@@ -89,3 +89,19 @@ export const NOTE_MAX = 120;
 
 /** Max attempts for the distorted-image human check (section 10.3). */
 export const VERIFICATION_MAX_ATTEMPTS = 3;
+
+/** Storefront field bounds — keep names/descriptions sane and presentable. */
+export const BUSINESS_NAME_MIN = 2;
+export const BUSINESS_NAME_MAX = 80;
+export const BUSINESS_DESC_MIN = 10;
+export const BUSINESS_DESC_MAX = 600;
+
+/** Display-name bounds shared by signup and account settings. */
+export const DISPLAY_NAME_MIN = 2;
+export const DISPLAY_NAME_MAX = 60;
+
+/**
+ * Upper bound on an offer's claim cap. A single local-business offer realistically
+ * serves far fewer than this; the bound just blocks absurd/typo inventory values.
+ */
+export const MAX_OFFER_CLAIMS = 100_000;

@@ -21,6 +21,8 @@ import { Reveal, Stagger, StaggerItem } from "@/components/motion/Reveal";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ALL_CATEGORIES, CATEGORY_META } from "@/data/catalog";
 import { initials, formatRating } from "@/utils/formatting";
+import { DISPLAY_NAME_MIN, DISPLAY_NAME_MAX } from "@/utils/constants";
+import { lengthWithin } from "@/utils/validation";
 import { toast } from "sonner";
 import type { BusinessCategory } from "@/models";
 
@@ -32,6 +34,7 @@ export function SettingsPage() {
   const [maxDistance, setMaxDistance] = useState(activeUser.preferences.maxDefaultDistanceKm);
   const [studentDiscount, setStudentDiscount] = useState(activeUser.preferences.studentDiscountPreferred);
   const [preferredCategories, setPreferredCategories] = useState<BusinessCategory[]>(activeUser.preferences.preferredCategories);
+  const [nameError, setNameError] = useState<string | undefined>();
 
   function toggleCategory(cat: BusinessCategory) {
     setPreferredCategories((prev) =>
@@ -40,13 +43,19 @@ export function SettingsPage() {
   }
 
   function saveProfile() {
+    if (!lengthWithin(name, DISPLAY_NAME_MIN, DISPLAY_NAME_MAX)) {
+      setNameError(`Display name must be ${DISPLAY_NAME_MIN}–${DISPLAY_NAME_MAX} characters.`);
+      toast.error("Please enter a valid display name.");
+      return;
+    }
+    const trimmedName = name.trim();
     setData((d) => ({
       ...d,
       users: d.users.map((u) =>
         u.id === activeUser.id
           ? {
               ...u,
-              name,
+              name: trimmedName,
               preferences: {
                 ...u.preferences,
                 maxDefaultDistanceKm: maxDistance,
@@ -95,11 +104,16 @@ export function SettingsPage() {
               <Icon name="home" size={18} className="text-primary" /> Profile
             </h2>
 
-            <FormField label="Display name" htmlFor="settings-name">
+            <FormField label="Display name" htmlFor="settings-name" required error={nameError}>
               <Input
                 id="settings-name"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                maxLength={DISPLAY_NAME_MAX}
+                aria-invalid={!!nameError}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  if (nameError) setNameError(undefined);
+                }}
               />
             </FormField>
 

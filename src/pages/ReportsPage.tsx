@@ -1,4 +1,16 @@
-import { useMemo, type ReactNode } from "react";
+/**
+ * ReportsPage — route: /reports
+ *
+ * The customer's impact report, framed as a journey: a tier you climb, goal
+ * rings you fill, badges you unlock, and a timeline of real milestones — all
+ * computed from lifetime activity so achievements never disappear.
+ *
+ * Below the journey sits a customizable, analytical breakdown: a date-range and
+ * category filter scope a separate report used to render savings-by-month,
+ * claims-by-category, and rating-distribution charts, plus CSV and print export
+ * so the data can be analysed outside the app.
+ */
+import { useMemo, useState, type ReactNode } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import {
   ArrowUpRight,
@@ -22,16 +34,26 @@ import { useApp } from "@/app/providers";
 import { navigate } from "@/app/navigation";
 import { Button } from "@/components/common/Button";
 import { Card } from "@/components/common/Card";
+import { Icon } from "@/components/common/Icon";
 import { EmptyState } from "@/components/common/EmptyState";
+import { InsightSummary } from "@/components/common/InsightSummary";
 import { PageHeader } from "@/components/common/PageHeader";
 import { Progress } from "@/components/ui/progress";
+import { Select } from "@/components/ui/select";
+import { BarColumns, BarList } from "@/components/charts/Charts";
 import { Reveal, Stagger, StaggerItem } from "@/components/motion/Reveal";
-import { CATEGORY_META } from "@/data/catalog";
-import { getUserReport } from "@/services/reportService";
+import { ALL_CATEGORIES, CATEGORY_META } from "@/data/catalog";
+import {
+  getUserReport,
+  rangeToFromDate,
+  RANGE_PRESETS,
+  type RangePreset,
+} from "@/services/reportService";
 import { offerSavingsPerRedemption } from "@/utils/offerPricing";
 import { formatCurrency } from "@/utils/formatting";
+import { downloadCsv, dateStamp, slugify, printReport, type CsvSection } from "@/utils/export";
 import { cn } from "@/lib/utils";
-import type { Claim, UserReport } from "@/models";
+import type { BusinessCategory, Claim, ClaimStatus, ReportFilters, UserReport } from "@/models";
 
 /* ============================================================================
    THE IMPACT JOURNEY
@@ -317,6 +339,11 @@ function TierLadderRow({ tier, points, isCurrent }: { tier: Tier; points: number
 
 export function ReportsPage() {
   const { data, activeUser } = useApp();
+  // Filters scope only the analytical breakdown + export — never the lifetime
+  // journey above it, so badges and tiers stay earned regardless of the range.
+  const [range, setRange] = useState<RangePreset>("all");
+  const [category, setCategory] = useState<BusinessCategory | "all">("all");
+  const [status, setStatus] = useState<ClaimStatus | "all">("all");
 
   const d = useMemo(() => {
     const reportData = { claims: data.claims, offers: data.offers, businesses: data.businesses, reviews: data.reviews };
@@ -453,6 +480,64 @@ export function ReportsPage() {
     };
   }, [activeUser.id, activeUser.createdAt, data.claims, data.offers, data.businesses, data.reviews]);
 
+  // Filtered report powering the analytical breakdown + export (date range + category).
+  const filtered = useMemo(() => {
+    const filters: ReportFilters = {
+      fromDate: rangeToFromDate(range),
+      category: category === "all" ? undefined : category,
+      claimStatus: status === "all" ? undefined : status,
+    };
+    return getUserReport(activeUser.id, filters, {
+      claims: data.claims,
+      offers: data.offers,
+      businesses: data.businesses,
+      reviews: data.reviews,
+    });
+  }, [activeUser.id, range, category, status, data.claims, data.offers, data.businesses, data.reviews]);
+
+  function exportCsv() {
+    const rangeLabel = RANGE_PRESETS.find((r) => r.value === range)?.label ?? "All time";
+    const categoryLabel = category === "all" ? "All categories" : CATEGORY_META[category].label;
+    const sections: CsvSection[] = [
+      {
+        title: `Impact report — ${activeUser.name}`,
+        headers: ["Metric", "Value"],
+        rows: [
+          ["Date range", rangeLabel],
+          ["Category", categoryLabel],
+          ["Status filter", status === "all" ? "Any status" : status],
+          ["Passes claimed", filtered.totalClaimed],
+          ["Passes redeemed", filtered.totalRedeemed],
+          ["Estimated savings", formatCurrency(filtered.estimatedSavings)],
+          ["Businesses supported", filtered.businessesSupported],
+          ["Reviews submitted", filtered.reviewsSubmitted],
+          ["Average rating given", filtered.averageRatingGiven || "—"],
+          ["Favourite category", filtered.favoriteCategory ? CATEGORY_META[filtered.favoriteCategory].label : "—"],
+        ],
+      },
+      {
+        title: "Savings by month",
+        headers: ["Month", "Saved"],
+        rows: filtered.savingsByMonth.length > 0
+          ? filtered.savingsByMonth.map((p) => [p.label, Math.round(p.value)])
+          : [["No data", 0]],
+      },
+      {
+        title: "Claims by category",
+        headers: ["Category", "Claims"],
+        rows: filtered.claimsByCategory.length > 0
+          ? filtered.claimsByCategory.map((p) => [p.label, p.value])
+          : [["No data", 0]],
+      },
+      {
+        title: "Ratings you gave",
+        headers: ["Rating", "Count"],
+        rows: filtered.ratingDistribution.map((p) => [p.label, p.value]),
+      },
+    ];
+    downloadCsv(`lattice-impact-${slugify(activeUser.name)}-${dateStamp()}.csv`, sections);
+  }
+
   const hasClaims = data.claims.some((c) => c.userId === activeUser.id);
 
   if (!hasClaims) {
@@ -566,6 +651,87 @@ export function ReportsPage() {
           ))}
         </div>
       </Reveal>
+
+      {/* ── Customizable analytical breakdown + export ─────────────────── */}
+      <section className="space-y-4">
+        <SectionHeading
+          title="By the numbers"
+          sub="Filter your activity by time and category, then export it for deeper analysis."
+          aside={
+            <div className="flex flex-wrap items-center gap-2 print:hidden">
+              <Select
+                value={range}
+                onChange={(e) => setRange(e.target.value as RangePreset)}
+                className="w-40"
+                aria-label="Filter by date range"
+              >
+                {RANGE_PRESETS.map((r) => (
+                  <option key={r.value} value={r.value}>
+                    {r.label}
+                  </option>
+                ))}
+              </Select>
+              <Select
+                value={category}
+                onChange={(e) => setCategory(e.target.value as BusinessCategory | "all")}
+                className="w-40"
+                aria-label="Filter by category"
+              >
+                <option value="all">All categories</option>
+                {ALL_CATEGORIES.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {CATEGORY_META[cat].label}
+                  </option>
+                ))}
+              </Select>
+              <Select
+                value={status}
+                onChange={(e) => setStatus(e.target.value as ClaimStatus | "all")}
+                className="w-36"
+                aria-label="Filter by status"
+              >
+                <option value="all">Any status</option>
+                <option value="pending">Pending</option>
+                <option value="redeemed">Redeemed</option>
+                <option value="expired">Expired</option>
+              </Select>
+              <Button variant="secondary" iconLeft={<Icon name="download" size={16} />} onClick={exportCsv}>
+                Export CSV
+              </Button>
+              <Button variant="secondary" iconLeft={<Icon name="print" size={16} />} onClick={printReport}>
+                Print
+              </Button>
+            </div>
+          }
+        />
+
+        <InsightSummary
+          title="Filtered totals"
+          density="comfortable"
+          items={[
+            { label: "Passes claimed", value: filtered.totalClaimed, detail: "In this range" },
+            { label: "Redeemed", value: filtered.totalRedeemed, detail: "Approved in-store" },
+            { label: "Saved", value: formatCurrency(filtered.estimatedSavings), detail: "Estimated" },
+            { label: "Businesses", value: filtered.businessesSupported, detail: "Supported locally" },
+            { label: "Reviews", value: filtered.reviewsSubmitted, detail: "You've written" },
+          ]}
+        />
+
+        <div className="grid gap-4 lg:grid-cols-2">
+          <Card variant="solid" className="space-y-5 p-6">
+            <h3 className="font-display text-[17px] font-semibold tracking-[-0.02em]">Savings by month</h3>
+            <BarColumns data={filtered.savingsByMonth} color="var(--success)" format={(n) => formatCurrency(n)} />
+          </Card>
+          <Card variant="solid" className="space-y-5 p-6">
+            <h3 className="font-display text-[17px] font-semibold tracking-[-0.02em]">Claims by category</h3>
+            <BarList data={filtered.claimsByCategory} color="var(--primary)" />
+          </Card>
+          <Card variant="solid" className="space-y-5 p-6 lg:col-span-2">
+            <h3 className="font-display text-[17px] font-semibold tracking-[-0.02em]">Ratings you've given</h3>
+            <BarList data={filtered.ratingDistribution} color="var(--brand-violet)" />
+          </Card>
+        </div>
+      </section>
 
       {/* ── Goal rings ────────────────────────────────────────────────── */}
       <section className="space-y-4">

@@ -8,6 +8,7 @@
 
 import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
+import { Sparkles } from "lucide-react";
 import { useApp } from "@/app/providers";
 import { navigate } from "@/app/navigation";
 import { Button } from "@/components/common/Button";
@@ -16,14 +17,9 @@ import { Icon } from "@/components/common/Icon";
 import { EmptyState } from "@/components/common/EmptyState";
 import { PageHeader } from "@/components/common/PageHeader";
 import { Input } from "@/components/ui/input";
+import { openAssistant } from "@/components/domain/Assistant";
+import { topicVisibleTo } from "@/services/assistantService";
 import { HELP_CATEGORIES, HELP_TOPICS, type HelpTopic } from "@/data/helpTopics";
-
-/** Whether a topic should be visible to the current role. */
-function visibleTo(topic: HelpTopic, role: string): boolean {
-  if (topic.audience === "all") return true;
-  if (role === "businessOwner") return topic.audience === "business";
-  return topic.audience === "customer";
-}
 
 function matchesQuery(topic: HelpTopic, q: string): boolean {
   if (!q) return true;
@@ -95,7 +91,7 @@ export function HelpPage() {
 
   // Topics for this role, narrowed by the search query, grouped by category.
   const grouped = useMemo(() => {
-    const visible = HELP_TOPICS.filter((t) => visibleTo(t, role) && matchesQuery(t, query));
+    const visible = HELP_TOPICS.filter((t) => topicVisibleTo(t, role) && matchesQuery(t, query));
     return HELP_CATEGORIES.map((cat) => ({
       ...cat,
       topics: visible.filter((t) => t.category === cat.id),
@@ -112,7 +108,30 @@ export function HelpPage() {
         subtitle="Search how-tos and answers, or browse by topic. Every answer can take you straight to the right place in the app."
       />
 
-      <Card variant="glassBlue" className="p-4 sm:p-5">
+      {/* Interactive Q&A — the assistant answers free-text questions instantly. */}
+      <Card variant="glassBlue" className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-start gap-3">
+          <span className="grid size-10 shrink-0 place-items-center rounded-2xl bg-primary text-primary-foreground shadow-[var(--shadow-soft)]">
+            <Sparkles size={19} aria-hidden="true" />
+          </span>
+          <div>
+            <h2 className="font-display text-[17px] font-semibold tracking-[-0.02em]">Ask the Lattice Assistant</h2>
+            <p className="mt-0.5 text-[13.5px] leading-relaxed text-muted-foreground">
+              Type a question in plain English and get an instant answer — works offline.
+            </p>
+          </div>
+        </div>
+        <Button
+          variant="brand"
+          iconLeft={<Sparkles size={16} />}
+          onClick={() => openAssistant()}
+          className="shrink-0"
+        >
+          Ask a question
+        </Button>
+      </Card>
+
+      <Card variant="solid" className="p-4 sm:p-5">
         <div className="relative">
           <Icon
             name="search"
@@ -133,11 +152,16 @@ export function HelpPage() {
         <EmptyState
           icon="help"
           title="No matching help topics"
-          body="Try a different search term, or clear the search to browse everything."
+          body="Try a different search term, ask the assistant in your own words, or clear the search to browse everything."
           action={
-            <Button variant="brand" onClick={() => setQuery("")}>
-              Clear search
-            </Button>
+            <div className="flex flex-wrap justify-center gap-2">
+              <Button variant="brand" iconLeft={<Sparkles size={16} />} onClick={() => openAssistant(query)}>
+                Ask the assistant
+              </Button>
+              <Button variant="secondary" onClick={() => setQuery("")}>
+                Clear search
+              </Button>
+            </div>
           }
         />
       ) : (
