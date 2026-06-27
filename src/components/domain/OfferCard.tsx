@@ -32,6 +32,7 @@ export function OfferCard({
   distanceKm,
   saved = false,
   claiming = false,
+  pinNumber,
   onClaim,
   onSave,
   onView,
@@ -43,6 +44,8 @@ export function OfferCard({
   distanceKm?: number;
   saved?: boolean;
   claiming?: boolean;
+  /** When set, shows a chip matching this offer's numbered pin on the matches map. */
+  pinNumber?: number;
   onClaim?: (offer: Offer) => void;
   onSave?: (offer: Offer) => void;
   onView?: (business: Business) => void;
@@ -72,6 +75,14 @@ export function OfferCard({
           </motion.button>
         )}
         {match && <MatchScoreBadge score={match.score} className="absolute bottom-3 left-3" />}
+        {pinNumber !== undefined && (
+          <span
+            className="absolute bottom-3 right-3 inline-grid size-7 place-items-center rounded-full border-2 border-white bg-[var(--primary)] text-xs font-bold tabular-nums text-white shadow-[var(--shadow-soft)]"
+            aria-label={`Map pin ${pinNumber}`}
+          >
+            {pinNumber}
+          </span>
+        )}
       </BusinessImage>
 
       <div className="flex flex-1 flex-col gap-3.5 p-5">
