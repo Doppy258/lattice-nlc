@@ -26,7 +26,7 @@ export type OfferRow = {
 };
 export type ClaimRow = {
   id: string; user_id: string; offer_id: string; business_id: string; claim_code: string;
-  status: Claim["status"]; created_at: string; expires_at: string; redeemed_at: string | null;
+  status: Claim["status"] | "active"; created_at: string; expires_at: string; redeemed_at: string | null;
 };
 export type ReviewRow = {
   id: string; user_id: string; business_id: string; offer_id: string; claim_id: string;
@@ -72,7 +72,8 @@ export const rowToOffer = (r: OfferRow): Offer => ({
 export const rowToClaim = (r: ClaimRow): Claim => ({
   id: r.id, userId: r.user_id, offerId: r.offer_id, businessId: r.business_id, claimCode: r.claim_code,
   token: r.claim_code, backupCode: r.claim_code,
-  status: r.status, createdAt: r.created_at, expiresAt: r.expires_at, redeemedAt: r.redeemed_at ?? undefined,
+  status: r.status === "active" ? "pending" : r.status,
+  createdAt: r.created_at, expiresAt: r.expires_at, redeemedAt: r.redeemed_at ?? undefined,
 });
 
 export const rowToReview = (r: ReviewRow): Review => ({

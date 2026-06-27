@@ -15,7 +15,10 @@ import { fetchAllData } from "./dbService";
 import { isSupabaseConfigured } from "./supabaseClient";
 import { buildSeedData } from "../data/seed";
 
-const DATA_KEY = "lattice.data.v1";
+// Bumped v1 -> v2 when the seed catalog was replaced with the real San Antonio
+// dataset, so existing browsers discard their cached snapshot and rebuild from
+// the new seed instead of showing the old demo businesses.
+const DATA_KEY = "lattice.data.v2";
 const ACTIVE_USER_KEY = "lattice.activeUserId.v1";
 
 function emptyData(): AppData {

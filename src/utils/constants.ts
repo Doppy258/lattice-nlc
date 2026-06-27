@@ -78,8 +78,6 @@ export const RELATED_CATEGORIES: Record<BusinessCategory, BusinessCategory[]> = 
 
 /** Claim and request guard rails (sections 10.5, 13.2). */
 export const MAX_ACTIVE_CLAIMS = 3;
-export const DUPLICATE_REQUEST_COOLDOWN_MIN = 10;
-export const MAX_ACTIVE_REQUESTS = 5;
 export const MAX_REQUEST_WINDOW_DAYS = 7;
 
 /** Review text bounds (section 10.7). */
