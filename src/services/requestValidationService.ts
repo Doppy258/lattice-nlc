@@ -1,14 +1,11 @@
 /**
  * requestValidationService — syntactic and semantic validation for Ping
  * (Create-a-Lattice) submissions. Covers budget minima per need type, time
- * window ordering/past/range, optional note spam/character limits, and
- * duplicate-request cooldown. Also provides the RequestQuality signal
- * shown in the live preview.
+ * window ordering/past/range, and optional note spam/character limits. Also
+ * provides the RequestQuality signal shown in the live preview.
  */
 import type { NeedType, PingRequest } from "../models";
 import {
-  DUPLICATE_REQUEST_COOLDOWN_MIN,
-  MAX_ACTIVE_REQUESTS,
   MAX_REQUEST_WINDOW_DAYS,
   MINIMUM_BUDGET_BY_NEED_TYPE,
   NOTE_MAX,
@@ -92,35 +89,6 @@ export function validateOptionalNote(note: string | undefined): FieldError | nul
   return null;
 }
 
-/**
- * Duplicate guard: a near-identical request (same category + need type) created
- * within the cooldown window, or too many active requests.
- */
-export function detectDuplicateRequest(
-  userId: string,
-  request: PingDraft,
-  existing: PingRequest[],
-  now = new Date()
-): FieldError | null {
-  const mine = existing.filter((r) => r.userId === userId);
-  const active = mine.filter((r) => r.status === "submitted" || r.status === "matched");
-  if (active.length >= MAX_ACTIVE_REQUESTS) {
-    return { field: "duplicate", message: "You have too many active requests. Close one before creating another." };
-  }
-  const recentDuplicate = mine.find((r) => {
-    const sameNeed = r.category === request.category && r.needType === request.needType;
-    const minutesAgo = (now.getTime() - Date.parse(r.createdAt)) / 60000;
-    return sameNeed && minutesAgo < DUPLICATE_REQUEST_COOLDOWN_MIN;
-  });
-  if (recentDuplicate) {
-    return {
-      field: "duplicate",
-      message: "You already created a similar request recently. Edit that one or wait a few minutes.",
-    };
-  }
-  return null;
-}
-
 /** Full request validation aggregating syntactic + semantic checks. */
 export function validatePingRequest(
   request: PingDraft,
@@ -143,10 +111,8 @@ export function validatePingRequest(
   const noteError = validateOptionalNote(request.optionalNote);
   if (noteError) errors.push(noteError);
 
-  if (request.userId) {
-    const dup = detectDuplicateRequest(request.userId, request, existing, now);
-    if (dup) errors.push(dup);
-  }
+  void existing;
+  void now;
 
   return { valid: errors.length === 0, errors };
 }

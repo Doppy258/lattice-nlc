@@ -79,12 +79,20 @@ npm run dev
 
 The app runs locally at `http://localhost:5173`. No public deployment is available.
 
+For an offline/competition demo that always uses seeded local data and bypasses Supabase auth:
+
+```bash
+npm run dev:demo
+```
+
 ## Scripts
 
 | Script | Description |
 |---|---|
 | `npm run dev` | Start the Vite dev server |
+| `npm run dev:demo` | Start the app in standalone seeded-data mode |
 | `npm run build` | Build for production |
+| `npm run build:demo` | Build the standalone seeded-data version |
 | `npm run preview` | Preview the production build |
 | `npm run test` | Run tests (vitest) |
 | `npm run test:watch` | Run tests in watch mode |
