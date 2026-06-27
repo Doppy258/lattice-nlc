@@ -13,7 +13,6 @@
 import type { AppData, CollectionName } from "../models";
 import { fetchAllData } from "./dbService";
 import { isSupabaseConfigured } from "./supabaseClient";
-import { buildSeedData } from "../data/seed";
 
 // Bumped v1 -> v2 when the seed catalog was replaced with the real San Antonio
 // dataset, so existing browsers discard their cached snapshot and rebuild from
@@ -102,10 +101,10 @@ export function loadData(): AppData {
       const raw = window.localStorage.getItem(DATA_KEY);
       if (raw) return JSON.parse(raw) as AppData;
     } catch {
-      // corrupted snapshot — fall through to a fresh seed
+      // corrupted snapshot
     }
   }
-  return buildSeedData();
+  return emptyData();
 }
 
 /** Persists the current app data snapshot to localStorage. */
@@ -118,9 +117,9 @@ export function saveData(data: AppData): void {
   }
 }
 
-/** Clears the persisted snapshot and returns a fresh seed (used by "reset demo"). */
+/** Clears the persisted snapshot and returns empty data (used by "reset demo"). */
 export function resetDemoData(): AppData {
-  const fresh = buildSeedData();
+  const fresh = emptyData();
   saveData(fresh);
   return fresh;
 }
