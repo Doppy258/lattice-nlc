@@ -19,7 +19,7 @@ import {
 } from "react";
 import type { Session } from "@supabase/supabase-js";
 import type { AppData, Business, User, UserPreferences, UserRole } from "../models";
-import { DEFAULT_USER_ID } from "../data/seed";
+const DEFAULT_USER_ID = "user_lucas";
 import {
   loadActiveBusinessId,
   loadActiveUserId,
