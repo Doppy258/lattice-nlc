@@ -103,6 +103,17 @@ export function validatePingRequest(
     errors.push({ field: "distance", message: "Choose a distance." });
   }
 
+  // Semantic ordering: a min budget can't exceed the max budget.
+  if (
+    request.budgetMin !== undefined &&
+    request.budgetMax !== undefined &&
+    Number.isFinite(request.budgetMin) &&
+    Number.isFinite(request.budgetMax) &&
+    request.budgetMin > request.budgetMax
+  ) {
+    errors.push({ field: "budget", message: "Minimum budget can't be more than the maximum." });
+  }
+
   const budgetError = validateBudgetForNeedType(request.needType, request.budgetMax);
   if (budgetError) errors.push(budgetError);
 

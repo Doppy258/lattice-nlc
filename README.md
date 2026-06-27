@@ -30,8 +30,42 @@
 | **Offer Management** | Create/edit offers with image upload, discount types, student-only toggles, and redemption limits. |
 | **Claim & Redemption** | Human-verification gate, time-limited passes with QR codes, and in-store redemption. |
 | **Pairwise Ranking** | Binary-insertion comparison for building personal business rankings. |
+| **Ask Lattice (interactive Q&A)** | Offline conversational assistant that answers free-text questions via a synonym-aware retrieval ranker over the help knowledge base, with one-tap deep links. |
+| **Reports & analytics** | Customer impact report and business performance dashboard — both filterable (date range, category, status) with CSV and print/PDF export. |
 | **Geolocation** | Browser GPS (user-initiated) for distance-aware matching. |
 | **Role-based Accounts** | Customer and business owner roles with separate views. |
+
+## How Lattice meets the "Byte-Sized Business Boost" prompt
+
+The 2025–2026 topic asks for a tool that helps people **discover and support small, local businesses**. Every required capability is implemented and demonstrable — here's exactly where each lives:
+
+| Prompt requirement | Where it lives | How it works |
+|---|---|---|
+| **Sort businesses by category** (food, retail, services, …) | `ExplorePage.tsx`, `businessService.filterBusinesses` | Category chips filter the live business list across 7 categories. |
+| **Leave reviews / ratings** | `ReviewModal.tsx`, `reviewService.ts` | 1–5 star rating + text + tags; **verified** because a review unlocks only after you redeem a pass at that business. |
+| **Sort businesses by reviews / ratings** | `ExplorePage.tsx`, `utils/sorting.ts` | "Highest rating" and "Most reviews" sort options operate on real aggregates. |
+| **Save / bookmark favorites** | `SavedPage.tsx`, `BusinessCard`, `OfferCard` | Bookmark businesses *and* offers; revisit them on the Saved page. |
+| **Display special deals / coupons** | `OfferCard.tsx`, `BusinessProfilePage.tsx`, `offerService.ts` | Eight offer types (discount, student, bundle, limited-time, …) with live pricing. |
+| **Verification step to prevent bots** | `BotCheckModal.tsx`, `SignupPage.tsx` | reCAPTCHA when configured, plus a self-contained **canvas CAPTCHA** (distorted code + checkbox + attempt limit) that needs no network. |
+
+**Beyond the minimum**, the program adds the rubric's "intelligent feature," validation, and analysis expectations:
+
+- **Intelligent feature — interactive Q&A:** the *Ask Lattice* assistant (`Assistant.tsx`, `assistantService.ts`) answers questions in plain English, plus an **OfferRank** recommendation engine (`offerMatchingService.ts`) that ranks offers across seven weighted signals with a transparent per-match explanation.
+- **Input validation (syntactic + semantic):** format checks *and* meaning checks — e.g. budget minimums per need type, time-window ordering, link/spam detection, email format, and discount-range sanity (`requestValidationService.ts`, `offerService.ts`, `utils/validation.ts`).
+- **Customizable, analyzable reports:** the impact report and analytics dashboard filter by date range, category, and status, render charts, and export to **CSV / print-to-PDF** (`ReportsPage.tsx`, `AnalyticsPage.tsx`, `reportService.ts`, `utils/export.ts`).
+- **Accessibility:** keyboard navigation, ARIA roles/labels, focus-visible styling, a skip-to-content link, alt text, and full `prefers-reduced-motion` support.
+
+> **Standalone demo:** `npm run dev:demo` runs the entire app on seeded local data with auth bypassed and the offline CAPTCHA fallback — no internet, accounts, or QR scanning required (judges never need to scan a code or click a link).
+
+## Why this stack
+
+| Choice | Rationale |
+|---|---|
+| **TypeScript** | Static typing across ~16k lines catches errors at compile time and documents intent; discriminated unions (e.g. `CreateOfferResult`) force callers to handle failure paths. |
+| **React 18 + Vite** | Component model keeps the UI modular and declarative; Vite gives instant HMR in dev and a fast, tree-shaken production build. |
+| **Tailwind CSS v4 + design tokens** | Utility-first styling with a single token source (`styles/tokens.css`) keeps the visual language consistent and theme-able. |
+| **In-house services/utils, few dependencies** | Core logic (OfferRank, validation, reports, CSV export, the Q&A ranker, charts, CAPTCHA) is written from scratch — no heavy frameworks — so the program runs standalone and the algorithms are inspectable. |
+| **Supabase (optional)** | Provides shared Postgres/Auth/Storage when online; the app degrades gracefully to seeded data offline. |
 
 ## Project Structure
 

@@ -15,6 +15,8 @@ import { Icon } from "@/components/common/Icon";
 import { Input } from "@/components/ui/input";
 import { BrandLockup } from "@/components/layout/LatticeMark";
 import { BotCheckModal } from "@/components/domain/BotCheckModal";
+import { isValidEmail } from "@/utils/validation";
+import { DISPLAY_NAME_MIN, DISPLAY_NAME_MAX } from "@/utils/constants";
 import { AuthError, AuthShell } from "./authShared";
 import { cn } from "@/lib/utils";
 
@@ -81,8 +83,16 @@ export function SignupPage() {
       setError("Please enter your display name.");
       return;
     }
+    if (displayName.trim().length < DISPLAY_NAME_MIN || displayName.trim().length > DISPLAY_NAME_MAX) {
+      setError(`Display name must be ${DISPLAY_NAME_MIN}–${DISPLAY_NAME_MAX} characters.`);
+      return;
+    }
     if (!email.trim() || !password.trim() || !confirmPassword.trim()) {
       setError("Please fill in all fields.");
+      return;
+    }
+    if (!isValidEmail(email)) {
+      setError("Enter a valid email address (e.g. you@example.com).");
       return;
     }
     if (password.length < 6) {

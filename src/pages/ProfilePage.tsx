@@ -26,6 +26,13 @@ import { BusinessHoursEditor } from "@/components/domain/BusinessHoursEditor";
 import { AddressAutocomplete } from "@/components/common/AddressAutocomplete";
 import { CATEGORY_META } from "@/data/catalog";
 import { formatRating } from "@/utils/formatting";
+import {
+  BUSINESS_NAME_MIN,
+  BUSINESS_NAME_MAX,
+  BUSINESS_DESC_MIN,
+  BUSINESS_DESC_MAX,
+} from "@/utils/constants";
+import { isNonEmpty, lengthWithin } from "@/utils/validation";
 import type { Business, BusinessHours, GeoPoint } from "@/models";
 import { uploadBusinessImage } from "@/services/imageService";
 import { upsertBusiness } from "@/services/dbService";
@@ -75,6 +82,7 @@ function ProfileEditor({ business }: { business: Business }) {
   const [hours, setHours] = useState<BusinessHours[]>(business.hours);
   const [bannerUrl, setBannerUrl] = useState<string | undefined>(business.bannerUrl);
   const [uploading, setUploading] = useState(false);
+  const [errors, setErrors] = useState<{ name?: string; description?: string; address?: string }>({});
 
   const bannerInputRef = useRef<HTMLInputElement>(null);
 
@@ -110,11 +118,31 @@ function ProfileEditor({ business }: { business: Business }) {
     }
   }
 
+  /** Validate storefront fields before persisting; returns true when clean. */
+  function validate(): boolean {
+    const next: { name?: string; description?: string; address?: string } = {};
+    if (!lengthWithin(name, BUSINESS_NAME_MIN, BUSINESS_NAME_MAX)) {
+      next.name = `Name must be ${BUSINESS_NAME_MIN}–${BUSINESS_NAME_MAX} characters.`;
+    }
+    if (!lengthWithin(description, BUSINESS_DESC_MIN, BUSINESS_DESC_MAX)) {
+      next.description = `Description must be ${BUSINESS_DESC_MIN}–${BUSINESS_DESC_MAX} characters.`;
+    }
+    if (!isNonEmpty(address) || !businessLocation) {
+      next.address = "Search for your address and pick it from the dropdown so customers can find you.";
+    }
+    setErrors(next);
+    return Object.keys(next).length === 0;
+  }
+
   async function save() {
+    if (!validate()) {
+      toast.error("Please fix the highlighted fields.");
+      return;
+    }
     const updated: Business = {
       ...business,
-      name,
-      description,
+      name: name.trim(),
+      description: description.trim(),
       address,
       priceLevel,
       tags,
@@ -207,23 +235,55 @@ function ProfileEditor({ business }: { business: Business }) {
             <Icon name="store" size={18} className="text-primary" /> Storefront details
           </h2>
 
-          <FormField label="Business name" htmlFor="biz-name">
-            <Input id="biz-name" value={name} onChange={(e) => setName(e.target.value)} />
+          <FormField label="Business name" htmlFor="biz-name" required error={errors.name}>
+            <Input
+              id="biz-name"
+              value={name}
+              maxLength={BUSINESS_NAME_MAX}
+              aria-invalid={!!errors.name}
+              onChange={(e) => {
+                setName(e.target.value);
+                if (errors.name) setErrors((p) => ({ ...p, name: undefined }));
+              }}
+            />
           </FormField>
 
-          <FormField label="Description" htmlFor="biz-desc" hint="A short pitch shown on your public profile.">
+          <FormField
+            label="Description"
+            htmlFor="biz-desc"
+            required
+            error={errors.description}
+            hint={`A short pitch shown on your public profile. ${description.trim().length}/${BUSINESS_DESC_MAX}`}
+          >
             <Textarea
               id="biz-desc"
               rows={4}
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              maxLength={BUSINESS_DESC_MAX}
+              aria-invalid={!!errors.description}
+              onChange={(e) => {
+                setDescription(e.target.value);
+                if (errors.description) setErrors((p) => ({ ...p, description: undefined }));
+              }}
             />
           </FormField>
 
-          <FormField label="Address" htmlFor="biz-address" hint="Search for your location and select from the dropdown.">
+          <FormField
+            label="Address"
+            htmlFor="biz-address"
+            required
+            error={errors.address}
+            hint="Search for your location and select from the dropdown."
+          >
             <AddressAutocomplete
               value={address}
-              onChange={setAddress}
+              onChange={(v) => {
+                setAddress(v);
+                // Typing a fresh address invalidates the previously-picked
+                // coordinates until a new suggestion is selected.
+                setBusinessLocation(null);
+                if (errors.address) setErrors((p) => ({ ...p, address: undefined }));
+              }}
               onSelect={handleAddressSelect}
               placeholder="Search for your business address"
               id="biz-address"
