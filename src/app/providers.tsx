@@ -31,6 +31,7 @@ import {
   saveData,
 } from "../services/storageService";
 import {
+  saveOnboardingMetadata,
   signIn as authSignIn,
   signUp as authSignUp,
   signOut as authSignOut,
@@ -275,7 +276,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         );
         return { ...prev, users };
       });
-      return null;
+
+      const { error } = await saveOnboardingMetadata(updates);
+      return error?.message ?? null;
     },
     [activeUserId],
   );
