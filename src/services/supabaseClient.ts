@@ -8,15 +8,20 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 const FALLBACK_SUPABASE_URL = "https://nzasnhmpcyxsgwpdxwni.supabase.co";
+const forceDemoMode = import.meta.env.VITE_FORCE_DEMO_MODE === "true";
 
 const supabaseUrl =
-  import.meta.env.VITE_SUPABASE_URL ||
-  import.meta.env.NEXT_PUBLIC_SUPABASE_URL ||
-  FALLBACK_SUPABASE_URL;
+  forceDemoMode
+    ? ""
+    : import.meta.env.VITE_SUPABASE_URL ||
+      import.meta.env.NEXT_PUBLIC_SUPABASE_URL ||
+      FALLBACK_SUPABASE_URL;
 
 const supabaseAnonKey =
-  import.meta.env.VITE_SUPABASE_ANON_KEY ||
-  import.meta.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+  forceDemoMode
+    ? ""
+    : import.meta.env.VITE_SUPABASE_ANON_KEY ||
+      import.meta.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
 

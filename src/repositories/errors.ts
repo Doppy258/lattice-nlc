@@ -20,8 +20,6 @@ const MESSAGES: Record<string, string> = {
   BAD_TIME_WINDOW: "End time must be after start time.",
   TIME_IN_PAST: "Time cannot be in the past.",
   WINDOW_TOO_LONG: "A request window cannot exceed 7 days.",
-  TOO_MANY_REQUESTS: "You have too many active requests. Close one before creating another.",
-  DUPLICATE_REQUEST: "You already created a similar request recently. Edit that one or wait a few minutes.",
   CLAIM_NOT_FOUND: "That claim could not be found.",
   NOT_YOUR_CLAIM: "You can only review your own claims.",
   NOT_REDEEMED: "You can review this only after redeeming the claim.",

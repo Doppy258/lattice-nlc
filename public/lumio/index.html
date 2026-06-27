@@ -29,13 +29,6 @@
       </div>
       <div class="right">
         <a class="signin nav-action nav-action--secondary" href="#/home" data-route="#/home">Open app</a>
-        <button class="cta">
-          <div class="bb-wrap" aria-hidden="true">
-            <div class="bb-beam bb-beam-1"></div>
-            <div class="bb-beam bb-beam-2"></div>
-          </div>
-          Start request
-        </button>
         <button class="nav__burger" id="navBurger" aria-label="Menu"><span></span><span></span><span></span></button>
       </div>
     </nav>
@@ -78,12 +71,12 @@
           ><span class="sub-line">ranked offers from nearby local businesses.</span>
         </p>
         <div class="ctas">
-          <button class="btn primary" style="padding: 0px 16px; letter-spacing: -0.9px">
+          <button class="btn primary" data-route="#/home" style="padding: 0px 16px; letter-spacing: -0.9px">
             <div class="bb-wrap" aria-hidden="true">
               <div class="bb-beam bb-beam-1"></div>
               <div class="bb-beam bb-beam-2"></div>
             </div>
-            Start a request
+            Open app
             <svg
               viewBox="0 0 18 18"
               fill="none"
@@ -96,13 +89,6 @@
               <path d="M5 13L13 5" />
               <path d="M6 5h7v7" />
             </svg>
-          </button>
-          <button class="btn ghost" data-route="#/home" style="letter-spacing: -0.9px">
-            <div class="bb-wrap" aria-hidden="true">
-              <div class="bb-beam bb-beam-1"></div>
-              <div class="bb-beam bb-beam-2"></div>
-            </div>
-            Open app
           </button>
         </div>
       </section>
@@ -833,8 +819,6 @@
           });
         }
         function init() {
-          wire(".cta", "#/onboarding");
-          wire(".btn.primary", "#/onboarding");
           wireRoutes();
           wireSections();
         }
