@@ -47,7 +47,6 @@ import {
 import { customTimeWindow, timeWindowForPreset, type TimeWindowPresetId } from "@/utils/timeWindows";
 import { NOTE_MAX } from "@/utils/constants";
 import { createId } from "@/utils/ids";
-import { NOTE_MAX } from "@/utils/constants";
 import { upsertRequest } from "@/services/dbService";
 import { formatTimeRange } from "@/utils/formatting";
 import type { BusinessCategory, NeedType, PingRequest } from "@/models";
