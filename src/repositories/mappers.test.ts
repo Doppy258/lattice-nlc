@@ -15,7 +15,8 @@ describe("mappers", () => {
     });
     expect(c).toEqual({
       id: "c1", userId: "u1", offerId: "o1", businessId: "b1",
-      claimCode: "PING-1234", status: "active", createdAt: "t0", expiresAt: "t1", redeemedAt: undefined,
+      claimCode: "PING-1234", token: "PING-1234", backupCode: "PING-1234",
+      status: "pending", createdAt: "t0", expiresAt: "t1", redeemedAt: undefined,
     });
   });
 
