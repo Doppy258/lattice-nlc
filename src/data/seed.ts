@@ -24,12 +24,12 @@ function buildSeedSaves(now: Date): {
   const at = (d: number) => new Date(now.getTime() - d * MS_PER_DAY).toISOString();
   return {
     savedBusinesses: [
-      { userId: "user_lucas", businessId: "biz_freshbowl", savedAt: at(3), tags: [] },
-      { userId: "user_lucas", businessId: "biz_inkwell", savedAt: at(6), tags: ["gifts"] },
-      { userId: "user_maya", businessId: "biz_rosas", savedAt: at(1), tags: [] },
+      { userId: "user_lucas", businessId: "biz_mitierra", savedAt: at(3), tags: [] },
+      { userId: "user_lucas", businessId: "biz_twig", savedAt: at(6), tags: ["gifts"] },
+      { userId: "user_maya", businessId: "biz_rosarios", savedAt: at(1), tags: [] },
     ],
     savedOffers: [
-      { userId: "user_lucas", offerId: "offer_freshbowl_bowl", savedAt: at(2) },
+      { userId: "user_lucas", offerId: "offer_mitierra_lunch", savedAt: at(2) },
     ],
   };
 }
