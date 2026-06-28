@@ -2,9 +2,19 @@
 
 const URL_PATTERN = /(https?:\/\/|www\.|\.[a-z]{2,}\/)/i;
 
+// Practical email shape check (syntactic): a local part, an @, a domain, and a
+// dotted TLD, with no whitespace. Intentionally permissive — semantic delivery
+// is verified by the auth provider, not here.
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 /** Type guard: finite number (rejects NaN/Infinity). */
 export function isNumber(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value);
+}
+
+/** Validates an email address's *format* (not its deliverability). */
+export function isValidEmail(value: string | undefined | null): boolean {
+  return typeof value === "string" && EMAIL_PATTERN.test(value.trim());
 }
 
 /** Checks for a non-blank string; null/undefined/whitespace-only → false. */

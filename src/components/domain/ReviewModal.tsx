@@ -46,6 +46,7 @@ export function ReviewModal({
   const [text, setText] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [ratingError, setRatingError] = useState<string | null>(null);
 
   const shown = hover || rating;
 
@@ -59,10 +60,17 @@ export function ReviewModal({
     setText("");
     setTags([]);
     setError(null);
+    setRatingError(null);
   }
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
+    // Semantic check surfaced inline (not just as a toast) so the user sees
+    // exactly which field needs attention before the request is attempted.
+    if (rating < 1) {
+      setRatingError("Tap a star to rate your visit from 1 to 5.");
+      return;
+    }
     const input: ReviewInput = {
       userId: activeUser.id,
       businessId: business.id,
@@ -106,7 +114,7 @@ export function ReviewModal({
       description={`Share your experience at ${business.name}. Your review is marked verified because you redeemed ${offer.title}.`}
     >
       <form onSubmit={submit} className="space-y-4">
-        <FormField label="Your rating" htmlFor="rating">
+        <FormField label="Your rating" htmlFor="rating" error={ratingError ?? undefined}>
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1" onMouseLeave={() => setHover(0)}>
               {[1, 2, 3, 4, 5].map((n) => (
@@ -118,6 +126,7 @@ export function ReviewModal({
                   onClick={() => {
                     setRating(n);
                     setError(null);
+                    setRatingError(null);
                   }}
                   aria-label={`${n} star${n === 1 ? "" : "s"}`}
                   className="cursor-pointer p-0.5 text-primary"

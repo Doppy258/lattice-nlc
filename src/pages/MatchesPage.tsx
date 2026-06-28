@@ -30,6 +30,7 @@ import { distanceForBusiness } from "@/services/businessService";
 import { isBusinessSaved, isOfferSaved, toggleSavedOffer } from "@/services/userService";
 import { NEED_TYPE_LABELS } from "@/data/catalog";
 import { formatCurrency, formatTimeRange } from "@/utils/formatting";
+import { cn } from "@/lib/utils";
 import type { Business, MatchResult, Offer, PingRequest } from "@/models";
 
 type SortKey = "best" | "rating" | "closest" | "price" | "ending" | "claimed";
@@ -71,6 +72,9 @@ export function MatchesPage() {
   const [sort, setSort] = useState<SortKey>("best");
   const [filters, setFilters] = useState({ deals: false, student: false, saved: false });
   const toggle = (k: keyof typeof filters) => setFilters((f) => ({ ...f, [k]: !f[k] }));
+  // The business whose pin/card is currently hovered — shared by the map and the
+  // list so hovering one highlights the other.
+  const [activeBizId, setActiveBizId] = useState<string | null>(null);
 
   const request: PingRequest | undefined = useMemo(() => {
     const id = query.get("request");
@@ -118,6 +122,25 @@ export function MatchesPage() {
     });
     return list;
   }, [rows, filters, sort, activeUser]);
+
+  // One pin per business (a business can have several matching offers), numbered
+  // in the same order the cards appear so the map and list line up exactly.
+  const mapBusinesses = useMemo(() => {
+    const seen = new Set<string>();
+    const out: { id: string; name: string; location: Business["location"]; rank: number }[] = [];
+    for (const r of visible) {
+      if (seen.has(r.business.id)) continue;
+      seen.add(r.business.id);
+      out.push({ id: r.business.id, name: r.business.name, location: r.business.location, rank: out.length + 1 });
+    }
+    return out;
+  }, [visible]);
+
+  const pinNumberOf = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const b of mapBusinesses) m.set(b.id, b.rank);
+    return m;
+  }, [mapBusinesses]);
 
   if (!request) {
     return (
@@ -208,16 +231,14 @@ export function MatchesPage() {
         </div>
       </div>
 
-      {rows.length > 0 && (
+      {mapBusinesses.length > 0 && (
         <LatticeMap
           userLocation={activeUser.location}
-          businesses={rows.map((r) => ({
-            id: r.business.id,
-            name: r.business.name,
-            location: r.business.location,
-          }))}
+          businesses={mapBusinesses}
           radiusKm={request.distanceKm}
           onBusinessClick={(id) => navigate(`/business?id=${id}`)}
+          highlightedId={activeBizId}
+          onHoverBusiness={setActiveBizId}
         />
       )}
 
@@ -241,17 +262,28 @@ export function MatchesPage() {
         <Stagger className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {visible.map((r) => (
             <StaggerItem key={r.offer.id} className="h-full">
-              <OfferCard
-                offer={r.offer}
-                business={r.business}
-                match={r.match}
-                distanceKm={r.distanceKm}
-                saved={isOfferSaved(activeUser, r.offer.id)}
-                onClaim={(o) => claim(o, request.id)}
-                onSave={(o) => setData((d) => toggleSavedOffer(d, activeUser.id, o.id))}
-                onView={(b) => navigate(`/business?id=${b.id}`)}
+              <div
                 className="h-full"
-              />
+                onMouseEnter={() => setActiveBizId(r.business.id)}
+                onMouseLeave={() => setActiveBizId((cur) => (cur === r.business.id ? null : cur))}
+              >
+                <OfferCard
+                  offer={r.offer}
+                  business={r.business}
+                  match={r.match}
+                  distanceKm={r.distanceKm}
+                  saved={isOfferSaved(activeUser, r.offer.id)}
+                  pinNumber={pinNumberOf.get(r.business.id)}
+                  onClaim={(o) => claim(o, request.id)}
+                  onSave={(o) => setData((d) => toggleSavedOffer(d, activeUser.id, o.id))}
+                  onView={(b) => navigate(`/business?id=${b.id}`)}
+                  className={cn(
+                    "h-full transition-shadow duration-200",
+                    activeBizId === r.business.id &&
+                      "ring-2 ring-[var(--primary)] ring-offset-2 ring-offset-[var(--background)]",
+                  )}
+                />
+              </div>
             </StaggerItem>
           ))}
         </Stagger>

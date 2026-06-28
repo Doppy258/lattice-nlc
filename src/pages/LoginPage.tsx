@@ -13,6 +13,7 @@ import { Button } from "@/components/common/Button";
 import { FormField } from "@/components/common/FormField";
 import { Input } from "@/components/ui/input";
 import { BrandLockup } from "@/components/layout/LatticeMark";
+import { isValidEmail } from "@/utils/validation";
 import { AuthError, AuthShell } from "./authShared";
 
 export function LoginPage() {
@@ -27,6 +28,10 @@ export function LoginPage() {
     setError("");
     if (!email.trim() || !password.trim()) {
       setError("Please enter both email and password.");
+      return;
+    }
+    if (!isValidEmail(email)) {
+      setError("Enter a valid email address (e.g. you@example.com).");
       return;
     }
     setSubmitting(true);

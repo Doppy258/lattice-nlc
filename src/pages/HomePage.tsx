@@ -1,9 +1,10 @@
 /**
  * HomePage — route: /home
  *
- * Customer landing page after login. Shows a greeting, the user's latest
- * active Lattice (if any), and a personalised feed of matched or recommended
- * offers. Displays claim/savings insight summary and geolocation prompt.
+ * Customer landing page after login. Shows a greeting and a personalised feed
+ * of recommended live offers, plus a claim/savings insight summary and a
+ * geolocation prompt. A Lattice is an ephemeral search — its ranked results
+ * live on the matches page, so nothing here persists as an "active" session.
  */
 
 import { useMemo } from "react";
@@ -11,7 +12,6 @@ import { useApp } from "@/app/providers";
 import { navigate } from "@/app/navigation";
 import { Button } from "@/components/common/Button";
 import { Icon } from "@/components/common/Icon";
-import { Badge } from "@/components/common/Badge";
 import { PageHero } from "@/components/common/PageHeader";
 import { InsightSummary } from "@/components/common/InsightSummary";
 import { EmptyState } from "@/components/common/EmptyState";
@@ -22,25 +22,18 @@ import { useClaim } from "@/components/domain/useClaim";
 import { ClaimResultModal } from "@/components/domain/ClaimResultModal";
 import { BotCheckModal } from "@/components/domain/BotCheckModal";
 import { useGeolocation } from "@/hooks/useGeolocation";
-import { getMatchingOffers, getOriginPoint } from "@/services/offerMatchingService";
+import { getOriginPoint } from "@/services/offerMatchingService";
 import { distanceForBusiness } from "@/services/businessService";
 import { isOfferSaved, toggleSavedOffer } from "@/services/userService";
-import { NEED_TYPE_LABELS } from "@/data/catalog";
-import { formatCurrency, formatDistance } from "@/utils/formatting";
+import { formatCurrency } from "@/utils/formatting";
 import { offerSavingsPerRedemption } from "@/utils/offerPricing";
-import type { Offer, PingRequest } from "@/models";
+import type { Offer } from "@/models";
 
 function greeting(): string {
   const h = new Date().getHours();
   if (h < 12) return "Good morning";
   if (h < 18) return "Good afternoon";
   return "Good evening";
-}
-
-function budgetLabel(r: PingRequest): string {
-  if (r.budgetMax != null) return `under ${formatCurrency(r.budgetMax)}`;
-  if (r.budgetMin != null) return `${formatCurrency(r.budgetMin)}+`;
-  return "any budget";
 }
 
 export function HomePage() {
@@ -69,31 +62,15 @@ export function HomePage() {
     [data.offers, now],
   );
 
-  const latestRequest = useMemo(() => {
-    return data.requests
-      .filter((r) => r.userId === activeUser.id && (r.status === "submitted" || r.status === "matched"))
-      .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))[0];
-  }, [data.requests, activeUser.id]);
-
-  const matches = useMemo(() => {
-    if (!latestRequest) return [];
-    return getMatchingOffers(latestRequest, data.offers, data.businesses, activeUser).slice(0, 6);
-  }, [latestRequest, data.offers, data.businesses, activeUser]);
-
   const prefCategories = activeUser.preferences.preferredCategories;
   const prefStudent = activeUser.preferences.studentDiscountPreferred;
-  // Whether the fallback feed is personalised from onboarding interests.
-  const personalized = !matches.length && (prefCategories.length > 0 || prefStudent);
+  // Whether the feed is personalised from onboarding interests.
+  const personalized = prefCategories.length > 0 || prefStudent;
 
-  // Offers to feature: a request's top matches, else offers ranked by the
-  // interests + student preference captured during onboarding, then savings.
+  // A Lattice is an ephemeral search — its ranked results live on the matches
+  // page, not here. The home feed is always a fresh set of live offers, ordered
+  // by the interests + student preference captured during onboarding, then savings.
   const featured = useMemo(() => {
-    if (matches.length) {
-      return matches.map((m) => ({
-        offer: data.offers.find((o) => o.id === m.offerId)!,
-        match: m,
-      }));
-    }
     const affinity = (o: Offer) =>
       (prefCategories.includes(o.category) ? 1000 : 0) +
       (prefStudent && o.studentOnly ? 300 : 0) +
@@ -102,8 +79,8 @@ export function HomePage() {
       .slice()
       .sort((a, b) => affinity(b) - affinity(a))
       .slice(0, 6)
-      .map((offer) => ({ offer, match: undefined }));
-  }, [matches, activeOffers, data.offers, prefCategories, prefStudent]);
+      .map((offer) => ({ offer }));
+  }, [activeOffers, prefCategories, prefStudent]);
 
   const myClaims = data.claims.filter((c) => c.userId === activeUser.id);
   const activeClaimCount = myClaims.filter((c) => c.status === "pending").length;
@@ -177,31 +154,6 @@ export function HomePage() {
         }
       />
 
-      {latestRequest && (
-        <button
-          type="button"
-          onClick={() => navigate(`/matches?request=${latestRequest.id}`)}
-          className="flex w-full cursor-pointer items-center gap-4 rounded-[var(--tile-radius)] border border-[var(--tint-blue-border)] bg-[var(--tint-blue)] p-4 text-left transition-transform duration-200 hover:-translate-y-0.5 active:scale-[0.997]"
-        >
-          <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-card text-primary shadow-[var(--shadow-soft)]">
-            <Icon name="matches" size={20} />
-          </span>
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
-              <Badge tone="brand">Active Lattice</Badge>
-              <span className="text-[13px] text-muted-foreground">{matches.length} matches</span>
-            </div>
-            <p className="mt-1 truncate text-sm font-medium text-foreground">
-              {NEED_TYPE_LABELS[latestRequest.needType]} · {budgetLabel(latestRequest)} · within{" "}
-              {latestRequest.distanceKm} km
-            </p>
-          </div>
-          <span className="hidden shrink-0 items-center gap-1.5 text-sm font-semibold text-primary sm:flex">
-            View matches <Icon name="arrow" size={16} />
-          </span>
-        </button>
-      )}
-
       {!activeUser.location && !geolocation.loading && !geolocation.error && (
         <div className="flex items-center justify-between rounded-xl bg-[var(--tint-blue)] px-4 py-3">
           <span className="text-[13px] text-[var(--primary-strong)]">Enable location for nearby offers</span>
@@ -218,22 +170,20 @@ export function HomePage() {
         <div className="flex items-end justify-between gap-4">
           <div>
             <h2 className="font-display text-[22px] font-semibold tracking-[-0.03em]">
-              {matches.length ? "Your top " : personalized ? "Picked " : "Fresh offers "}
+              {personalized ? "Picked " : "Fresh offers "}
               <span className="font-accent font-normal text-primary">
-                {matches.length ? "matches" : personalized ? "for you" : "nearby"}
+                {personalized ? "for you" : "nearby"}
               </span>
             </h2>
             <p className="text-[14px] text-muted-foreground">
-              {matches.length
-                ? "Ranked by OfferRank for your latest Lattice."
-                : personalized
-                  ? "Based on the interests you chose during setup."
-                  : "Popular active deals from local businesses."}
+              {personalized
+                ? "Based on the interests you chose during setup."
+                : "Popular active deals from local businesses."}
             </p>
           </div>
           <button
             type="button"
-            onClick={() => navigate(latestRequest ? `/matches?request=${latestRequest.id}` : "/explore")}
+            onClick={() => navigate("/explore")}
             className="hidden shrink-0 cursor-pointer items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold text-primary transition-colors hover:bg-accent sm:flex"
           >
             See all <Icon name="arrow" size={15} />
@@ -253,7 +203,7 @@ export function HomePage() {
           />
         ) : (
           <Stagger className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {featured.map(({ offer, match }) => {
+            {featured.map(({ offer }) => {
               const business = businessFor(offer);
               if (!business) return null;
               return (
@@ -261,10 +211,9 @@ export function HomePage() {
                   <OfferCard
                     offer={offer}
                     business={business}
-                    match={match}
                     distanceKm={distanceForBusiness(business, origin)}
                     saved={isOfferSaved(activeUser, offer.id)}
-                    onClaim={(o) => claim(o, latestRequest?.id)}
+                    onClaim={(o) => claim(o)}
                     onSave={(o) => setData((d) => toggleSavedOffer(d, activeUser.id, o.id))}
                     onView={(b) => navigate(`/business?id=${b.id}`)}
                   />

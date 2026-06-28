@@ -7,7 +7,8 @@
 import type { BusinessCategory, DiscountKind, NeedType, Offer, OfferType } from "../models";
 import { createId } from "../utils/ids";
 import { isPast } from "../utils/dateTime";
-import { isNonEmpty, isNumber, lengthWithin } from "../utils/validation";
+import { containsLink, isNonEmpty, isNumber, isRepeatedNonsense, lengthWithin } from "../utils/validation";
+import { MAX_OFFER_CLAIMS } from "../utils/constants";
 
 /** Lifecycle state of an offer from the owner's point of view. */
 export type OfferStatus = "active" | "paused" | "expired" | "full";
@@ -55,11 +56,19 @@ export function validateOfferInput(input: OfferInput): OfferValidation {
 
   if (!lengthWithin(input.title, TITLE_MIN, TITLE_MAX)) {
     errors.push({ field: "title", message: `Title must be ${TITLE_MIN}-${TITLE_MAX} characters.` });
+  } else if (containsLink(input.title) || isRepeatedNonsense(input.title)) {
+    // Semantic check: titles shouldn't be link-stuffed or spammy filler.
+    errors.push({ field: "title", message: "Title can't contain links or repeated spam text." });
   }
   if (!lengthWithin(input.description, DESC_MIN, DESC_MAX)) {
     errors.push({
       field: "description",
       message: `Description must be ${DESC_MIN}-${DESC_MAX} characters.`,
+    });
+  } else if (containsLink(input.description) || isRepeatedNonsense(input.description)) {
+    errors.push({
+      field: "description",
+      message: "Description can't contain links or repeated spam text.",
     });
   }
   if (input.discountKind === "percent") {
@@ -92,6 +101,11 @@ export function validateOfferInput(input: OfferInput): OfferValidation {
   }
   if (!Number.isInteger(input.maxClaims) || input.maxClaims < 1) {
     errors.push({ field: "maxClaims", message: "Allow at least one claim." });
+  } else if (input.maxClaims > MAX_OFFER_CLAIMS) {
+    errors.push({
+      field: "maxClaims",
+      message: `Claim limit can't exceed ${MAX_OFFER_CLAIMS.toLocaleString()}.`,
+    });
   }
 
   return { valid: errors.length === 0, errors };
