@@ -232,4 +232,12 @@ export const HELP_TOPICS: HelpTopic[] = [
     audience: "all",
     action: { label: "Open settings", path: "/settings" },
   },
+  {
+    id: "credits-licenses",
+    category: "Account & safety",
+    question: "What open-source software and data does Lattice use?",
+    answer:
+      "Lattice is built with React, TypeScript, Vite, and Tailwind CSS, with maps by Leaflet using OpenStreetMap data, address search via Nominatim, icons from Lucide and Google Material Symbols, and fonts under the SIL Open Font License. Storefront photos are representative stock from Unsplash — not photos of the real businesses, and no business logos are used. Real business names appear for demonstration only and belong to their owners. Full credits and licenses are documented in the project's ATTRIBUTIONS file.",
+    audience: "all",
+  },
 ];

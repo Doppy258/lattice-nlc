@@ -131,12 +131,16 @@ npm run dev:demo
 | `npm run test` | Run tests (vitest) |
 | `npm run test:watch` | Run tests in watch mode |
 
-## Acknowledgments
+## Acknowledgments & licenses
+
+> **Full credits, licenses, and copyright documentation:** see **[docs/ATTRIBUTIONS.md](docs/ATTRIBUTIONS.md)** — every library (with license), font, icon set, image source, data provider, and template, plus the real‑business‑name disclaimer.
 
 - Built with [React](https://react.dev), [TypeScript](https://www.typescriptlang.org), [Vite](https://vite.dev), and [Tailwind CSS v4](https://tailwindcss.com)
-- Map rendering by [Leaflet](https://leafletjs.com)
+- Map tiles © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors (ODbL), rendered with [Leaflet](https://leafletjs.com)
 - Geocoding via [Nominatim](https://nominatim.org) (OpenStreetMap)
 - Backend & auth by [Supabase](https://supabase.com)
 - Animation by [motion](https://motion.dev)
-- Icons from [Lucide](https://lucide.dev)
-- Fonts: Geist, Space Grotesk, and Instrument Serif via [Fontsource](https://fontsource.org)
+- Icons from [Lucide](https://lucide.dev) and [Google Material Symbols](https://fonts.google.com/icons) (Apache‑2.0)
+- Storefront photos from [Unsplash](https://unsplash.com/license) (representative stock — not the actual businesses; no business logos used)
+- Fonts: Geist, Space Grotesk, and Instrument Serif via [Fontsource](https://fontsource.org) (SIL OFL 1.1)
+- Real business names are used for educational/demo purposes only; all trademarks belong to their owners (see [ATTRIBUTIONS](docs/ATTRIBUTIONS.md) §6)

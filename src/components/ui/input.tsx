@@ -6,11 +6,20 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
-function Input({ className, type, ...props }: React.ComponentProps<"input">) {
+function Input({ className, type, onWheel, ...props }: React.ComponentProps<"input">) {
   return (
     <input
       type={type}
       data-slot="input"
+      onWheel={(e) => {
+        // Number inputs change their value on mouse-wheel scroll, which silently
+        // turns "20" into "19.98" when a user scrolls the page while the field is
+        // focused. Blur on wheel so scrolling moves the page, never the value.
+        if (type === "number" && e.currentTarget === document.activeElement) {
+          e.currentTarget.blur();
+        }
+        onWheel?.(e);
+      }}
       className={cn(
         "flex h-11 w-full min-w-0 rounded-[13px] border border-input bg-card px-3.5 py-2 text-base text-foreground shadow-[var(--shadow-soft)] outline-none transition-[color,box-shadow,border-color] duration-200",
         "placeholder:text-muted-foreground/80",
