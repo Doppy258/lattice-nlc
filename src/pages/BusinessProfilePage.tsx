@@ -7,7 +7,7 @@
  * tags, hours). Supports save/bookmark and the claim flow.
  */
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "motion/react";
 import { Bookmark } from "lucide-react";
 import { useApp } from "@/app/providers";
@@ -61,14 +61,16 @@ export function BusinessProfilePage() {
     geolocation.requestLocation();
   }
 
-  if (geolocation.location && !activeUser.location) {
-    setData((d) => ({
-      ...d,
-      users: d.users.map((u) =>
-        u.id === activeUser.id ? { ...u, location: geolocation.location! } : u,
-      ),
-    }));
-  }
+  useEffect(() => {
+    if (geolocation.location && !activeUser.location) {
+      setData((d) => ({
+        ...d,
+        users: d.users.map((u) =>
+          u.id === activeUser.id ? { ...u, location: geolocation.location! } : u,
+        ),
+      }));
+    }
+  }, [geolocation.location, activeUser.location, activeUser.id, setData]);
 
   const business = useMemo(
     () => data.businesses.find((b) => b.id === query.get("id")),
