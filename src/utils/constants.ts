@@ -7,10 +7,10 @@
 import type { BusinessCategory, NeedType } from "../models";
 
 /**
- * OfferRank weighting (section 13.1). Weights sum to 1.0; each subscore is 0–100,
+ * Match-score weighting (section 13.1). Weights sum to 1.0; each subscore is 0–100,
  * so the final weighted score is also 0–100.
  */
-export const OFFER_RANK_WEIGHTS = {
+export const MATCH_WEIGHTS = {
   category: 0.25,
   budget: 0.2,
   distance: 0.15,

@@ -3,7 +3,7 @@
  *
  * The core "mad-libs" request builder. Customers fill structured blanks
  * (category, need, budget, distance, time, preferences) to produce a
- * PingRequest that gets matched against local offers via OfferRank.
+ * PingRequest that gets matched against local offers by the matching engine.
  * Supports both create and edit (via ?edit=id) flows with a human-verification
  * gate before submission.
  */
