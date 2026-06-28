@@ -24,7 +24,7 @@ The original PRD scoped Lattice as an offline FBLA-competition demo ("no require
 
 **Non-goals (deferred to slice 2+):**
 - `saved_businesses`, `saved_offers`, `rankings` tables; server-side report/analytics aggregation.
-- Moving OfferRank matching / personal-ranking algorithms server-side (they remain client-side recommendations; not a security boundary).
+- Moving match-scoring / personal-ranking algorithms server-side (they remain client-side recommendations; not a security boundary).
 - Bot-protection hardening (Turnstile/reCAPTCHA verify) — slice 1.5.
 
 ## 3. Architecture

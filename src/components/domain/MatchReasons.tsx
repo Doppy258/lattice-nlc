@@ -1,6 +1,6 @@
 /**
  * MatchReasons - renders the "Why this matched" explanation list produced by
- * the OfferRank scoring engine. Each reason gets a green checkmark bullet.
+ * the match-scoring engine. Each reason gets a green checkmark bullet.
  * Props: reasons (string[]), className?, title? (default "Why this matched")
  * Role in architecture: Domain — surfaces offer-ranking transparency so users
  * understand why a particular offer was recommended to them.

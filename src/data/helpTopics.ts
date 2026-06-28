@@ -33,7 +33,7 @@ export const HELP_CATEGORIES: { id: string; icon: IconName }[] = [
 
 /**
  * The help-center knowledge base. Content mirrors how Lattice actually behaves —
- * the Lattice Pass lifecycle, verified reviews/rankings, OfferRank matching, and
+ * the Lattice Pass lifecycle, verified reviews/rankings, match scoring, and
  * the report export tools — so the answers stay accurate.
  */
 export const HELP_TOPICS: HelpTopic[] = [
@@ -60,7 +60,7 @@ export const HELP_TOPICS: HelpTopic[] = [
     category: "Getting started",
     question: "How does Lattice decide which offers to show me?",
     answer:
-      "OfferRank, our matching engine, scores every active offer across seven signals — category fit, budget, distance, rating, availability during your time window, verification, and how well it matches your stated preferences. The Matches page shows the highest-scoring offers first, each with the reasons behind its score.",
+      "Our matching engine scores every active offer across seven signals — category fit, budget, distance, rating, availability during your time window, verification, and how well it matches your stated preferences. The Matches page shows the highest-scoring offers first, each with the reasons behind its score.",
     audience: "customer",
     action: { label: "See your matches", path: "/matches" },
   },
