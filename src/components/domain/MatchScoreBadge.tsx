@@ -12,7 +12,7 @@ function tier(score: number): { label: string; color: string } {
 
 /**
  * MatchScoreBadge — rounded pill that displays a match-score percentage
- * (from OfferRank) with a coloured dot and tier label. Three tiers:
+ * (from the matching engine) with a coloured dot and tier label. Three tiers:
  * ≥85 "Best match" (green), ≥70 "Great match" (amber), else "Good match"
  * (blue). The dot and label share the tier colour for quick scanning.
  */

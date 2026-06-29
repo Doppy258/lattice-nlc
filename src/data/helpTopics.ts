@@ -33,7 +33,7 @@ export const HELP_CATEGORIES: { id: string; icon: IconName }[] = [
 
 /**
  * The help-center knowledge base. Content mirrors how Lattice actually behaves —
- * the Lattice Pass lifecycle, verified reviews/rankings, OfferRank matching, and
+ * the Lattice Pass lifecycle, verified reviews/rankings, match scoring, and
  * the report export tools — so the answers stay accurate.
  */
 export const HELP_TOPICS: HelpTopic[] = [
@@ -60,7 +60,7 @@ export const HELP_TOPICS: HelpTopic[] = [
     category: "Getting started",
     question: "How does Lattice decide which offers to show me?",
     answer:
-      "OfferRank, our matching engine, scores every active offer across seven signals — category fit, budget, distance, rating, availability during your time window, verification, and how well it matches your stated preferences. The Matches page shows the highest-scoring offers first, each with the reasons behind its score.",
+      "Our matching engine scores every active offer across seven signals — category fit, budget, distance, rating, availability during your time window, verification, and how well it matches your stated preferences. The Matches page shows the highest-scoring offers first, each with the reasons behind its score.",
     audience: "customer",
     action: { label: "See your matches", path: "/matches" },
   },
@@ -231,5 +231,13 @@ export const HELP_TOPICS: HelpTopic[] = [
       "Open Settings to adjust your preferences, default distance, and accessibility needs. You can sign out from the profile menu in the top-right.",
     audience: "all",
     action: { label: "Open settings", path: "/settings" },
+  },
+  {
+    id: "credits-licenses",
+    category: "Account & safety",
+    question: "What open-source software and data does Lattice use?",
+    answer:
+      "Lattice is built with React, TypeScript, Vite, and Tailwind CSS, with maps by Leaflet using OpenStreetMap data, address search via Nominatim, icons from Lucide and Google Material Symbols, and fonts under the SIL Open Font License. Storefront photos are representative stock from Unsplash — not photos of the real businesses, and no business logos are used. Real business names appear for demonstration only and belong to their owners. Full credits and licenses are documented in the project's ATTRIBUTIONS file.",
+    audience: "all",
   },
 ];

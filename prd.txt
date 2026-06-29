@@ -233,7 +233,7 @@ User login/mock profile selector
 Home dashboard
 Structured Lattice request builder
 Semantic input validation
-OfferRank intelligent matching engine
+Intelligent matching engine
 Matched offers results page
 Business profiles
 Category browsing and sorting
@@ -1699,7 +1699,7 @@ rankedBusinessIds: string[];
 updatedAt: string;
 };
 13. Algorithms and Logic
-13.1 OfferRank Matching Algorithm
+13.1 Match Scoring Algorithm
 Purpose
 Rank offers by how well they fit a Lattice request.
 Formula
@@ -2410,7 +2410,7 @@ Show structured inputs and live preview.
 Try invalid budget for haircut to demonstrate semantic validation.
 Submit valid Lattice.
 Complete mock verification.
-Show OfferRank results.
+Show match-scored results.
 Explain match score and reasons.
 Claim an offer.
 Show claim code.
@@ -2433,7 +2433,7 @@ Must Mention During Demo
 Runs standalone with local seeded data
 Uses structured data types
 Uses semantic validation
-Uses OfferRank scoring algorithm
+Uses the match-scoring algorithm
 Uses binary insertion for rankings
 Supports reviews, ratings, sorting, bookmarks, deals, and verification
 Reports are customizable by date/category
@@ -2529,7 +2529,7 @@ Google Maps is built around searching for places. Lattice is built around struct
 matching. Users describe what they need, and the app ranks claimable offers based on fit, budget, distance,
 timing, ratings, and preferences.
 What is the intelligent feature?
-OfferRank. It scores and ranks offers using category fit, budget, distance, rating, time availability,
+the matching engine. It scores and ranks offers using category fit, budget, distance, rating, time availability,
 verification, and preferences. It also explains why each offer matched.
 How do you prevent absurd requests?
 The app uses structured fields and semantic validation. Each need type has realistic budget rules, required
@@ -2667,7 +2667,7 @@ Create structured Lattice request
 •
 Validate request format and meaning
 Complete mock verification
-Match offers with OfferRank
+Match offers with the scoring engine
 Explain match reasons
 Browse businesses by category
 Sort by rating
@@ -2691,7 +2691,7 @@ Help/instructions available
 Accessibility basics included
 25. Final Product Summary
 Lattice is a structured local offer-matching app for small businesses. Users create a specific request, the app
-validates it, ranks local offers using OfferRank, allows users to claim verified offers, and turns redemptions
+validates it, ranks local offers using the matching engine, allows users to claim verified offers, and turns redemptions
 into trusted reviews, personal rankings, and reports. Businesses can publish offers, redeem claim codes,
 and analyze customer engagement.
 The product is designed to clearly satisfy the FBLA Coding & Programming prompt while giving judges a

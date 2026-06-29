@@ -1,5 +1,5 @@
 /**
- * offerMatchingService — OfferRank matching engine.
+ * offerMatchingService — weighted match-scoring engine.
  * Filters offers through a hard eligibility gate (category, distance, budget,
  * time), then scores survivors across 7 weighted dimensions. The result is a
  * ranked list of MatchResults with per-dimension breakdowns and human-readable
@@ -14,7 +14,7 @@ import type {
   ScoreBreakdown,
   User,
 } from "../models";
-import { OFFER_RANK_WEIGHTS, RELATED_CATEGORIES } from "../utils/constants";
+import { MATCH_WEIGHTS, RELATED_CATEGORIES } from "../utils/constants";
 import { distanceKm, roundKm } from "../utils/distance";
 import { isBusinessOpenDuring } from "../utils/dateTime";
 
@@ -172,7 +172,7 @@ export function calculateOfferScore(
     verificationScore: calculateVerificationScore(business, offer),
     preferenceScore: calculatePreferenceScore(request, offer, business, user),
   };
-  const w = OFFER_RANK_WEIGHTS;
+  const w = MATCH_WEIGHTS;
   const score =
     breakdown.categoryScore * w.category +
     breakdown.budgetScore * w.budget +
@@ -214,7 +214,7 @@ export function generateMatchReasons(
 
 /**
  * Hard eligibility gate: an offer must satisfy every spec the user set before it
- * can be ranked. OfferRank then orders the survivors — this is what makes the
+ * can be ranked. The matching engine then orders the survivors — this is what makes the
  * Create-a-Lattice specs actually constrain the result set rather than just
  * reorder the whole catalog. Each clause reuses the corresponding subscore.
  */
@@ -233,7 +233,7 @@ export function isOfferEligible(
 
 /**
  * Ranks active offers for a request, best match first. Each result carries its
- * score, breakdown, and reasons (the OfferRank intelligent feature). Offers that
+ * score, breakdown, and reasons (the match-scoring intelligent feature). Offers that
  * fail the hard eligibility gate (isOfferEligible) are excluded before ranking.
  */
 export function getMatchingOffers(
