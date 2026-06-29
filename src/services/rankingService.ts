@@ -28,6 +28,9 @@ export type InsertionSession = {
   compareToId: string | null;
   /** Final insertion index, set once the session is done. */
   insertIndex: number | null;
+  /** When the user answered "same", the id of the pivot they called equal — lets
+   *  the tier view keep the two in one band instead of demoting the new entry. */
+  equalToId?: string | null;
 };
 
 export function getRanking(
@@ -105,7 +108,14 @@ export function processComparison(
       next = { ...next, lo: mid + 1 };
       break;
     case "same":
-      return { ...next, lo: mid + 1, hi: mid + 1, compareToId: null, insertIndex: mid + 1 };
+      return {
+        ...next,
+        lo: mid + 1,
+        hi: mid + 1,
+        compareToId: null,
+        insertIndex: mid + 1,
+        equalToId: session.compareToId,
+      };
     case "skip":
       return { ...next, compareToId: null, insertIndex: session.lo };
   }

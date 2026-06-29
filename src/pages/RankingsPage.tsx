@@ -89,6 +89,16 @@ function effectiveTierId(business: Business, overrides: Record<string, string>):
   return override && TIER_IDS.has(override) ? override : tierForRating(business.ratingAverage).id;
 }
 
+/** Shift a tier id by N bands (positive = down toward F, negative = up toward
+ *  SSS), clamped to the ends. Used to drop a newly-ranked spot one band below
+ *  the company it lost to (a strict preference shouldn't read as "same level"). */
+function shiftTierId(id: string, steps: number): string {
+  const from = TIERS.findIndex((t) => t.id === id);
+  const idx = from === -1 ? TIERS.length - 1 : from;
+  const to = Math.max(0, Math.min(TIERS.length - 1, idx + steps));
+  return TIERS[to].id;
+}
+
 /** Pointer position (viewport coords) from a Framer drag event, mouse or touch. */
 function clientPoint(event: MouseEvent | TouchEvent | PointerEvent): { x: number; y: number } {
   if ("clientX" in event) return { x: event.clientX, y: event.clientY };
@@ -144,19 +154,31 @@ export function RankingsPage() {
 
   function finalize(s: InsertionSession) {
     const index = s.insertIndex ?? s.list.length;
-    // Anchor the new spot to the business it ranked directly behind (its better
-    // neighbour), or — if it's the new favourite — the one it just beat. That
-    // neighbour's band becomes the new spot's band, so the head-to-head choice,
-    // not the star rating, decides the tier. Dropping it back on its rating band
-    // later (via drag) clears this override.
-    const anchorId = (index > 0 ? s.list[index - 1] : undefined) ?? s.list[index];
+    // Place the new spot relative to the neighbour it was ranked against:
+    //  • Preferred a company over it  → sit ONE tier BELOW that company. A strict
+    //    preference shouldn't read as the same level.
+    //  • It's the new favourite (none above) → sit one tier ABOVE the one it beat.
+    //  • "About the same" → share that company's exact band.
+    //  • First spot of all (no neighbours) → follow its star rating.
+    // A later drag back onto its rating band clears the override.
+    const upperId = index > 0 ? s.list[index - 1] : undefined;
+    const lowerId = index < s.list.length ? s.list[index] : undefined;
 
     setData((d) => {
       const current = getRanking(activeUser.id, s.category, s.needType, d.rankings);
       const updated = insertBusinessAtIndex(current, s.newBusinessId, index);
       const overrides = { ...(current.tierOverrides ?? {}) };
-      const anchor = anchorId ? d.businesses.find((b) => b.id === anchorId) : undefined;
-      if (anchor) overrides[s.newBusinessId] = effectiveTierId(anchor, current.tierOverrides ?? {});
+      const find = (id?: string | null) => (id ? d.businesses.find((b) => b.id === id) : undefined);
+      const equalPeer = find(s.equalToId);
+      const upper = find(upperId);
+      const lower = find(lowerId);
+      if (equalPeer) {
+        overrides[s.newBusinessId] = effectiveTierId(equalPeer, overrides);
+      } else if (upper) {
+        overrides[s.newBusinessId] = shiftTierId(effectiveTierId(upper, overrides), 1);
+      } else if (lower) {
+        overrides[s.newBusinessId] = shiftTierId(effectiveTierId(lower, overrides), -1);
+      }
       return { ...d, rankings: upsertRanking(d.rankings, { ...updated, tierOverrides: overrides }) };
     });
     const name = data.businesses.find((b) => b.id === s.newBusinessId)?.name ?? "Business";
