@@ -21,7 +21,6 @@ import { FormField } from "@/components/common/FormField";
 import { PageHeader } from "@/components/common/PageHeader";
 import { Icon, type IconName } from "@/components/common/Icon";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -31,7 +30,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { BotCheckModal } from "@/components/domain/BotCheckModal";
 import { ShareLocationButton } from "@/components/common/ShareLocationButton";
-import { useGeolocation } from "@/hooks/useGeolocation";
+import { useUserLocation } from "@/hooks/useUserLocation";
 import { validatePingRequest, getRequestQuality } from "@/services/requestValidationService";
 import { getMatchingOffers } from "@/services/offerMatchingService";
 import {
@@ -45,7 +44,6 @@ import {
   budgetPresetsFor,
 } from "@/data/catalog";
 import { customTimeWindow, timeWindowForPreset, type TimeWindowPresetId } from "@/utils/timeWindows";
-import { NOTE_MAX } from "@/utils/constants";
 import { createId } from "@/utils/ids";
 import { upsertRequest } from "@/services/dbService";
 import { formatTimeRange } from "@/utils/formatting";
@@ -133,19 +131,10 @@ export function CreateLatticePage() {
     () => (editId ? data.requests.find((r) => r.id === editId) : undefined),
     [editId, data.requests],
   );
-  const geolocation = useGeolocation();
+  const geolocation = useUserLocation();
 
   function handleShareLocation() {
     geolocation.requestLocation();
-  }
-
-  if (geolocation.location && !activeUser.location) {
-    setData((d) => ({
-      ...d,
-      users: d.users.map((u) =>
-        u.id === activeUser.id ? { ...u, location: geolocation.location! } : u,
-      ),
-    }));
   }
 
   // Location counts as "ready" only when the browser has actually granted
@@ -195,7 +184,6 @@ export function CreateLatticePage() {
   const [preferences, setPreferences] = useState<string[]>(() =>
     existing?.preferences ?? (activeUser.preferences.studentDiscountPreferred ? ["studentDiscount"] : []),
   );
-  const [note, setNote] = useState(() => existing?.optionalNote ?? "");
   const [verifyOpen, setVerifyOpen] = useState(false);
 
   const draft = useMemo(
@@ -298,7 +286,6 @@ export function CreateLatticePage() {
         timeStart: timeStart!,
         timeEnd: timeEnd!,
         preferences,
-        optionalNote: note || undefined,
         verifiedHuman: true,
       };
       setData((d) => ({
@@ -614,44 +601,6 @@ export function CreateLatticePage() {
                   ))}
                 </ChipGroup>
               </Stagger>
-            </motion.div>
-
-            {/* Note */}
-            <motion.div
-              key="note"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
-              className="mt-6"
-            >
-              <div className="mb-2 flex items-center justify-between">
-                <span className="text-[13px] font-semibold text-muted-foreground">
-                  Note <span className="font-normal">(optional)</span>
-                </span>
-                <span className="mono text-[12px] text-muted-foreground">
-                  {note.length}/{NOTE_MAX}
-                </span>
-              </div>
-              <Textarea
-                value={note}
-                maxLength={NOTE_MAX}
-                onChange={(e) => setNote(e.target.value)}
-                placeholder="Example: need outlets and a quiet table"
-                aria-invalid={!!errors.note}
-              />
-              <AnimatePresence>
-                {errors.note && (
-                  <motion.p
-                    key="note-error"
-                    initial={{ opacity: 0, y: -4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -4 }}
-                    className="mt-1.5 text-[13px] font-medium text-destructive"
-                  >
-                    {errors.note}
-                  </motion.p>
-                )}
-              </AnimatePresence>
             </motion.div>
 
             <AnimatePresence>
