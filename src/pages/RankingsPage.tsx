@@ -39,6 +39,7 @@ import {
   type InsertionSession,
 } from "@/services/rankingService";
 import { getUserClaimedBusinessIds } from "@/services/claimService";
+import { upsertRanking as persistRanking } from "@/services/dbService";
 import { ALL_CATEGORIES, CATEGORY_META } from "@/data/catalog";
 import { formatRating } from "@/utils/formatting";
 import type { Business, BusinessCategory } from "@/models";
@@ -181,23 +182,21 @@ export function RankingsPage() {
     const upperId = index > 0 ? s.list[index - 1] : undefined;
     const lowerId = index < s.list.length ? s.list[index] : undefined;
 
-    setData((d) => {
-      const current = getRanking(activeUser.id, s.category, s.needType, d.rankings);
-      const updated = insertBusinessAtIndex(current, s.newBusinessId, index);
-      const overrides = { ...(current.tierOverrides ?? {}) };
-      const find = (id?: string | null) => (id ? d.businesses.find((b) => b.id === id) : undefined);
-      const equalPeer = find(s.equalToId);
-      const upper = find(upperId);
-      const lower = find(lowerId);
-      if (equalPeer) {
-        overrides[s.newBusinessId] = effectiveTierId(equalPeer, overrides);
-      } else if (upper) {
-        overrides[s.newBusinessId] = shiftTierId(effectiveTierId(upper, overrides), 1);
-      } else if (lower) {
-        overrides[s.newBusinessId] = shiftTierId(effectiveTierId(lower, overrides), -1);
-      }
-      return { ...d, rankings: upsertRanking(d.rankings, { ...updated, tierOverrides: overrides }) };
-    });
+    const current = getRanking(activeUser.id, s.category, s.needType, data.rankings);
+    const inserted = insertBusinessAtIndex(current, s.newBusinessId, index);
+    const overrides = { ...(current.tierOverrides ?? {}) };
+    const find = (id?: string | null) => (id ? data.businesses.find((b) => b.id === id) : undefined);
+    const equalPeer = find(s.equalToId);
+    const upper = find(upperId);
+    const lower = find(lowerId);
+    if (equalPeer) overrides[s.newBusinessId] = effectiveTierId(equalPeer, overrides);
+    else if (upper) overrides[s.newBusinessId] = shiftTierId(effectiveTierId(upper, overrides), 1);
+    else if (lower) overrides[s.newBusinessId] = shiftTierId(effectiveTierId(lower, overrides), -1);
+    const updated = { ...inserted, tierOverrides: overrides };
+
+    setData((d) => ({ ...d, rankings: upsertRanking(d.rankings, updated) }));
+    void persistRanking(updated); // persist ranked order + tier overrides to Supabase
+
     const name = data.businesses.find((b) => b.id === s.newBusinessId)?.name ?? "Business";
     toast.success(`${name} added to your ${CATEGORY_META[s.category].label} ranking`);
   }
@@ -223,36 +222,32 @@ export function RankingsPage() {
   }
 
   function removeFromRanking(businessId: string) {
-    setData((d) => {
-      const current = getRanking(activeUser.id, category, undefined, d.rankings);
-      const nextOverrides = { ...(current.tierOverrides ?? {}) };
-      delete nextOverrides[businessId];
-      const updated = {
-        ...current,
-        rankedBusinessIds: current.rankedBusinessIds.filter((id) => id !== businessId),
-        tierOverrides: nextOverrides,
-        updatedAt: new Date().toISOString(),
-      };
-      return { ...d, rankings: upsertRanking(d.rankings, updated) };
-    });
+    const current = getRanking(activeUser.id, category, undefined, data.rankings);
+    const nextOverrides = { ...(current.tierOverrides ?? {}) };
+    delete nextOverrides[businessId];
+    const updated = {
+      ...current,
+      rankedBusinessIds: current.rankedBusinessIds.filter((id) => id !== businessId),
+      tierOverrides: nextOverrides,
+      updatedAt: new Date().toISOString(),
+    };
+    setData((d) => ({ ...d, rankings: upsertRanking(d.rankings, updated) }));
+    void persistRanking(updated);
   }
 
   /** Record a manual tier placement; dropping a tile back on its rating-derived
    *  band clears the override so it follows its rating again. */
   function moveToTier(business: Business, tierId: string) {
     const naturalTier = tierForRating(business.ratingAverage).id;
-    setData((d) => {
-      const current = getRanking(activeUser.id, category, undefined, d.rankings);
-      const nextOverrides = { ...(current.tierOverrides ?? {}) };
-      if (tierId === naturalTier) delete nextOverrides[business.id];
-      else nextOverrides[business.id] = tierId;
-      const updated = {
-        ...current,
-        tierOverrides: nextOverrides,
-        updatedAt: new Date().toISOString(),
-      };
-      return { ...d, rankings: upsertRanking(d.rankings, updated) };
-    });
+    const current = getRanking(activeUser.id, category, undefined, data.rankings);
+    const nextOverrides = { ...(current.tierOverrides ?? {}) };
+    if (tierId === naturalTier) delete nextOverrides[business.id];
+    else nextOverrides[business.id] = tierId;
+    const updated = { ...current, tierOverrides: nextOverrides, updatedAt: new Date().toISOString() };
+
+    setData((d) => ({ ...d, rankings: upsertRanking(d.rankings, updated) }));
+    void persistRanking(updated);
+
     const tierLabel = tierId === naturalTier ? "auto" : tierId;
     toast.success(`${business.name} moved to ${tierLabel === "auto" ? "its rating band" : `tier ${tierLabel}`}`);
   }

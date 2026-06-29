@@ -195,6 +195,7 @@ function rankingRowToRanking(row: Record<string, unknown>): PersonalRanking {
     category: row.category as PersonalRanking["category"],
     needType: row.need_type as PersonalRanking["needType"],
     rankedBusinessIds: row.ranked_business_ids as string[],
+    tierOverrides: (row.tier_overrides as Record<string, string> | null) ?? undefined,
     updatedAt: row.updated_at as string,
   };
 }
@@ -205,6 +206,7 @@ function rankingToRow(r: PersonalRanking): Record<string, unknown> {
     category: r.category,
     need_type: r.needType ?? null,
     ranked_business_ids: r.rankedBusinessIds,
+    tier_overrides: r.tierOverrides ?? {},
     updated_at: r.updatedAt,
   };
 }
@@ -398,13 +400,36 @@ export async function insertReview(review: Review): Promise<void> {
 
 // ── Rankings ─────────────────────────────────────────────────
 
-/** Saves a personal ranking; conflicts on (user_id, category, need_type). */
+/**
+ * Saves a personal ranking — ranked order *and* manual tier overrides — keyed by
+ * (user_id, category, need_type). These rankings always carry a NULL need_type,
+ * and a NULL defeats Postgres' ON CONFLICT inference, so we look up the existing
+ * row ourselves and update it (or insert) rather than relying on upsert. Keeps a
+ * single row per key regardless of how the table's unique constraint treats NULLs.
+ */
 export async function upsertRanking(ranking: PersonalRanking): Promise<void> {
   if (!supabase) return;
   const row = rankingToRow(ranking);
-  await supabase
+
+  const sel = supabase
     .from("rankings")
-    .upsert(row, { onConflict: "user_id,category,need_type" });
+    .select("user_id")
+    .eq("user_id", ranking.userId)
+    .eq("category", ranking.category);
+  const { data: existing } = await (
+    ranking.needType == null ? sel.is("need_type", null) : sel.eq("need_type", ranking.needType)
+  ).maybeSingle();
+
+  if (existing) {
+    const upd = supabase
+      .from("rankings")
+      .update(row)
+      .eq("user_id", ranking.userId)
+      .eq("category", ranking.category);
+    await (ranking.needType == null ? upd.is("need_type", null) : upd.eq("need_type", ranking.needType));
+  } else {
+    await supabase.from("rankings").insert(row);
+  }
 }
 
 // ── Saved items ──────────────────────────────────────────────
