@@ -74,6 +74,7 @@ type AppContextValue = {
   activeUser: User;
   setData: (updater: DataUpdater) => void;
   resetDemo: () => void;
+  reloadData: () => void;
   ownedBusinesses: Business[];
   activeBusinessId: string | null;
   activeBusiness: Business | null;
@@ -213,21 +214,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // Pull shared records from Supabase and overlay them on the local/seed data,
   // so a business (or offer) created in one browser is visible in every other.
-  // Re-runs when auth settles so a freshly signed-in customer sees live data.
-  useEffect(() => {
+  // Only runs after auth state settles to avoid a wasted fetch during "loading".
+  const reloadData = useCallback(() => {
     if (!isSupabaseConfigured) return;
-    let cancelled = false;
     loadDataFromSupabase().then((live) => {
-      if (cancelled || !live) return;
+      if (!live) return;
       setDataState((prev) => {
         const merged = mergeLiveData(prev, live);
         return { ...merged, claims: expireOldClaims(merged.claims) };
       });
     });
-    return () => {
-      cancelled = true;
-    };
-  }, [authState]);
+  }, []);
+  useEffect(() => {
+    if (!isSupabaseConfigured || authState !== "authenticated") return;
+    reloadData();
+  }, [authState, reloadData]);
 
   const setActiveBusinessId = useCallback((id: string) => setActiveBusinessIdState(id), []);
 
@@ -311,6 +312,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       activeUser,
       setData,
       resetDemo,
+      reloadData,
       ownedBusinesses,
       activeBusinessId,
       activeBusiness,
@@ -328,6 +330,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       activeUser,
       setData,
       resetDemo,
+      reloadData,
       ownedBusinesses,
       activeBusinessId,
       activeBusiness,

@@ -65,7 +65,7 @@ function localToIso(value: string): string {
 }
 
 export function CreateOfferPage() {
-  const { data, activeBusiness, setData } = useApp();
+  const { data, activeBusiness, setData, reloadData } = useApp();
   const { query } = useHashRoute();
   const editId = query.get("id");
 
@@ -214,6 +214,7 @@ export function CreateOfferPage() {
       const edited = updatedOffers.find((o) => o.id === editId);
       if (edited) await upsertOffer(edited); // persist edit so it's visible to everyone
       toast.success("Offer updated");
+      reloadData();
       navigate("/offers");
       return;
     }
@@ -222,6 +223,7 @@ export function CreateOfferPage() {
       setData((d) => ({ ...d, offers: [...d.offers, res.offer] }));
       await upsertOffer(res.offer); // persist to Supabase so other browsers/customers see it
       toast.success("Offer published");
+      reloadData();
       navigate("/offers");
     } else {
       toast.error(res.error);
