@@ -40,13 +40,21 @@ export function Modal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className={className} showClose={showClose}>
         {(title || description) && (
-          <DialogHeader>
+          <DialogHeader className="shrink-0 px-6 pt-6 sm:px-7 sm:pt-7">
             {title && <DialogTitle>{title}</DialogTitle>}
             {description && <DialogDescription>{description}</DialogDescription>}
           </DialogHeader>
         )}
-        {children}
-        {footer && <DialogFooter>{footer}</DialogFooter>}
+        {children && (
+          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-6 py-5 sm:px-7">
+            {children}
+          </div>
+        )}
+        {footer && (
+          <DialogFooter className="shrink-0 border-t border-border px-6 py-4 sm:px-7">
+            {footer}
+          </DialogFooter>
+        )}
       </DialogContent>
     </Dialog>
   );

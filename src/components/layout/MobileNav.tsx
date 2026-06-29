@@ -79,10 +79,11 @@ export function MobileNav() {
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-sm">
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 py-6 sm:px-7">
           <DialogHeader>
             <DialogTitle>More</DialogTitle>
           </DialogHeader>
-          <div className="grid grid-cols-3 gap-2.5">
+          <div className="mt-4 grid grid-cols-3 gap-2.5">
             {rest.map((item) => {
               const active = isActive(path, item.path);
               return (
@@ -103,6 +104,7 @@ export function MobileNav() {
                 </button>
               );
             })}
+          </div>
           </div>
         </DialogContent>
       </Dialog>
