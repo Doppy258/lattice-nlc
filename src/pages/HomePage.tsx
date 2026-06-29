@@ -17,11 +17,11 @@ import { InsightSummary } from "@/components/common/InsightSummary";
 import { EmptyState } from "@/components/common/EmptyState";
 import { Stagger, StaggerItem } from "@/components/motion/Reveal";
 import { OfferCard } from "@/components/domain/OfferCard";
-import { ShareLocationButton } from "@/components/common/ShareLocationButton";
+import { LocationBar } from "@/components/common/LocationBar";
 import { useClaim } from "@/components/domain/useClaim";
 import { ClaimResultModal } from "@/components/domain/ClaimResultModal";
 import { BotCheckModal } from "@/components/domain/BotCheckModal";
-import { useGeolocation } from "@/hooks/useGeolocation";
+import { useUserLocation } from "@/hooks/useUserLocation";
 import { getOriginPoint } from "@/services/offerMatchingService";
 import { distanceForBusiness } from "@/services/businessService";
 import { isOfferSaved, toggleSavedOffer } from "@/services/userService";
@@ -39,22 +39,9 @@ function greeting(): string {
 export function HomePage() {
   const { data, activeUser, setData } = useApp();
   const { claim, result, clearResult, pendingClaim, confirmClaim, cancelClaim } = useClaim();
-  const geolocation = useGeolocation();
+  const geolocation = useUserLocation();
   const origin = getOriginPoint(activeUser);
   const firstName = activeUser.name.split(" ")[0];
-
-  function handleShareLocation() {
-    geolocation.requestLocation();
-  }
-
-  if (geolocation.location && !activeUser.location) {
-    setData((d) => ({
-      ...d,
-      users: d.users.map((u) =>
-        u.id === activeUser.id ? { ...u, location: geolocation.location! } : u,
-      ),
-    }));
-  }
 
   const now = Date.now();
   const activeOffers = useMemo(
@@ -154,17 +141,7 @@ export function HomePage() {
         }
       />
 
-      {!activeUser.location && !geolocation.loading && !geolocation.error && (
-        <div className="flex items-center justify-between rounded-xl bg-[var(--tint-blue)] px-4 py-3">
-          <span className="text-[13px] text-[var(--primary-strong)]">Enable location for nearby offers</span>
-          <ShareLocationButton loading={false} error={null} onRequest={handleShareLocation} />
-        </div>
-      )}
-      {geolocation.error && (
-        <p className="rounded-xl bg-[var(--danger-tint)] px-3 py-2 text-[13px] font-medium text-destructive">
-          Could not get your location: {geolocation.error}
-        </p>
-      )}
+      <LocationBar geo={geolocation} hasLocation={!!activeUser.location} purpose="nearby offers" />
 
       <section className="space-y-4">
         <div className="flex items-end justify-between gap-4">

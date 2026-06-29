@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { BotCheckModal } from "@/components/domain/BotCheckModal";
 import { ShareLocationButton } from "@/components/common/ShareLocationButton";
-import { useGeolocation } from "@/hooks/useGeolocation";
+import { useUserLocation } from "@/hooks/useUserLocation";
 import { validatePingRequest, getRequestQuality } from "@/services/requestValidationService";
 import { getMatchingOffers } from "@/services/offerMatchingService";
 import {
@@ -131,19 +131,10 @@ export function CreateLatticePage() {
     () => (editId ? data.requests.find((r) => r.id === editId) : undefined),
     [editId, data.requests],
   );
-  const geolocation = useGeolocation();
+  const geolocation = useUserLocation();
 
   function handleShareLocation() {
     geolocation.requestLocation();
-  }
-
-  if (geolocation.location && !activeUser.location) {
-    setData((d) => ({
-      ...d,
-      users: d.users.map((u) =>
-        u.id === activeUser.id ? { ...u, location: geolocation.location! } : u,
-      ),
-    }));
   }
 
   // Location counts as "ready" only when the browser has actually granted
