@@ -3,7 +3,7 @@
  *
  * The core "mad-libs" request builder. Customers fill structured blanks
  * (category, need, budget, distance, time, preferences) to produce a
- * PingRequest that gets matched against local offers via OfferRank.
+ * PingRequest that gets matched against local offers by the matching engine.
  * Supports both create and edit (via ?edit=id) flows with a human-verification
  * gate before submission.
  */
@@ -147,6 +147,16 @@ export function CreateLatticePage() {
       ),
     }));
   }
+
+  // Location counts as "ready" only when the browser has actually granted
+  // access. A stored activeUser.location isn't enough on its own — the user
+  // may have revoked the browser permission since it was captured (e.g.
+  // resetting it before a demo), in which case we still want to surface the
+  // enable-location button so the permission prompt can fire again.
+  const locationReady =
+    geolocation.permission === "granted" ||
+    (geolocation.permission === "unknown" && !!activeUser.location);
+  const showLocationPrompt = !locationReady;
 
   const [category, setCategory] = useState<BusinessCategory | undefined>(() => existing?.category);
   const [needType, setNeedType] = useState<NeedType | undefined>(() => existing?.needType);
@@ -659,30 +669,25 @@ export function CreateLatticePage() {
             </AnimatePresence>
 
             <AnimatePresence>
-              {!activeUser.location && !geolocation.loading && !geolocation.error && (
+              {showLocationPrompt && (
                 <motion.div
                   key="location-banner"
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 8 }}
-                  className="mt-5 flex items-center justify-between rounded-xl bg-[var(--tint-blue)] px-4 py-3"
+                  className="mt-5 flex flex-col gap-2 rounded-xl bg-[var(--tint-blue)] px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
                 >
-                  <span className="text-[13px] text-[var(--primary-strong)]">Enable location for accurate distance matching</span>
-                  <ShareLocationButton loading={false} error={null} onRequest={handleShareLocation} />
+                  <span className="text-[13px] text-[var(--primary-strong)]">
+                    {geolocation.permission === "denied"
+                      ? "Location is blocked. Re-enable it in your browser to match by distance."
+                      : "Enable location for accurate distance matching"}
+                  </span>
+                  <ShareLocationButton
+                    loading={geolocation.loading}
+                    error={geolocation.error}
+                    onRequest={handleShareLocation}
+                  />
                 </motion.div>
-              )}
-            </AnimatePresence>
-            <AnimatePresence>
-              {geolocation.error && (
-                <motion.p
-                  key="geo-error"
-                  initial={{ opacity: 0, y: -4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -4 }}
-                  className="mt-5 rounded-xl bg-[var(--danger-tint)] px-3 py-2 text-[13px] font-medium text-destructive"
-                >
-                  Could not get your location: {geolocation.error}
-                </motion.p>
               )}
             </AnimatePresence>
 

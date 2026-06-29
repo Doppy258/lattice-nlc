@@ -1,7 +1,7 @@
 /**
  * MatchesPage — route: /matches?request=<id>
  *
- * Displays OfferRank-scored results for a single PingRequest. Supports
+ * Displays match-scored results for a single PingRequest. Supports
  * sorting (best/rating/closest/price/ending/claimed), filtering
  * (deals/student/saved), an interactive Leaflet map with a radius overlay,
  * and the claim flow (human verification → time-limited pass).
@@ -147,7 +147,7 @@ export function MatchesPage() {
       <EmptyState
         icon="ping"
         title="No Lattice yet"
-        body="Create a structured request and we'll match you with local offers ranked by OfferRank."
+        body="Create a structured request and we'll match you with local offers ranked by how well they fit."
         action={
           <Button variant="brand" iconLeft={<Icon name="ping" size={17} />} onClick={() => navigate("/create")}>
             Create a Lattice

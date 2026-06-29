@@ -4,7 +4,7 @@
   <b>Smart local discovery</b>
 </p>
 <p align="center">
-  Matching students and customers with nearby deals using structured requests and ranked matching (OfferRank).
+  Matching students and customers with nearby deals using structured requests and ranked matching.
 </p>
 
 <div align="center">
@@ -23,7 +23,7 @@
 | Feature | Description |
 |---|---|
 | **Create a Lattice** | Structured mad-libs form to specify category, need, budget, distance, time, and preferences. |
-| **OfferRank** | Weighted multi-factor scoring (category, budget, distance, rating, time, verification, preferences). |
+| **Smart matching** | Weighted multi-factor scoring (category, budget, distance, rating, time, verification, preferences). |
 | **Interactive Map** | Leaflet map with business markers and a radius overlay for match visualization. |
 | **Address Autocomplete** | Nominatim-powered search for business address entry. |
 | **Storefront Management** | Edit hours, banner, description, price level, and tags from a dedicated profile editor. |
@@ -50,7 +50,7 @@ The 2025–2026 topic asks for a tool that helps people **discover and support s
 
 **Beyond the minimum**, the program adds the rubric's "intelligent feature," validation, and analysis expectations:
 
-- **Intelligent feature — interactive Q&A:** the *Ask Lattice* assistant (`Assistant.tsx`, `assistantService.ts`) answers questions in plain English, plus an **OfferRank** recommendation engine (`offerMatchingService.ts`) that ranks offers across seven weighted signals with a transparent per-match explanation.
+- **Intelligent feature — interactive Q&A:** the *Ask Lattice* assistant (`Assistant.tsx`, `assistantService.ts`) answers questions in plain English, plus a **weighted match-scoring** recommendation engine (`offerMatchingService.ts`) that ranks offers across seven weighted signals with a transparent per-match explanation.
 - **Input validation (syntactic + semantic):** format checks *and* meaning checks — e.g. budget minimums per need type, time-window ordering, link/spam detection, email format, and discount-range sanity (`requestValidationService.ts`, `offerService.ts`, `utils/validation.ts`).
 - **Customizable, analyzable reports:** the impact report and analytics dashboard filter by date range, category, and status, render charts, and export to **CSV / print-to-PDF** (`ReportsPage.tsx`, `AnalyticsPage.tsx`, `reportService.ts`, `utils/export.ts`).
 - **Accessibility:** keyboard navigation, ARIA roles/labels, focus-visible styling, a skip-to-content link, alt text, and full `prefers-reduced-motion` support.
@@ -64,7 +64,7 @@ The 2025–2026 topic asks for a tool that helps people **discover and support s
 | **TypeScript** | Static typing across ~16k lines catches errors at compile time and documents intent; discriminated unions (e.g. `CreateOfferResult`) force callers to handle failure paths. |
 | **React 18 + Vite** | Component model keeps the UI modular and declarative; Vite gives instant HMR in dev and a fast, tree-shaken production build. |
 | **Tailwind CSS v4 + design tokens** | Utility-first styling with a single token source (`styles/tokens.css`) keeps the visual language consistent and theme-able. |
-| **In-house services/utils, few dependencies** | Core logic (OfferRank, validation, reports, CSV export, the Q&A ranker, charts, CAPTCHA) is written from scratch — no heavy frameworks — so the program runs standalone and the algorithms are inspectable. |
+| **In-house services/utils, few dependencies** | Core logic (the match-scoring engine, validation, reports, CSV export, the Q&A ranker, charts, CAPTCHA) is written from scratch — no heavy frameworks — so the program runs standalone and the algorithms are inspectable. |
 | **Supabase (optional)** | Provides shared Postgres/Auth/Storage when online; the app degrades gracefully to seeded data offline. |
 
 ## Project Structure
@@ -86,7 +86,7 @@ src/
 | Module | Path | Purpose |
 |---|---|---|
 | **Models** | `src/models/` | All domain types: `Business`, `Offer`, `User`, `PingRequest`, `Claim`, `Review`, `Ranking`, `Saved`, `Report` |
-| **Services** | `src/services/` | `offerMatchingService` (OfferRank algorithm), `offerService` (CRUD), `requestValidationService`, `claimService`, `businessService`, `userService`, `dbService` (Supabase sync), `imageService` (upload) |
+| **Services** | `src/services/` | `offerMatchingService` (match-scoring algorithm), `offerService` (CRUD), `requestValidationService`, `claimService`, `businessService`, `userService`, `dbService` (Supabase sync), `imageService` (upload) |
 | **Components** | `src/components/` | `common/` (Button, Card, Badge, Icon, Input, etc.), `domain/` (OfferCard, BusinessCard, LatticeMap, AddressAutocomplete, BusinessHoursEditor), `layout/` (AppLayout, Sidebar, MobileNav), `motion/` (Reveal, Stagger, tokens) |
 | **Pages** | `src/pages/` | Route-level views: Home, Explore, Matches, CreateLattice, BusinessProfile, Profile, CreateOffer, Dashboard, Settings, Rankings, Help, Login, Onboarding |
 | **Utils** | `src/utils/` | `formatting`, `distance` (haversine), `dateTime`, `timeWindows`, `geocode` (Nominatim), `ids`, `validation`, `offerPricing`, `constants` |
@@ -131,12 +131,16 @@ npm run dev:demo
 | `npm run test` | Run tests (vitest) |
 | `npm run test:watch` | Run tests in watch mode |
 
-## Acknowledgments
+## Acknowledgments & licenses
+
+> **Full credits, licenses, and copyright documentation:** see **[docs/ATTRIBUTIONS.md](docs/ATTRIBUTIONS.md)** — every library (with license), font, icon set, image source, data provider, and template, plus the real‑business‑name disclaimer.
 
 - Built with [React](https://react.dev), [TypeScript](https://www.typescriptlang.org), [Vite](https://vite.dev), and [Tailwind CSS v4](https://tailwindcss.com)
-- Map rendering by [Leaflet](https://leafletjs.com)
+- Map tiles © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors (ODbL), rendered with [Leaflet](https://leafletjs.com)
 - Geocoding via [Nominatim](https://nominatim.org) (OpenStreetMap)
 - Backend & auth by [Supabase](https://supabase.com)
 - Animation by [motion](https://motion.dev)
-- Icons from [Lucide](https://lucide.dev)
-- Fonts: Geist, Space Grotesk, and Instrument Serif via [Fontsource](https://fontsource.org)
+- Icons from [Lucide](https://lucide.dev) and [Google Material Symbols](https://fonts.google.com/icons) (Apache‑2.0)
+- Storefront photos from [Unsplash](https://unsplash.com/license) (representative stock — not the actual businesses; no business logos used)
+- Fonts: Geist, Space Grotesk, and Instrument Serif via [Fontsource](https://fontsource.org) (SIL OFL 1.1)
+- Real business names are used for educational/demo purposes only; all trademarks belong to their owners (see [ATTRIBUTIONS](docs/ATTRIBUTIONS.md) §6)
