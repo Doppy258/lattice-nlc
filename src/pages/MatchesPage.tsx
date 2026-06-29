@@ -20,11 +20,11 @@ import { Select } from "@/components/ui/select";
 import { Stagger, StaggerItem } from "@/components/motion/Reveal";
 import { OfferCard } from "@/components/domain/OfferCard";
 import { LatticeMap } from "@/components/domain/LatticeMap";
-import { ShareLocationButton } from "@/components/common/ShareLocationButton";
+import { LocationBar } from "@/components/common/LocationBar";
 import { useClaim } from "@/components/domain/useClaim";
 import { ClaimResultModal } from "@/components/domain/ClaimResultModal";
 import { BotCheckModal } from "@/components/domain/BotCheckModal";
-import { useGeolocation } from "@/hooks/useGeolocation";
+import { useUserLocation } from "@/hooks/useUserLocation";
 import { getMatchingOffers, getOriginPoint } from "@/services/offerMatchingService";
 import { distanceForBusiness } from "@/services/businessService";
 import { isBusinessSaved, isOfferSaved, toggleSavedOffer } from "@/services/userService";
@@ -49,25 +49,8 @@ export function MatchesPage() {
   const { data, activeUser, setData } = useApp();
   const { query } = useHashRoute();
   const { claim, result, clearResult, pendingClaim, confirmClaim, cancelClaim } = useClaim();
-  const geolocation = useGeolocation();
+  const geolocation = useUserLocation();
   const origin = getOriginPoint(activeUser);
-
-  function handleShareLocation() {
-    geolocation.requestLocation();
-  }
-
-  function saveLocation(loc: { lat: number; lng: number }) {
-    setData((d) => ({
-      ...d,
-      users: d.users.map((u) =>
-        u.id === activeUser.id ? { ...u, location: loc } : u,
-      ),
-    }));
-  }
-
-  if (geolocation.location && !activeUser.location) {
-    saveLocation(geolocation.location);
-  }
 
   const [sort, setSort] = useState<SortKey>("best");
   const [filters, setFilters] = useState({ deals: false, student: false, saved: false });
@@ -195,17 +178,7 @@ export function MatchesPage() {
         </Button>
       </Card>
 
-      {!activeUser.location && !geolocation.loading && !geolocation.error && (
-        <div className="flex items-center justify-between rounded-xl bg-[var(--tint-blue)] px-4 py-3">
-          <span className="text-[13px] text-[var(--primary-strong)]">Enable location for accurate distances</span>
-          <ShareLocationButton loading={false} error={null} onRequest={handleShareLocation} />
-        </div>
-      )}
-      {geolocation.error && (
-        <p className="rounded-xl bg-[var(--danger-tint)] px-3 py-2 text-[13px] font-medium text-destructive">
-          Could not get your location: {geolocation.error}
-        </p>
-      )}
+      <LocationBar geo={geolocation} hasLocation={!!activeUser.location} />
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <ChipGroup>
