@@ -27,26 +27,26 @@ export function ClaimResultModal({
       onOpenChange={(o) => !o && onClose()}
       title="Your Lattice Pass"
       description="Show the QR or backup code at the business before it expires — they approve to redeem."
+      footer={
+        <>
+          <Button variant="secondary" onClick={onClose}>
+            Done
+          </Button>
+          <Button
+            variant="brand"
+            iconLeft={<Icon name="claims" size={17} />}
+            onClick={() => {
+              onClose();
+              navigate("/claims");
+            }}
+          >
+            View my claims
+          </Button>
+        </>
+      }
     >
       {result && (
-        <div className="space-y-4">
-          <LatticePass claim={result.claim} offer={result.offer} business={result.business} />
-          <div className="flex justify-end gap-2">
-            <Button variant="secondary" onClick={onClose}>
-              Done
-            </Button>
-            <Button
-              variant="brand"
-              iconLeft={<Icon name="claims" size={17} />}
-              onClick={() => {
-                onClose();
-                navigate("/claims");
-              }}
-            >
-              View my claims
-            </Button>
-          </div>
-        </div>
+        <LatticePass claim={result.claim} offer={result.offer} business={result.business} />
       )}
     </Modal>
   );
