@@ -134,8 +134,8 @@ export function LatticeMap({
     if (userLocation && radiusKm) {
       circleRef.current = L.circle([userLocation.lat, userLocation.lng], {
         radius: radiusKm * 1000,
-        color: "#2563eb",
-        fillColor: "#2563eb",
+        color: "#2352de",
+        fillColor: "#2352de",
         fillOpacity: 0.08,
         weight: 2,
         opacity: 0.3,

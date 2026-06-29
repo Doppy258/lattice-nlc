@@ -41,11 +41,18 @@ function MobileLink({
       aria-label={item.label}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "flex h-full flex-1 cursor-pointer flex-col items-center justify-center gap-1 rounded-2xl text-[11px] font-medium transition-colors",
+        "group flex h-full flex-1 cursor-pointer flex-col items-center justify-center gap-1 rounded-2xl text-[11px] font-medium outline-none transition-colors",
         active ? "text-primary" : "text-muted-foreground",
       )}
     >
-      <Icon name={item.icon} size={21} strokeWidth={active ? 2.2 : 1.8} />
+      <span
+        className={cn(
+          "grid place-items-center rounded-full px-4 py-1 transition-colors group-focus-visible:ring-2 group-focus-visible:ring-ring/45 group-focus-visible:ring-offset-2 group-focus-visible:ring-offset-background",
+          active && "bg-accent",
+        )}
+      >
+        <Icon name={item.icon} size={21} strokeWidth={active ? 2.2 : 1.8} />
+      </span>
       <span className="tracking-tight">{item.label}</span>
     </motion.button>
   );
@@ -59,6 +66,7 @@ export function MobileNav() {
   const nav = navForRole(activeUser.role);
   const primary = nav.slice(0, 4);
   const rest = nav.slice(4);
+  const moreActive = rest.some((item) => isActive(path, item.path));
 
   return (
     <>
@@ -70,9 +78,20 @@ export function MobileNav() {
           type="button"
           onClick={() => setOpen(true)}
           aria-label="More"
-          className="flex h-full flex-1 cursor-pointer flex-col items-center justify-center gap-1 rounded-2xl text-[11px] font-medium text-muted-foreground transition-colors active:scale-95"
+          aria-haspopup="dialog"
+          className={cn(
+            "group flex h-full flex-1 cursor-pointer flex-col items-center justify-center gap-1 rounded-2xl text-[11px] font-medium outline-none transition-colors active:scale-95",
+            moreActive ? "text-primary" : "text-muted-foreground",
+          )}
         >
-          <Icon name="demo" size={21} />
+          <span
+            className={cn(
+              "grid place-items-center rounded-full px-4 py-1 transition-colors group-focus-visible:ring-2 group-focus-visible:ring-ring/45 group-focus-visible:ring-offset-2 group-focus-visible:ring-offset-background",
+              moreActive && "bg-accent",
+            )}
+          >
+            <Icon name="more" size={21} strokeWidth={moreActive ? 2.2 : 1.8} />
+          </span>
           <span className="tracking-tight">More</span>
         </button>
       </nav>
@@ -94,8 +113,9 @@ export function MobileNav() {
                     navigate(item.path);
                     setOpen(false);
                   }}
+                  aria-current={active ? "page" : undefined}
                   className={cn(
-                    "flex cursor-pointer flex-col items-center gap-2 rounded-2xl border border-border bg-card p-3.5 text-xs font-medium text-foreground shadow-[var(--shadow-soft)] transition-[transform,background-color] active:scale-95",
+                    "flex cursor-pointer flex-col items-center gap-2 rounded-2xl border border-border bg-card p-3.5 text-xs font-medium text-foreground shadow-[var(--shadow-soft)] outline-none transition-[transform,background-color] active:scale-95 focus-visible:ring-2 focus-visible:ring-ring/45 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                     active && "border-primary/30 bg-accent text-accent-foreground",
                   )}
                 >

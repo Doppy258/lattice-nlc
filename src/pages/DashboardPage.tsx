@@ -24,13 +24,7 @@ import { getActiveOffersForBusiness } from "@/services/businessService";
 import { getUserById } from "@/services/userService";
 import { CATEGORY_META } from "@/data/catalog";
 import { formatCurrency, formatPercent, formatRating, initials, relativeTime } from "@/utils/formatting";
-import type { ClaimStatus } from "@/models";
-
-function claimTone(status: ClaimStatus): "brand" | "success" | "neutral" {
-  if (status === "pending") return "brand";
-  if (status === "redeemed") return "success";
-  return "neutral";
-}
+import { claimStatusMeta } from "@/utils/statusMeta";
 
 /** Reusable solid panel with a titled header and an optional trailing accent. */
 function Panel({
@@ -143,6 +137,7 @@ export function DashboardPage() {
               {recentClaims.map((c) => {
                 const customer = getUserById(c.userId, data.users)?.name ?? "Customer";
                 const offer = data.offers.find((o) => o.id === c.offerId);
+                const claimMeta = claimStatusMeta(c.status);
                 return (
                   <li key={c.id} className="flex items-center gap-3 rounded-2xl border border-border bg-card/60 p-3">
                     <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-accent text-[11px] font-semibold text-primary">
@@ -153,7 +148,7 @@ export function DashboardPage() {
                       <p className="truncate text-[13px] text-muted-foreground">{offer?.title ?? "Offer"}</p>
                     </div>
                     <div className="flex shrink-0 flex-col items-end gap-1">
-                      <Badge tone={claimTone(c.status)}>{c.status}</Badge>
+                      <Badge tone={claimMeta.tone}>{claimMeta.label}</Badge>
                       <span className="text-[11px] text-muted-foreground">{relativeTime(c.createdAt)}</span>
                     </div>
                   </li>

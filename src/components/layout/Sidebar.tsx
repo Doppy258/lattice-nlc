@@ -30,8 +30,9 @@ function SidebarLink({ item, active }: { item: NavItem; active: boolean }) {
           aria-label={item.label}
           aria-current={active ? "page" : undefined}
           className={cn(
-            "relative grid size-12 cursor-pointer place-items-center rounded-2xl text-muted-foreground transition-colors duration-200",
+            "relative grid size-12 cursor-pointer place-items-center rounded-2xl text-muted-foreground outline-none transition-colors duration-200",
             "hover:bg-white/55 hover:text-foreground",
+            "focus-visible:ring-2 focus-visible:ring-ring/45 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
             active &&
               "bg-primary text-white shadow-[var(--shadow-cta)] hover:bg-primary hover:text-white",
           )}
@@ -55,7 +56,7 @@ export function Sidebar() {
         type="button"
         onClick={() => navigate(homePathForRole(activeUser.role))}
         aria-label="Lattice home"
-        className="cursor-pointer transition-transform duration-200 hover:-translate-y-0.5 active:scale-95"
+        className="cursor-pointer rounded-2xl outline-none transition-transform duration-200 hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-ring/45 focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-95"
       >
         <LatticeMark size={42} />
       </button>
