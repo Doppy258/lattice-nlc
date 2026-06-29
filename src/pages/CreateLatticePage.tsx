@@ -417,8 +417,6 @@ export function CreateLatticePage() {
         <div className="flex items-center justify-between gap-3">
           <span className="mono inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
             <span className="size-1.5 rounded-[2px] bg-primary" aria-hidden="true" />
-            <span className="text-foreground">01</span>
-            <span className="text-muted-foreground/50">—</span>
             Request
           </span>
         </div>

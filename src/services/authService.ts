@@ -139,8 +139,8 @@ export function listenAuth(callback: (session: Session | null) => void): () => v
 /** Save onboarding preferences to Supabase Auth metadata so they survive page reload. */
 export async function saveOnboardingMetadata(
   updates: Partial<User>
-): Promise<{ session: Session | null; error: AuthError | null }> {
-  if (!supabase) return { session: null, error: null };
+): Promise<{ error: AuthError | null }> {
+  if (!supabase) return { error: null };
 
   const metadata = {
     onboarded: true,
@@ -148,21 +148,14 @@ export async function saveOnboardingMetadata(
     ...(updates.preferences ?? {}),
   };
 
-  const { data, error } = await supabase.auth.updateUser({
-    data: {
-      ...metadata,
-    },
+  const { error } = await supabase.auth.updateUser({
+    data: { ...metadata },
   });
 
   if (error) {
     console.error("Supabase onboarding metadata error:", error);
-    return { session: null, error: { message: error.message } };
+    return { error: { message: error.message } };
   }
 
-  const { data: sessionData } = await supabase.auth.getSession();
-  const session = sessionData.session && data.user
-    ? { ...sessionData.session, user: data.user }
-    : sessionData.session;
-
-  return { session, error: null };
+  return { error: null };
 }

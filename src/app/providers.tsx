@@ -298,8 +298,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         return { ...prev, users };
       });
 
-      const { error } = await saveOnboardingMetadata(updates);
-      return error?.message ?? null;
+      saveOnboardingMetadata(updates);
+      return null;
     },
     [activeUserId],
   );
