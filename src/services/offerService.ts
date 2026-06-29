@@ -4,11 +4,12 @@
  * array — dbService handles persistence.
  */
 
-import type { BusinessCategory, DiscountKind, NeedType, Offer, OfferType } from "../models";
+import type { BusinessCategory, DiscountKind, NeedType, Offer, OfferType, Claim } from "../models";
 import { createId } from "../utils/ids";
 import { isPast } from "../utils/dateTime";
 import { containsLink, isNonEmpty, isNumber, isRepeatedNonsense, lengthWithin } from "../utils/validation";
 import { MAX_OFFER_CLAIMS } from "../utils/constants";
+import { remainingRedemptions } from "./redemptionService";
 
 /** Lifecycle state of an offer from the owner's point of view. */
 export type OfferStatus = "active" | "paused" | "expired" | "full";
@@ -30,7 +31,6 @@ export type OfferInput = {
   maxClaims: number;
   tags: string[];
   studentOnly: boolean;
-  verificationRequired: boolean;
   oneTimePerUser: boolean;
   redemptionWindowMinutes: number;
   imageUrl?: string;
@@ -180,7 +180,6 @@ export function createOffer(
     views: 0,
     tags: input.tags,
     studentOnly: input.studentOnly,
-    verificationRequired: input.verificationRequired,
     oneTimePerUser: input.oneTimePerUser,
     redemptionWindowMinutes: input.redemptionWindowMinutes,
     imageUrl: input.imageUrl,
@@ -206,7 +205,6 @@ export function updateOffer(offerId: string, input: OfferInput, offers: Offer[])
           maxClaims: input.maxClaims,
           tags: input.tags,
           studentOnly: input.studentOnly,
-          verificationRequired: input.verificationRequired,
           oneTimePerUser: input.oneTimePerUser,
           redemptionWindowMinutes: input.redemptionWindowMinutes,
           imageUrl: input.imageUrl,
@@ -231,9 +229,11 @@ export function getOwnerOffers(businessId: string, offers: Offer[]): Offer[] {
 }
 
 /** Maps an offer to its owner-facing lifecycle status. */
-export function classifyOffer(offer: Offer, now = new Date()): OfferStatus {
+export function classifyOffer(offer: Offer, claims?: Claim[], now = new Date()): OfferStatus {
   if (isPast(offer.validUntil, now)) return "expired";
   if (!offer.active) return "paused";
-  if (offer.currentClaims >= offer.maxClaims) return "full";
+  if (claims ? remainingRedemptions(offer, claims, now) <= 0 : offer.currentClaims >= offer.maxClaims) {
+    return "full";
+  }
   return "active";
 }

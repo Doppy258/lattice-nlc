@@ -1,7 +1,7 @@
 /**
  * offerMatchingService — weighted match-scoring engine.
  * Filters offers through a hard eligibility gate (category, distance, budget,
- * time), then scores survivors across 7 weighted dimensions. The result is a
+ * time), then scores survivors across 6 weighted dimensions. The result is a
  * ranked list of MatchResults with per-dimension breakdowns and human-readable
  * reasons — the core intelligence behind "Why this match?".
  */
@@ -102,13 +102,6 @@ export function calculateTimeScore(
   return open === "full" ? 100 : open === "partial" ? 50 : 0;
 }
 
-/** 100 verified + redemption required, 70 verified, 40 unverified. */
-export function calculateVerificationScore(business: Business, offer: Offer): number {
-  if (business.verified && offer.verificationRequired) return 100;
-  if (business.verified) return 70;
-  return 40;
-}
-
 /** Share of the user's requested preferences this offer/business satisfies. */
 export function calculatePreferenceScore(
   request: PingRequest,
@@ -133,8 +126,6 @@ export function calculatePreferenceScore(
         return open;
       case "highlyRated":
         return business.ratingAverage >= 4.5;
-      case "verifiedOnly":
-        return business.verified;
       case "groupFriendly":
         return tags.has("group-friendly");
       case "wheelchairAccessible":
@@ -169,7 +160,6 @@ export function calculateOfferScore(
     distanceScore: calculateDistanceScore(request, business, origin),
     ratingScore: calculateRatingScore(business),
     timeScore: calculateTimeScore(request, offer, business),
-    verificationScore: calculateVerificationScore(business, offer),
     preferenceScore: calculatePreferenceScore(request, offer, business, user),
   };
   const w = MATCH_WEIGHTS;
@@ -179,7 +169,6 @@ export function calculateOfferScore(
     breakdown.distanceScore * w.distance +
     breakdown.ratingScore * w.rating +
     breakdown.timeScore * w.time +
-    breakdown.verificationScore * w.verification +
     breakdown.preferenceScore * w.preference;
   return { score: Math.round(score), breakdown };
 }
@@ -208,7 +197,6 @@ export function generateMatchReasons(
   }
   if (breakdown.ratingScore >= 90) reasons.push("Highly rated by verified reviews");
   if (offer.studentOnly) reasons.push("Has a student discount");
-  if (business.verified && reasons.length < 4) reasons.push("Verified local business");
   return reasons.slice(0, 4);
 }
 

@@ -51,7 +51,7 @@ export function generateBackupCode(existing: Claim[]): string {
 }
 
 /** Passes for an offer that currently count against its limit (redeemed + live pending). */
-function usedSlots(offerId: string, passes: Claim[], now: Date): number {
+export function usedSlots(offerId: string, passes: Claim[], now = new Date()): number {
   return passes.filter(
     (p) =>
       p.offerId === offerId &&
@@ -169,7 +169,7 @@ export function validateForApproval(
       return { ok: false, error: "This customer has already redeemed this offer." };
     }
   }
-  if (redeemedCount(offer.id, passes) >= offer.maxClaims) {
+  if (remainingRedemptions(offer, passes, now) <= 0) {
     return { ok: false, error: "This offer has no redemptions remaining." };
   }
   return { ok: true };

@@ -38,7 +38,6 @@ export function createBusiness(input: BusinessInput, ownerUserId: string, now = 
     hours: DEFAULT_HOURS,
     ratingAverage: 0,
     reviewCount: 0,
-    verified: false,
     priceLevel: 2,
     tags: [],
     accessibilityFeatures: [],

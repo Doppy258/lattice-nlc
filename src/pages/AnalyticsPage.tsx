@@ -84,7 +84,6 @@ export function AnalyticsPage() {
   if (!report) return null;
 
   const funnel: SeriesPoint[] = [
-    { label: "Views", value: report.offerViews },
     { label: "Claims", value: report.claims },
     { label: "Redeemed", value: report.redemptions },
   ];
@@ -158,7 +157,7 @@ export function AnalyticsPage() {
           {
             label: "Conversion",
             value: formatPercent(report.conversionRate),
-            detail: "Views to redeemed",
+            detail: "Claims to redeemed",
           },
           {
             label: "Pass approval",

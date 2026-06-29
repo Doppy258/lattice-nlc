@@ -8,13 +8,13 @@
  * gate before submission.
  */
 
-import { useMemo, useState, type ReactNode } from "react";
-import { ChevronDown, Check } from "lucide-react";
+import { useMemo, useState, useCallback, type ReactNode } from "react";
+import { ChevronDown, Check, Sparkles, Type } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useApp } from "@/app/providers";
 import { navigate, useHashRoute } from "@/app/navigation";
 import { Button } from "@/components/common/Button";
-import { Badge, type BadgeTone } from "@/components/common/Badge";
+
 import { Card } from "@/components/common/Card";
 import { ChipGroup, ToggleChip } from "@/components/common/ToggleChip";
 import { FormField } from "@/components/common/FormField";
@@ -31,12 +31,13 @@ import {
 import { BotCheckModal } from "@/components/domain/BotCheckModal";
 import { ShareLocationButton } from "@/components/common/ShareLocationButton";
 import { useUserLocation } from "@/hooks/useUserLocation";
-import { validatePingRequest, getRequestQuality } from "@/services/requestValidationService";
+import { validatePingRequest } from "@/services/requestValidationService";
 import { getMatchingOffers } from "@/services/offerMatchingService";
 import {
   ALL_CATEGORIES,
   CATEGORY_META,
   DISTANCE_OPTIONS_KM,
+  DISTANCE_OPTIONS,
   NEED_TYPES_BY_CATEGORY,
   NEED_TYPE_LABELS,
   PREFERENCE_OPTIONS,
@@ -49,13 +50,10 @@ import { upsertRequest } from "@/services/dbService";
 import { formatTimeRange } from "@/utils/formatting";
 import type { BusinessCategory, NeedType, PingRequest } from "@/models";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 import { Reveal, Stagger, StaggerItem } from "@/components/motion/Reveal";
-
-const QUALITY: Record<string, { tone: BadgeTone; label: string }> = {
-  invalid: { tone: "danger", label: "Incomplete" },
-  weak: { tone: "warning", label: "Weak" },
-  strong: { tone: "success", label: "Strong" },
-};
+import { NaturalLanguageInput } from "@/components/domain/NaturalLanguageInput";
+import type { NLParseResult } from "@/services/nlpParser";
 
 /** An inline, fill-in-the-blank dropdown used to build the mad-libs sentence. */
 function Blank({
@@ -186,6 +184,69 @@ export function CreateLatticePage() {
   );
   const [verifyOpen, setVerifyOpen] = useState(false);
 
+  const [mode, setMode] = useState<"nl" | "form">("nl");
+  const [populatedByNl, setPopulatedByNl] = useState(false);
+
+  const handleNLApply = useCallback(
+    (result: NLParseResult) => {
+      if (result.category) setCategory(result.category);
+      if (result.needType) setNeedType(result.needType);
+      if (result.budgetMax != null) {
+        const presets = result.needType ? budgetPresetsFor(result.needType) : [];
+        const idx = presets.findIndex(
+          (p) => p.max === result.budgetMax && p.min === (result.budgetMin ?? undefined),
+        );
+        if (idx >= 0) {
+          setBudgetSel(idx);
+          setBudgetMin(presets[idx].min);
+          setBudgetMax(presets[idx].max);
+        } else {
+          setBudgetSel("custom");
+          setCustomBudget(String(result.budgetMax));
+          setBudgetMin(result.budgetMin);
+          setBudgetMax(result.budgetMax);
+        }
+      }
+      if (result.distanceKm != null) setDistanceKm(result.distanceKm);
+      if (result.timeStart && result.timeEnd) {
+        const matchedPreset = TIME_WINDOW_PRESETS.find((p) => {
+          if (p.id === "custom") return false;
+          const w = timeWindowForPreset(p.id);
+          return w?.timeStart === result.timeStart && w?.timeEnd === result.timeEnd;
+        });
+        if (matchedPreset) {
+          setTimePreset(matchedPreset.id);
+        } else {
+          setTimePreset("custom");
+          const d = new Date(result.timeStart);
+          const e = new Date(result.timeEnd);
+          const pad2 = (n: number) => String(n).padStart(2, "0");
+          setCustomDate(`${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`);
+          setCustomStart(
+            `${pad2(d.getHours())}:${pad2(d.getMinutes())}`,
+          );
+          setCustomEnd(
+            `${pad2(e.getHours())}:${pad2(e.getMinutes())}`,
+          );
+        }
+        setTimeStart(result.timeStart);
+        setTimeEnd(result.timeEnd);
+      } else if (result.timeStart === null && result.timeEnd === null) {
+        const anytime = timeWindowForPreset("anytime");
+        if (anytime) {
+          setTimePreset("anytime");
+          setTimeStart(anytime.timeStart);
+          setTimeEnd(anytime.timeEnd);
+        }
+      }
+      if (result.preferences.length > 0) setPreferences(result.preferences);
+      setPopulatedByNl(true);
+      setMode("form");
+      toast.success("Fields populated from your description!", { duration: 3000 });
+    },
+    [],
+  );
+
   const draft = useMemo(
     () => ({
       userId: activeUser.id,
@@ -206,7 +267,6 @@ export function CreateLatticePage() {
     [editId, data.requests],
   );
   const validation = useMemo(() => validatePingRequest(draft, validationExisting), [draft, validationExisting]);
-  const quality = useMemo(() => getRequestQuality(draft, validationExisting), [draft, validationExisting]);
   const errors = useMemo(
     () => Object.fromEntries(validation.errors.map((e) => [e.field, e.message])) as Record<string, string>,
     [validation],
@@ -292,13 +352,10 @@ export function CreateLatticePage() {
         ...d,
         requests: d.requests.map((r) => (r.id === editId ? updated : r)),
       }));
-      void upsertRequest(updated);
+      upsertRequest(updated).catch(() => toast.error("Failed to save request"));
       navigate(`/matches?request=${editId}`);
       return;
     }
-    // Build the request locally (works with or without Supabase), append it to
-    // app state, then best-effort sync to the shared backend — a no-op when
-    // Supabase isn't configured (demo mode), matching the claim/offer flows.
     const request: PingRequest = {
       id: createId("req"),
       userId: activeUser.id,
@@ -315,7 +372,7 @@ export function CreateLatticePage() {
       createdAt: new Date().toISOString(),
     };
     setData((d) => ({ ...d, requests: [...d.requests, request] }));
-    void upsertRequest(request);
+    upsertRequest(request).catch(() => toast.error("Failed to save request"));
     navigate(`/matches?request=${request.id}`);
   }
 
@@ -355,8 +412,8 @@ export function CreateLatticePage() {
         subtitle="Fill in the blanks and we'll match you with verified local offers — by budget, timing, distance, and preferences."
       />
 
-      <Card variant="solid" className="p-7 sm:p-9">
-        {/* Step marker — this card is the request, the first move in the flow — beside a live quality read */}
+      <Card variant="solid" className={cn("p-7 sm:p-9", mode === "nl" && "pb-9")}>
+        {/* Step marker */}
         <div className="flex items-center justify-between gap-3">
           <span className="mono inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
             <span className="size-1.5 rounded-[2px] bg-primary" aria-hidden="true" />
@@ -365,6 +422,68 @@ export function CreateLatticePage() {
             Request
           </span>
         </div>
+
+        {/* Mode toggle */}
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1], delay: 0.05 }}
+          className="mt-5 mb-6 flex items-center gap-1 rounded-2xl bg-muted p-1 ring-1 ring-inset ring-border/60"
+        >
+          <button
+            onClick={() => setMode("nl")}
+            className={cn(
+              "flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-semibold transition-all duration-200",
+              mode === "nl"
+                ? "bg-card text-foreground shadow-[var(--shadow-soft)] ring-1 ring-inset ring-border/70"
+                : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            <Sparkles size={16} className={mode === "nl" ? "text-primary" : "text-muted-foreground"} />
+            Natural Language
+          </button>
+          <button
+            onClick={() => setMode("form")}
+            className={cn(
+              "flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-semibold transition-all duration-200",
+              mode === "form"
+                ? "bg-card text-foreground shadow-[var(--shadow-soft)] ring-1 ring-inset ring-border/70"
+                : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            <Type size={16} className={mode === "form" ? "text-primary" : "text-muted-foreground"} />
+            Fill in the blanks
+          </button>
+        </motion.div>
+
+        {/* NL mode */}
+        <AnimatePresence mode="wait">
+          {mode === "nl" && (
+            <motion.div
+              key="nl-mode"
+              initial={{ opacity: 0, y: 12, filter: "blur(4px)" }}
+              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              exit={{ opacity: 0, y: -8, filter: "blur(4px)" }}
+              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <NaturalLanguageInput
+                onApply={handleNLApply}
+                onSwitchToForm={() => setMode("form")}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Form mode */}
+        <AnimatePresence mode="wait">
+          {mode === "form" && (
+            <motion.div
+              key="form-mode"
+              initial={populatedByNl ? { opacity: 0, y: 16, filter: "blur(6px)" } : { opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              exit={{ opacity: 0, y: -8, filter: "blur(4px)" }}
+              transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+            >
         <AnimatePresence>
           {category && (
             <motion.div
@@ -375,15 +494,12 @@ export function CreateLatticePage() {
               <span className="text-[12px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
                 Your request
               </span>
-              <motion.div whileTap={{ scale: 0.95 }}>
-                <Badge tone={QUALITY[quality].tone}>{QUALITY[quality].label}</Badge>
-              </motion.div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Mad-libs sentence — blanks reveal after a business type is picked */}
-        <div className="mt-7 flex flex-wrap items-center gap-x-2 gap-y-3 font-display text-[22px] leading-[1.7] tracking-[-0.015em] text-foreground sm:text-[26px]">
+        {/* Mad-libs sentence */}
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-3 font-display text-[22px] leading-[1.7] tracking-[-0.015em] text-foreground sm:text-[26px]">
           <motion.span
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
@@ -481,11 +597,11 @@ export function CreateLatticePage() {
           <AnimatePresence>
             {category && (
               <motion.div key="distance-blank" {...slideFade} transition={{ delay: 0.3 }}>
-                <Blank placeholder="any distance" value={distanceKm ? `${distanceKm} km` : undefined}>
-                  {DISTANCE_OPTIONS_KM.map((km) => (
-                    <Option key={km} active={distanceKm === km} onSelect={() => setDistanceKm(km)}>
+                <Blank placeholder="any distance" value={distanceKm ? (distanceKm === 999 ? "No limit" : `${distanceKm} km`) : undefined}>
+                  {DISTANCE_OPTIONS.map((opt) => (
+                    <Option key={opt.value} active={distanceKm === opt.value} onSelect={() => setDistanceKm(opt.value)}>
                       <Icon name="location" size={15} className="text-primary" />
-                      Within {km} km
+                      {opt.label}
                     </Option>
                   ))}
                 </Blank>
@@ -668,6 +784,9 @@ export function CreateLatticePage() {
           </motion.div>
         )}
       </AnimatePresence>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </Card>
 
       <BotCheckModal

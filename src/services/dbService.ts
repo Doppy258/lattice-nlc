@@ -31,7 +31,6 @@ function businessRowToBusiness(row: Record<string, unknown>): Business {
     hours: row.hours as Business["hours"],
     ratingAverage: row.rating_average as number,
     reviewCount: row.review_count as number,
-    verified: row.verified as boolean,
     priceLevel: row.price_level as Business["priceLevel"],
     tags: row.tags as string[],
     accessibilityFeatures: row.accessibility_features as string[],
@@ -53,7 +52,7 @@ function businessToRow(b: Business): Record<string, unknown> {
     hours: b.hours,
     rating_average: b.ratingAverage,
     review_count: b.reviewCount,
-    verified: b.verified,
+    verified: false, // legacy DB column — verification feature removed; written constant for compatibility
     price_level: b.priceLevel,
     tags: b.tags,
     accessibility_features: b.accessibilityFeatures,
@@ -85,7 +84,6 @@ function offerRowToOffer(row: Record<string, unknown>): Offer {
     views: row.views as number,
     tags: row.tags as string[],
     studentOnly: row.student_only as boolean,
-    verificationRequired: row.verification_required as boolean,
     oneTimePerUser: (row.one_time_per_user as boolean | null) ?? true,
     redemptionWindowMinutes: (row.redemption_window_minutes as number | null) ?? 5,
     active: row.active as boolean,
@@ -114,7 +112,7 @@ function offerToRow(o: Offer): Record<string, unknown> {
     views: o.views,
     tags: o.tags,
     student_only: o.studentOnly,
-    verification_required: o.verificationRequired,
+    verification_required: false, // legacy DB column — verification feature removed; written constant for compatibility
     one_time_per_user: o.oneTimePerUser,
     redemption_window_minutes: o.redemptionWindowMinutes,
     active: o.active,

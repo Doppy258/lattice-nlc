@@ -54,7 +54,6 @@ export type Offer = {
   views: number;
   tags: string[];
   studentOnly: boolean;
-  verificationRequired: boolean;
   /** When true, a customer can only ever redeem this offer once. */
   oneTimePerUser: boolean;
   /** Minutes a Lattice Pass stays valid after a customer claims it (default 5). */
@@ -75,7 +74,6 @@ export type ScoreBreakdown = {
   distanceScore: number;
   ratingScore: number;
   timeScore: number;
-  verificationScore: number;
   preferenceScore: number;
 };
 

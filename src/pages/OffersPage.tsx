@@ -28,7 +28,7 @@ import {
   type OfferStatus,
 } from "@/services/offerService";
 import { deleteOffer as deleteOfferFromDb, upsertOffer } from "@/services/dbService";
-import { remainingRedemptions } from "@/services/redemptionService";
+import { remainingRedemptions, usedSlots } from "@/services/redemptionService";
 import { OFFER_TYPE_LABELS } from "@/data/catalog";
 import { formatCurrency, relativeTime } from "@/utils/formatting";
 import { getOfferPricing } from "@/utils/offerPricing";
@@ -56,17 +56,18 @@ export function OffersPage() {
     );
   }
 
+  const businessClaims = data.claims.filter((c) => c.businessId === activeBusiness.id);
   const offers = getOwnerOffers(activeBusiness.id, data.offers);
   const statusCounts = offers.reduce<Record<OfferStatus, number>>(
     (counts, offer) => {
-      counts[classifyOffer(offer)] += 1;
+      counts[classifyOffer(offer, businessClaims)] += 1;
       return counts;
     },
     { active: 0, paused: 0, expired: 0, full: 0 },
   );
   const activeCount = statusCounts.active;
-  const totalClaims = offers.reduce((sum, o) => sum + o.currentClaims, 0);
-  const totalViews = offers.reduce((sum, o) => sum + o.views, 0);
+  const totalClaims = businessClaims.length;
+  const totalViews = businessClaims.length;
   const filterOptions: { value: Filter; label: string }[] = [
     { value: "all", label: `All (${offers.length})` },
     { value: "active", label: `Active (${statusCounts.active})` },
@@ -75,17 +76,22 @@ export function OffersPage() {
     { value: "full", label: `Full (${statusCounts.full})` },
   ];
 
-  const filtered = filter === "all" ? offers : offers.filter((o) => classifyOffer(o) === filter);
+  const filtered = filter === "all" ? offers : offers.filter((o) => classifyOffer(o, businessClaims) === filter);
 
-  function handleToggle(o: Offer) {
+  async function handleToggle(o: Offer) {
     const updated = { ...o, active: !o.active };
     setData((d) => ({ ...d, offers: toggleOfferActive(o.id, d.offers) }));
-    void upsertOffer(updated); // persist pause/resume so customers stop/start seeing it
+    try {
+      await upsertOffer(updated);
+    } catch {
+      toast.error("Failed to sync change. Please try again.");
+      return;
+    }
     toast.success(o.active ? "Offer paused" : "Offer resumed");
   }
 
   async function handleDelete(o: Offer) {
-    if (o.currentClaims > 0 && !window.confirm("This offer has active claims. Delete anyway?")) return;
+    if (usedSlots(o.id, data.claims) > 0 && !window.confirm("This offer has active claims. Delete anyway?")) return;
     setData((d) => ({
       ...d,
       offers: deleteOffer(o.id, d.offers),
@@ -139,12 +145,10 @@ export function OffersPage() {
       ) : (
         <Stagger className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {filtered.map((offer) => {
-            const status = classifyOffer(offer);
+            const status = classifyOffer(offer, businessClaims);
             const meta = offerStatusMeta(status);
-            const pct = Math.min(
-              100,
-              Math.round((offer.currentClaims / Math.max(1, offer.maxClaims)) * 100),
-            );
+            const used = usedSlots(offer.id, data.claims);
+            const pct = Math.min(100, Math.round((used / Math.max(1, offer.maxClaims)) * 100));
             const pricing = getOfferPricing(offer);
             return (
               <StaggerItem key={offer.id}>
@@ -181,8 +185,8 @@ export function OffersPage() {
                     <Progress value={pct} />
                     <div className="flex items-center justify-between text-[13px] text-muted-foreground">
                       <span>
-                        <span className="mono font-medium text-foreground">{offer.currentClaims}</span> /{" "}
-                        {offer.maxClaims} redeemed
+                        <span className="mono font-medium text-foreground">{used}</span> /{" "}
+                        {offer.maxClaims} claimed
                       </span>
                       <span className="inline-flex items-center gap-1">
                         <span className="mono font-medium text-foreground">

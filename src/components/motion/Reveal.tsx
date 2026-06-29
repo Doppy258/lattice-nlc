@@ -35,7 +35,7 @@ export function Reveal({
       className={className}
       style={style}
       initial={reduced ? false : { opacity: 0, y, filter: `blur(${blur}px)` }}
-      animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+      animate={{ opacity: 1, filter: "none" }}
       transition={{ duration: DURATION.slow, ease: EASE_OUT_EXPO, delay }}
     >
       {children}
@@ -91,8 +91,7 @@ export function StaggerItem({
         hidden: { opacity: 0, y, filter: `blur(${blur}px)` },
         show: {
           opacity: 1,
-          y: 0,
-          filter: "blur(0px)",
+          filter: "none",
           transition: { duration: DURATION.base, ease: EASE_OUT_EXPO },
         },
       }}

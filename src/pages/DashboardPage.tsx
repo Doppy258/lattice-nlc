@@ -113,11 +113,11 @@ export function DashboardPage() {
       <InsightSummary
         title="Performance summary"
         items={[
-          { label: "Offer views", value: report.offerViews, detail: "Across all offers" },
+          { label: "Claims", value: report.claims, detail: "Passes created" },
           { label: "Redemptions", value: report.redemptions, detail: "Approved at the counter" },
           { label: "Pending passes", value: report.pending, detail: "Awaiting your approval" },
           { label: "Est. visits driven", value: report.redemptions, detail: "Customers in-store" },
-          { label: "Conversion", value: formatPercent(report.conversionRate), detail: "Views to redeemed" },
+          { label: "Conversion", value: formatPercent(report.conversionRate), detail: "Claims to redeemed" },
           { label: "Top offer", value: report.topOfferTitle ?? "—", detail: "Most redeemed" },
           { label: "Avg rating", value: `${formatRating(report.averageRating)}★`, detail: `${report.reviewCount} reviews` },
           { label: "Active offers", value: activeOffers.length, detail: "Live right now" },
@@ -126,7 +126,9 @@ export function DashboardPage() {
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Panel title="Claims over time" sub="Monthly claim volume on your offers" icon="analytics">
-          <BarColumns data={report.claimsByMonth} color="var(--primary)" />
+          <div className="pt-4">
+            <BarColumns data={report.claimsByMonth} color="var(--primary)" />
+          </div>
         </Panel>
 
         <Panel title="Recent activity" sub="Latest claims on your offers" icon="claims">

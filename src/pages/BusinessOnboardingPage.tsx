@@ -69,7 +69,6 @@ export function BusinessOnboardingPage() {
       hours: [],
       ratingAverage: 0,
       reviewCount: 0,
-      verified: false,
       priceLevel: 2,
       tags: [categoryLabel],
       accessibilityFeatures: [],
