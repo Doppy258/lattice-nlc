@@ -1,9 +1,10 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-import type { Plugin, ViteDevServer } from "vite";
+import type { Plugin, ViteDevServer, PreviewServer } from "vite";
 import { loadEnv } from "vite";
-import { handleAssistantRequest } from "../server/assistantHandler";
+import { handleAssistantRequest, type AssistantEnv } from "../server/assistantHandler";
+import { parsePingRequest } from "../server/pingParser";
 
-function readAssistantEnv(mode: string): Record<string, string | undefined> {
+function readAssistantEnv(mode: string): AssistantEnv {
   const env = loadEnv(mode, process.cwd(), "");
   return {
     geminiApiKey: env.GEMINI_API_KEY || env.VITE_GEMINI_API_KEY,
@@ -12,10 +13,46 @@ function readAssistantEnv(mode: string): Record<string, string | undefined> {
   };
 }
 
+function installAssistantEnv(mode: string): AssistantEnv {
+  const config = readAssistantEnv(mode);
+  if (config.geminiApiKey) process.env.GEMINI_API_KEY = config.geminiApiKey;
+  if (config.nvidiaApiKey) process.env.NVIDIA_API_KEY = config.nvidiaApiKey;
+  if (config.nvidiaModel) process.env.NVIDIA_MODEL = config.nvidiaModel;
+  return config;
+}
+
+async function handleParsePing(
+  req: IncomingMessage,
+  res: ServerResponse,
+  env: AssistantEnv,
+): Promise<void> {
+  if (req.method !== "POST") {
+    res.statusCode = 405;
+    res.end("Method not allowed");
+    return;
+  }
+
+  let body = "";
+  req.on("data", (chunk) => { body += chunk; });
+  req.on("end", async () => {
+    try {
+      const { query, timezone } = JSON.parse(body) as { query: string; timezone?: string };
+      const result = await parsePingRequest(query, { ...env, timezone });
+      res.setHeader("Content-Type", "application/json");
+      res.end(JSON.stringify(result));
+    } catch (e) {
+      const message = e instanceof Error ? e.message : "Parse request failed";
+      res.statusCode = 502;
+      res.setHeader("Content-Type", "application/json");
+      res.end(JSON.stringify({ error: message }));
+    }
+  });
+}
+
 async function handleRequest(
   req: IncomingMessage,
   res: ServerResponse,
-  mode: string,
+  env: AssistantEnv,
 ): Promise<void> {
   if (req.method !== "POST") {
     res.statusCode = 405;
@@ -30,7 +67,7 @@ async function handleRequest(
   req.on("end", async () => {
     try {
       const payload = JSON.parse(body) as { question: string; systemPrompt: string };
-      const text = await handleAssistantRequest(payload, readAssistantEnv(mode));
+      const text = await handleAssistantRequest(payload, env);
       res.setHeader("Content-Type", "application/json");
       res.end(JSON.stringify({ text }));
     } catch (e) {
@@ -42,10 +79,13 @@ async function handleRequest(
   });
 }
 
-function attachAssistantRoute(server: ViteDevServer): void {
-  const mode = server.config.mode;
+function attachAssistantRoutes(server: ViteDevServer | PreviewServer): void {
+  const env = installAssistantEnv(server.config.mode);
   server.middlewares.use("/api/assistant", (req, res) => {
-    void handleRequest(req, res, mode);
+    void handleRequest(req, res, env);
+  });
+  server.middlewares.use("/api/parse-ping", (req, res) => {
+    void handleParsePing(req, res, env);
   });
 }
 
@@ -53,7 +93,10 @@ export function assistantProxy(): Plugin {
   return {
     name: "assistant-proxy",
     configureServer(server) {
-      attachAssistantRoute(server);
+      attachAssistantRoutes(server);
+    },
+    configurePreviewServer(server) {
+      attachAssistantRoutes(server);
     },
   };
 }

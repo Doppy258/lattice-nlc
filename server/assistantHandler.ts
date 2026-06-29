@@ -9,7 +9,7 @@ export type AssistantRequest = {
   systemPrompt: string;
 };
 
-const GEMINI_MODELS = ["gemini-2.0-flash", "gemini-2.5-flash", "gemini-2.0-flash-lite"];
+const GEMINI_MODELS = ["gemini-2.5-pro", "gemini-2.5-flash", "gemini-2.0-flash"];
 const GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta";
 const NVIDIA_ENDPOINT = "https://integrate.api.nvidia.com/v1/chat/completions";
 
@@ -25,6 +25,8 @@ type Env = {
   nvidiaApiKey?: string;
   nvidiaModel?: string;
 };
+
+export type AssistantEnv = Env;
 
 function readEnv(env: Env = {}): Required<Env> | Env {
   return {

@@ -14,6 +14,7 @@ export type TimeWindowPresetId =
   | "tonight"
   | "tomorrow"
   | "thisWeekend"
+  | "anytime"
   | "custom";
 
 export type TimeWindow = { timeStart: string; timeEnd: string };
@@ -72,6 +73,8 @@ export function timeWindowForPreset(
       }
       return asWindow(start, end);
     }
+    case "anytime":
+      return asWindow(new Date(now), new Date(now.getTime() + 7 * MS_PER_DAY));
     case "custom":
       return null;
   }

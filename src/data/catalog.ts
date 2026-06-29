@@ -92,8 +92,18 @@ export const NEED_TYPES_BY_CATEGORY: Record<BusinessCategory, NeedType[]> = {
 
 export const DISTANCE_OPTIONS_KM = [1, 3, 5, 10] as const;
 
+export type DistanceOption = { value: number; label: string };
+
+export const DISTANCE_OPTIONS: DistanceOption[] = [
+  { value: 1, label: "Within 1 km" },
+  { value: 3, label: "Within 3 km" },
+  { value: 5, label: "Within 5 km" },
+  { value: 10, label: "Within 10 km" },
+  { value: 999, label: "No limit" },
+];
+
 export type TimeWindowPreset = {
-  id: "now" | "afterSchool" | "tonight" | "tomorrow" | "thisWeekend" | "custom";
+  id: "now" | "afterSchool" | "tonight" | "tomorrow" | "thisWeekend" | "custom" | "anytime";
   label: string;
 };
 
@@ -103,6 +113,7 @@ export const TIME_WINDOW_PRESETS: TimeWindowPreset[] = [
   { id: "tonight", label: "Tonight" },
   { id: "tomorrow", label: "Tomorrow" },
   { id: "thisWeekend", label: "This weekend" },
+  { id: "anytime", label: "Anytime" },
   { id: "custom", label: "Custom" },
 ];
 
@@ -138,16 +149,19 @@ export function budgetPresetsFor(needType: NeedType): Array<{ label: string; min
       { label: "$20 to $30", min: 20, max: 30 },
       { label: "$30 to $45", min: 30, max: 45 },
       { label: "$45+", min: 45 },
+      { label: "No budget" },
     ],
     phoneRepair: [
       { label: "Under $50", max: 50 },
       { label: "$50 to $100", min: 50, max: 100 },
       { label: "$100+", min: 100 },
+      { label: "No budget" },
     ],
     gift: [
       { label: "Under $15", max: 15 },
       { label: "Under $25", max: 25 },
       { label: "Under $50", max: 50 },
+      { label: "No budget" },
     ],
   };
   return (
