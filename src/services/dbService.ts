@@ -193,7 +193,11 @@ function rankingRowToRanking(row: Record<string, unknown>): PersonalRanking {
   return {
     userId: row.user_id as string,
     category: row.category as PersonalRanking["category"],
-    needType: row.need_type as PersonalRanking["needType"],
+    // Normalise NULL → undefined: rankings are keyed by needType with strict
+    // equality (getRanking), and `null === undefined` is false, so a round-tripped
+    // NULL would stop matching the page's `undefined` lookup and the list would
+    // read as empty after a reload.
+    needType: (row.need_type as PersonalRanking["needType"]) ?? undefined,
     rankedBusinessIds: row.ranked_business_ids as string[],
     tierOverrides: (row.tier_overrides as Record<string, string> | null) ?? undefined,
     updatedAt: row.updated_at as string,
@@ -420,16 +424,20 @@ export async function upsertRanking(ranking: PersonalRanking): Promise<void> {
     ranking.needType == null ? sel.is("need_type", null) : sel.eq("need_type", ranking.needType)
   ).maybeSingle();
 
+  let error;
   if (existing) {
     const upd = supabase
       .from("rankings")
       .update(row)
       .eq("user_id", ranking.userId)
       .eq("category", ranking.category);
-    await (ranking.needType == null ? upd.is("need_type", null) : upd.eq("need_type", ranking.needType));
+    ({ error } = await (ranking.needType == null ? upd.is("need_type", null) : upd.eq("need_type", ranking.needType)));
   } else {
-    await supabase.from("rankings").insert(row);
+    ({ error } = await supabase.from("rankings").insert(row));
   }
+  // Surface write failures (e.g. RLS denials) — otherwise a blocked sync looks
+  // identical to a working one until another device fails to see the change.
+  if (error) console.warn("[rankings] sync write failed:", error.message);
 }
 
 // ── Saved items ──────────────────────────────────────────────

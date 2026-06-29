@@ -105,6 +105,27 @@ function mergeByKey<T>(base: T[], live: T[], key: (x: T) => string): T[] {
 }
 
 /**
+ * Like mergeByKey, but resolves conflicts by `updatedAt` (last write wins) rather
+ * than always preferring the live row. Without this, the Supabase overlay that
+ * lands ~1-2s after load would clobber a fresher local edit with a staler remote
+ * row — the ranking would flash, then revert (or go blank). A genuinely newer
+ * remote edit (made on another device) still wins, so cross-device sync holds.
+ */
+function mergeNewestByKey<T extends { updatedAt: string }>(
+  base: T[],
+  live: T[],
+  key: (x: T) => string,
+): T[] {
+  const byKey = new Map(base.map((x) => [key(x), x]));
+  for (const x of live) {
+    const k = key(x);
+    const cur = byKey.get(k);
+    if (!cur || Date.parse(x.updatedAt) >= Date.parse(cur.updatedAt)) byKey.set(k, x);
+  }
+  return [...byKey.values()];
+}
+
+/**
  * Overlays live Supabase records onto the local/seed snapshot so data created by
  * anyone (e.g. a business created in another browser) becomes visible. Live wins
  * on conflicts; seed/local entries with no live counterpart are preserved.
@@ -117,7 +138,7 @@ function mergeLiveData(base: AppData, live: AppData): AppData {
     requests: mergeById(base.requests, live.requests),
     claims: mergeById(base.claims, live.claims),
     reviews: mergeById(base.reviews, live.reviews),
-    rankings: mergeByKey(base.rankings, live.rankings, (r) => `${r.userId}:${r.category}:${r.needType ?? ""}`),
+    rankings: mergeNewestByKey(base.rankings, live.rankings, (r) => `${r.userId}:${r.category}:${r.needType ?? ""}`),
     savedBusinesses: mergeByKey(base.savedBusinesses, live.savedBusinesses, (s) => `${s.userId}:${s.businessId}`),
     savedOffers: mergeByKey(base.savedOffers, live.savedOffers, (s) => `${s.userId}:${s.offerId}`),
   };

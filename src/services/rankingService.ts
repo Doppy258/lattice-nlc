@@ -39,8 +39,14 @@ export function getRanking(
   needType: NeedType | undefined,
   rankings: PersonalRanking[]
 ): PersonalRanking {
+  // Match needType null/undefined-insensitively: a snapshot rehydrated from
+  // localStorage or Supabase can carry needType: null where the in-app value is
+  // undefined, and a strict `===` would miss it.
   const found = rankings.find(
-    (r) => r.userId === userId && r.category === category && r.needType === needType
+    (r) =>
+      r.userId === userId &&
+      r.category === category &&
+      (r.needType ?? undefined) === (needType ?? undefined),
   );
   return (
     found ?? {
