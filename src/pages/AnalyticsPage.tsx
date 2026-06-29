@@ -84,7 +84,6 @@ export function AnalyticsPage() {
   if (!report) return null;
 
   const funnel: SeriesPoint[] = [
-    { label: "Views", value: report.offerViews },
     { label: "Claims", value: report.claims },
     { label: "Redeemed", value: report.redemptions },
   ];
@@ -99,7 +98,6 @@ export function AnalyticsPage() {
         rows: [
           ["Date range", rangeLabel],
           ["Status filter", status === "all" ? "Any status" : status],
-          ["Offer views", report.offerViews],
           ["Claims", report.claims],
           ["Redemptions", report.redemptions],
           ["Pending passes", report.pending],
@@ -158,7 +156,7 @@ export function AnalyticsPage() {
           {
             label: "Conversion",
             value: formatPercent(report.conversionRate),
-            detail: "Views to redeemed",
+            detail: "Claims to redeemed",
           },
           {
             label: "Pass approval",

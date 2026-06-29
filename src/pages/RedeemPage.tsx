@@ -29,6 +29,7 @@ import {
   validateBackupCode,
   validateForApproval,
 } from "@/services/redemptionService";
+import { upsertOffer } from "@/services/dbService";
 import { getUserById } from "@/services/userService";
 import { formatCurrency, initials, relativeTime } from "@/utils/formatting";
 import { getOfferPricing, offerSavingsPerRedemption } from "@/utils/offerPricing";
@@ -125,9 +126,8 @@ export function RedeemPage() {
     verify(value);
   }
 
-  function approve() {
+  async function approve() {
     if (!candidate || !activeBusiness) return;
-    // Re-validate at approval time (window may have lapsed while previewing).
     const check = validateForApproval(candidate.pass, candidate.offer, activeBusiness.id, data.claims);
     if (!check.ok) {
       setCandidate(null);
@@ -136,6 +136,8 @@ export function RedeemPage() {
       return;
     }
     const redeemedPass = approveRedemption(candidate.pass, activeUser.id);
+    const offer = candidate.offer;
+    const currentOffer = data.offers.find((o) => o.id === redeemedPass.offerId);
     setData((d) => ({
       ...d,
       claims: d.claims.map((c) => (c.id === redeemedPass.id ? redeemedPass : c)),
@@ -143,9 +145,15 @@ export function RedeemPage() {
         o.id === redeemedPass.offerId ? { ...o, currentClaims: o.currentClaims + 1 } : o,
       ),
     }));
-    // Persist the redeemed status so the customer's pass updates on their device.
-    void upsertClaim(redeemedPass);
-    const offer = candidate.offer;
+    try {
+      await upsertClaim(redeemedPass);
+      if (currentOffer) {
+        await upsertOffer({ ...currentOffer, currentClaims: currentOffer.currentClaims + 1 });
+      }
+    } catch {
+      toast.error("Failed to persist redemption. Please try again.");
+      return;
+    }
     const saved = offer ? offerSavingsPerRedemption(offer) : 0;
     const savings = saved > 0 ? saved : null;
     setSuccess({

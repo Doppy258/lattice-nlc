@@ -210,7 +210,7 @@ export function getBusinessReport(
   const decided = redeemed.length + expired.length;
   const passApprovalRate = decided === 0 ? 0 : redeemed.length / decided;
 
-  const offerViews = offers.reduce((s, o) => s + o.views, 0);
+  const offerViews = bizClaims.length;
   const revenueInfluenced = redeemed.reduce(
     (s, c) => s + (offerById.get(c.offerId)?.price ?? 0),
     0

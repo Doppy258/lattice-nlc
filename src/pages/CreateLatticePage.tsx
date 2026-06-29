@@ -49,6 +49,7 @@ import { upsertRequest } from "@/services/dbService";
 import { formatTimeRange } from "@/utils/formatting";
 import type { BusinessCategory, NeedType, PingRequest } from "@/models";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 import { Reveal, Stagger, StaggerItem } from "@/components/motion/Reveal";
 
 const QUALITY: Record<string, { tone: BadgeTone; label: string }> = {
@@ -292,13 +293,10 @@ export function CreateLatticePage() {
         ...d,
         requests: d.requests.map((r) => (r.id === editId ? updated : r)),
       }));
-      void upsertRequest(updated);
+      upsertRequest(updated).catch(() => toast.error("Failed to save request"));
       navigate(`/matches?request=${editId}`);
       return;
     }
-    // Build the request locally (works with or without Supabase), append it to
-    // app state, then best-effort sync to the shared backend — a no-op when
-    // Supabase isn't configured (demo mode), matching the claim/offer flows.
     const request: PingRequest = {
       id: createId("req"),
       userId: activeUser.id,
@@ -315,7 +313,7 @@ export function CreateLatticePage() {
       createdAt: new Date().toISOString(),
     };
     setData((d) => ({ ...d, requests: [...d.requests, request] }));
-    void upsertRequest(request);
+    upsertRequest(request).catch(() => toast.error("Failed to save request"));
     navigate(`/matches?request=${request.id}`);
   }
 

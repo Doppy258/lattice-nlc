@@ -273,7 +273,7 @@ export function RankingsPage() {
                       variant="solid"
                       data-tier-id={tier.id}
                       className={cn(
-                        "flex items-stretch overflow-hidden transition-shadow",
+                        "flex items-stretch transition-shadow",
                         isDropTarget && "ring-2 ring-primary ring-offset-1 ring-offset-[var(--background)]",
                       )}
                       style={{ background: `color-mix(in oklab, ${tier.bg} 6%, var(--card))` }}
@@ -320,13 +320,14 @@ export function RankingsPage() {
                               whileHover={{ y: -2 }}
                               whileDrag={{
                                 scale: 1.05,
-                                zIndex: 50,
+                                zIndex: 9999,
                                 boxShadow: "0 18px 40px -14px rgba(10,18,32,0.5)",
                                 cursor: "grabbing",
                               }}
                               transition={{ type: "spring", stiffness: 420, damping: 30 }}
                               style={{
                                 touchAction: "none",
+                                position: "relative",
                                 pointerEvents: draggingId === b.id ? "none" : undefined,
                               }}
                               className="group relative w-[104px] shrink-0 cursor-grab active:cursor-grabbing sm:w-[116px]"
