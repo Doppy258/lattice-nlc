@@ -19,8 +19,8 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Stagger, StaggerItem } from "@/components/motion/Reveal";
 import { BusinessCard } from "@/components/domain/BusinessCard";
-import { ShareLocationButton } from "@/components/common/ShareLocationButton";
-import { useGeolocation } from "@/hooks/useGeolocation";
+import { LocationBar } from "@/components/common/LocationBar";
+import { useUserLocation } from "@/hooks/useUserLocation";
 import { getOriginPoint } from "@/services/offerMatchingService";
 import {
   activeDealCount,
@@ -43,21 +43,8 @@ const SORTS: { value: BusinessSort; label: string }[] = [
 
 export function ExplorePage() {
   const { data, activeUser, setData } = useApp();
-  const geolocation = useGeolocation();
+  const geolocation = useUserLocation();
   const origin = getOriginPoint(activeUser);
-
-  function handleShareLocation() {
-    geolocation.requestLocation();
-  }
-
-  if (geolocation.location && !activeUser.location) {
-    setData((d) => ({
-      ...d,
-      users: d.users.map((u) =>
-        u.id === activeUser.id ? { ...u, location: geolocation.location! } : u,
-      ),
-    }));
-  }
 
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<BusinessCategory | "all">("all");
@@ -136,17 +123,7 @@ export function ExplorePage() {
         </div>
       </div>
 
-      {!activeUser.location && !geolocation.loading && !geolocation.error && (
-        <div className="flex items-center justify-between rounded-xl bg-[var(--tint-blue)] px-4 py-3">
-          <span className="text-[13px] text-[var(--primary-strong)]">Enable location for accurate distances</span>
-          <ShareLocationButton loading={false} error={null} onRequest={handleShareLocation} />
-        </div>
-      )}
-      {geolocation.error && (
-        <p className="rounded-xl bg-[var(--danger-tint)] px-3 py-2 text-[13px] font-medium text-destructive">
-          Could not get your location: {geolocation.error}
-        </p>
-      )}
+      <LocationBar geo={geolocation} hasLocation={!!activeUser.location} />
 
       <div className="flex items-center justify-between">
         <p className="text-[13px] text-muted-foreground">
