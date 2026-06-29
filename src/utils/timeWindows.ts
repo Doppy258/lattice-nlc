@@ -92,5 +92,11 @@ export function customTimeWindow(
   if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
     return { timeStart: "", timeEnd: "" };
   }
+  // An end clock-time at or before the start (e.g. 10:00 PM → 12:00 AM) means the
+  // window crosses midnight. Roll the end into the next day so it stays after the
+  // start instead of failing the "end after start" / "not in the past" checks.
+  if (endDate.getTime() <= startDate.getTime()) {
+    endDate.setTime(endDate.getTime() + MS_PER_DAY);
+  }
   return asWindow(startDate, endDate);
 }
