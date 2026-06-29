@@ -106,10 +106,27 @@ function clientPoint(event: MouseEvent | TouchEvent | PointerEvent): { x: number
   return touch ? { x: touch.clientX, y: touch.clientY } : { x: 0, y: 0 };
 }
 
-/** The tier id of the drop zone under a viewport point, or null if none. */
+/**
+ * The tier id of the drop zone at a viewport point, or null if the point isn't
+ * over the tier column. Resolves by the tier cards' bounding boxes rather than
+ * `document.elementFromPoint`, so detection is immune to the dragged tile's
+ * stacking/pointer-events and works the same dragging up or down. When the point
+ * lands in a gap between cards (or just past the top/bottom tier) it snaps to the
+ * vertically-nearest tier in the same column, so near-misses still drop.
+ */
 function tierIdAtPoint(x: number, y: number): string | null {
-  const el = document.elementFromPoint(x, y);
-  return el?.closest<HTMLElement>("[data-tier-id]")?.dataset.tierId ?? null;
+  const cards = document.querySelectorAll<HTMLElement>("[data-tier-id]");
+  let nearest: { id: string; dist: number } | null = null;
+  for (const card of cards) {
+    const id = card.dataset.tierId;
+    if (!id) continue;
+    const r = card.getBoundingClientRect();
+    if (x < r.left || x > r.right) continue; // not over this column
+    if (y >= r.top && y <= r.bottom) return id; // directly inside the tier
+    const dist = y < r.top ? r.top - y : y - r.bottom;
+    if (!nearest || dist < nearest.dist) nearest = { id, dist };
+  }
+  return nearest?.id ?? null;
 }
 
 export function RankingsPage() {
