@@ -11,11 +11,12 @@ import { useApp } from "@/app/providers";
 import { navigate } from "@/app/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/common/Button";
-import { Badge, type BadgeTone } from "@/components/common/Badge";
+import { Badge } from "@/components/common/Badge";
 import { Card } from "@/components/common/Card";
 import { EmptyState } from "@/components/common/EmptyState";
 import { Icon } from "@/components/common/Icon";
 import { PageHeader } from "@/components/common/PageHeader";
+import { SummaryBar } from "@/components/common/SummaryBar";
 import { SegmentedControl } from "@/components/common/SegmentedControl";
 import { Progress } from "@/components/ui/progress";
 import { Stagger, StaggerItem } from "@/components/motion/Reveal";
@@ -31,16 +32,10 @@ import { remainingRedemptions, usedSlots } from "@/services/redemptionService";
 import { OFFER_TYPE_LABELS } from "@/data/catalog";
 import { formatCurrency, relativeTime } from "@/utils/formatting";
 import { getOfferPricing } from "@/utils/offerPricing";
+import { offerStatusMeta } from "@/utils/statusMeta";
 import type { Offer } from "@/models";
 
 type Filter = "all" | OfferStatus;
-
-const STATUS: Record<OfferStatus, { tone: BadgeTone; label: string }> = {
-  active: { tone: "success", label: "Active" },
-  paused: { tone: "warning", label: "Paused" },
-  expired: { tone: "neutral", label: "Expired" },
-  full: { tone: "violet", label: "Full" },
-};
 
 export function OffersPage() {
   const { data, activeBusiness, setData } = useApp();
@@ -123,12 +118,12 @@ export function OffersPage() {
         }
       />
 
-      <div className="rounded-[var(--tile-radius)] border border-border bg-card/75 px-4 py-3 text-sm text-muted-foreground shadow-[var(--shadow-soft)]">
+      <SummaryBar>
         <span className="font-semibold text-foreground">{activeCount}</span> active of{" "}
         <span className="font-semibold text-foreground">{offers.length}</span> offers, with{" "}
         <span className="font-semibold text-foreground">{totalClaims}</span> total claims and{" "}
         <span className="font-semibold text-foreground">{totalViews}</span> views.
-      </div>
+      </SummaryBar>
 
       <SegmentedControl options={filterOptions} value={filter} onChange={setFilter} />
 
@@ -151,7 +146,7 @@ export function OffersPage() {
         <Stagger className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {filtered.map((offer) => {
             const status = classifyOffer(offer, businessClaims);
-            const meta = STATUS[status];
+            const meta = offerStatusMeta(status);
             const used = usedSlots(offer.id, data.claims);
             const pct = Math.min(100, Math.round((used / Math.max(1, offer.maxClaims)) * 100));
             const pricing = getOfferPricing(offer);

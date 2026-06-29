@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import type { Business, Claim, Offer } from "@/models";
 import { useApp } from "@/app/providers";
 import { Icon } from "@/components/common/Icon";
+import { PassCode } from "@/components/common/PassCode";
 import { fetchClaimById } from "@/services/dbService";
 import { cn } from "@/lib/utils";
 
@@ -149,9 +150,7 @@ export function LatticePass({
         className="mx-auto mt-1.5 inline-flex cursor-pointer items-center gap-2.5 rounded-2xl bg-card/70 px-4 py-2.5 shadow-[var(--shadow-soft)] transition-transform active:scale-[0.98]"
         aria-label={`Copy backup code ${pass.backupCode}`}
       >
-        <span className="mono text-3xl font-semibold tracking-[0.22em] text-[var(--primary-strong)]">
-          {pass.backupCode}
-        </span>
+        <PassCode code={pass.backupCode} size="display" />
         <span className="text-muted-foreground">
           {copied ? <Check size={18} className="text-[var(--success)]" /> : <Copy size={18} />}
         </span>

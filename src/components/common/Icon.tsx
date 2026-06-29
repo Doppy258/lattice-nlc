@@ -23,6 +23,7 @@ import {
   MapPin,
   MessageSquareText,
   Minus,
+  MoreHorizontal,
   Plus,
   Printer,
   Radio,
@@ -80,6 +81,7 @@ export type IconName =
   | "clock"
   | "plus"
   | "minus"
+  | "more"
   | "ticket"
   | "food"
   | "retail"
@@ -123,6 +125,7 @@ const ICONS: Record<IconName, LucideIcon> = {
   clock: Clock,
   plus: Plus,
   minus: Minus,
+  more: MoreHorizontal,
   ticket: Ticket,
   food: UtensilsCrossed,
   retail: ShoppingBag,

@@ -30,7 +30,7 @@ function ProfileMenu() {
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className="flex h-10 cursor-pointer items-center gap-2 rounded-full border border-border bg-card/70 pl-1.5 pr-3 text-sm font-medium text-foreground shadow-[var(--shadow-soft)] transition-[transform,background-color] duration-200 hover:bg-card active:scale-[0.98]"
+          className="flex h-10 cursor-pointer items-center gap-2 rounded-full border border-border bg-card/70 pl-1.5 pr-3 text-sm font-medium text-foreground shadow-[var(--shadow-soft)] outline-none transition-[transform,background-color] duration-200 hover:bg-card focus-visible:ring-2 focus-visible:ring-ring/45 focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.98]"
         >
           <Avatar className="size-7">
             <AvatarFallback className="text-[11px]">{initials(activeUser.name)}</AvatarFallback>
@@ -70,7 +70,7 @@ function BusinessSwitcher() {
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className="hidden h-10 cursor-pointer items-center gap-2 rounded-full border border-border bg-card/70 px-3 text-sm font-medium text-foreground shadow-[var(--shadow-soft)] transition-[transform,background-color] duration-200 hover:bg-card active:scale-[0.98] sm:flex"
+          className="hidden h-10 cursor-pointer items-center gap-2 rounded-full border border-border bg-card/70 px-3 text-sm font-medium text-foreground shadow-[var(--shadow-soft)] outline-none transition-[transform,background-color] duration-200 hover:bg-card focus-visible:ring-2 focus-visible:ring-ring/45 focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.98] sm:flex"
         >
           <Icon name="store" size={16} className="text-primary" />
           <span className="max-w-32 truncate">{activeBusiness?.name ?? "Select business"}</span>
@@ -100,7 +100,7 @@ export function TopBar() {
       {/* Mobile brand (sidebar is hidden under 900px) */}
       <button
         type="button"
-        className="flex cursor-pointer items-center gap-2.5 min-[900px]:hidden"
+        className="flex cursor-pointer items-center gap-2.5 rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring/45 focus-visible:ring-offset-2 focus-visible:ring-offset-background min-[900px]:hidden"
         aria-label="Lattice home"
         onClick={() => navigate(homePathForRole(activeUser.role))}
       >
