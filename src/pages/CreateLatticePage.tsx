@@ -208,30 +208,25 @@ export function CreateLatticePage() {
         }
       }
       if (result.distanceKm != null) setDistanceKm(result.distanceKm);
+      // The parser returns concrete local-time ISO strings (e.g.
+      // "2026-06-29T18:00:00"), or undefined when the user said "anytime". When
+      // there's a real time, drop it straight into the editable Custom inputs so
+      // the user sees and can tweak exactly what the AI picked. We deliberately
+      // don't reverse-map onto a relative preset chip ("Tonight" etc.): the AI has
+      // already resolved it to an absolute date/time, and string-matching the two
+      // formats (local vs UTC `toISOString()`) is unreliable and would leave the
+      // Custom fields empty. No explicit time → fall back to the Anytime preset.
       if (result.timeStart && result.timeEnd) {
-        const matchedPreset = TIME_WINDOW_PRESETS.find((p) => {
-          if (p.id === "custom") return false;
-          const w = timeWindowForPreset(p.id);
-          return w?.timeStart === result.timeStart && w?.timeEnd === result.timeEnd;
-        });
-        if (matchedPreset) {
-          setTimePreset(matchedPreset.id);
-        } else {
-          setTimePreset("custom");
-          const d = new Date(result.timeStart);
-          const e = new Date(result.timeEnd);
-          const pad2 = (n: number) => String(n).padStart(2, "0");
-          setCustomDate(`${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`);
-          setCustomStart(
-            `${pad2(d.getHours())}:${pad2(d.getMinutes())}`,
-          );
-          setCustomEnd(
-            `${pad2(e.getHours())}:${pad2(e.getMinutes())}`,
-          );
-        }
+        const d = new Date(result.timeStart);
+        const e = new Date(result.timeEnd);
+        const pad2 = (n: number) => String(n).padStart(2, "0");
+        setCustomDate(`${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`);
+        setCustomStart(`${pad2(d.getHours())}:${pad2(d.getMinutes())}`);
+        setCustomEnd(`${pad2(e.getHours())}:${pad2(e.getMinutes())}`);
+        setTimePreset("custom");
         setTimeStart(result.timeStart);
         setTimeEnd(result.timeEnd);
-      } else if (result.timeStart === null && result.timeEnd === null) {
+      } else {
         const anytime = timeWindowForPreset("anytime");
         if (anytime) {
           setTimePreset("anytime");
