@@ -132,7 +132,9 @@ export function DashboardPage() {
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Panel title="Claims over time" sub="Monthly claim volume on your offers" icon="analytics">
-          <BarColumns data={report.claimsByMonth} color="var(--primary)" />
+          <div className="pt-4">
+            <BarColumns data={report.claimsByMonth} color="var(--primary)" />
+          </div>
         </Panel>
 
         <Panel title="Recent activity" sub="Latest claims on your offers" icon="claims">

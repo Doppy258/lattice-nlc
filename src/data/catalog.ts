@@ -117,7 +117,6 @@ export const PREFERENCE_OPTIONS: PreferenceOption[] = [
   { id: "studentDiscount", label: "Student discount" },
   { id: "openNow", label: "Open now" },
   { id: "highlyRated", label: "Highly rated only" },
-  { id: "verifiedOnly", label: "Verified businesses only" },
   { id: "groupFriendly", label: "Group-friendly" },
   { id: "wheelchairAccessible", label: "Wheelchair accessible" },
   { id: "quiet", label: "Quiet environment", categories: ["food", "education", "services"] },

@@ -101,9 +101,6 @@ export function CreateOfferPage() {
   const [maxClaims, setMaxClaims] = useState<number>(() => existing?.maxClaims ?? 25);
   const [tags, setTags] = useState<string[]>(() => existing?.tags ?? []);
   const [studentOnly, setStudentOnly] = useState<boolean>(() => existing?.studentOnly ?? false);
-  const [verificationRequired, setVerificationRequired] = useState<boolean>(
-    () => existing?.verificationRequired ?? false,
-  );
   const [oneTimePerUser, setOneTimePerUser] = useState<boolean>(() => existing?.oneTimePerUser ?? true);
   const [redemptionWindowMinutes, setRedemptionWindowMinutes] = useState<number>(
     () => existing?.redemptionWindowMinutes ?? 5,
@@ -140,7 +137,6 @@ export function CreateOfferPage() {
       maxClaims,
       tags,
       studentOnly,
-      verificationRequired,
       oneTimePerUser,
       redemptionWindowMinutes,
       imageUrl,
@@ -160,7 +156,6 @@ export function CreateOfferPage() {
       maxClaims,
       tags,
       studentOnly,
-      verificationRequired,
       oneTimePerUser,
       redemptionWindowMinutes,
       imageUrl,
@@ -489,14 +484,6 @@ export function CreateOfferPage() {
                 onClick={() => setStudentOnly((v) => !v)}
               >
                 Students only
-              </ToggleChip>
-              <ToggleChip
-                type="button"
-                active={verificationRequired}
-                icon={<Icon name="check" size={14} />}
-                onClick={() => setVerificationRequired((v) => !v)}
-              >
-                Requires verification
               </ToggleChip>
             </ChipGroup>
           </FormField>

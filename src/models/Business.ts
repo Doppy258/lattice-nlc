@@ -35,7 +35,6 @@ export type Business = {
   hours: BusinessHours[];
   ratingAverage: number;
   reviewCount: number;
-  verified: boolean;
   /** 1 ($) to 4 ($$$$). */
   priceLevel: 1 | 2 | 3 | 4;
   tags: string[];

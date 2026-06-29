@@ -7,16 +7,16 @@
 import type { BusinessCategory, NeedType } from "../models";
 
 /**
- * Match-score weighting (section 13.1). Weights sum to 1.0; each subscore is 0–100,
- * so the final weighted score is also 0–100.
+ * Match-score weighting. Weights sum to 1.0; each subscore is 0–100, so the final
+ * weighted score is also 0–100. (Renormalised to 1.0 after the verification
+ * dimension was removed.)
  */
 export const MATCH_WEIGHTS = {
-  category: 0.25,
-  budget: 0.2,
-  distance: 0.15,
-  rating: 0.15,
-  time: 0.1,
-  verification: 0.1,
+  category: 0.28,
+  budget: 0.22,
+  distance: 0.17,
+  rating: 0.17,
+  time: 0.11,
   preference: 0.05,
 } as const;
 

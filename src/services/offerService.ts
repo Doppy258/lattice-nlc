@@ -31,7 +31,6 @@ export type OfferInput = {
   maxClaims: number;
   tags: string[];
   studentOnly: boolean;
-  verificationRequired: boolean;
   oneTimePerUser: boolean;
   redemptionWindowMinutes: number;
   imageUrl?: string;
@@ -181,7 +180,6 @@ export function createOffer(
     views: 0,
     tags: input.tags,
     studentOnly: input.studentOnly,
-    verificationRequired: input.verificationRequired,
     oneTimePerUser: input.oneTimePerUser,
     redemptionWindowMinutes: input.redemptionWindowMinutes,
     imageUrl: input.imageUrl,
@@ -207,7 +205,6 @@ export function updateOffer(offerId: string, input: OfferInput, offers: Offer[])
           maxClaims: input.maxClaims,
           tags: input.tags,
           studentOnly: input.studentOnly,
-          verificationRequired: input.verificationRequired,
           oneTimePerUser: input.oneTimePerUser,
           redemptionWindowMinutes: input.redemptionWindowMinutes,
           imageUrl: input.imageUrl,

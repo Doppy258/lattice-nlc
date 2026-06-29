@@ -15,14 +15,14 @@ export type PublicProfileRow = { id: string; name: string; role: User["role"]; v
 export type BusinessRow = {
   id: string; name: string; category: Business["category"]; description: string; address: string;
   location: Business["location"]; hours: Business["hours"] | null; rating_average: number; review_count: number;
-  verified: boolean; price_level: Business["priceLevel"]; tags: string[] | null; accessibility_features: string[] | null;
+  price_level: Business["priceLevel"]; tags: string[] | null; accessibility_features: string[] | null;
   owner_user_id: string; created_at: string;
 };
 export type OfferRow = {
   id: string; business_id: string; title: string; description: string; category: Offer["category"];
   offer_type: Offer["offerType"]; price: number; original_price: number | null; valid_from: string; valid_until: string;
   max_claims: number; current_claims: number; views: number; tags: string[] | null; student_only: boolean;
-  verification_required: boolean; active: boolean; created_at: string;
+  active: boolean; created_at: string;
 };
 export type ClaimRow = {
   id: string; user_id: string; offer_id: string; business_id: string; claim_code: string;
@@ -57,7 +57,7 @@ export const publicRowToUser = (r: PublicProfileRow): User => ({
 export const rowToBusiness = (r: BusinessRow): Business => ({
   id: r.id, name: r.name, category: r.category, description: r.description, address: r.address,
   location: r.location, hours: r.hours ?? [], ratingAverage: Number(r.rating_average), reviewCount: r.review_count,
-  verified: r.verified, priceLevel: r.price_level, tags: r.tags ?? [], accessibilityFeatures: r.accessibility_features ?? [],
+  priceLevel: r.price_level, tags: r.tags ?? [], accessibilityFeatures: r.accessibility_features ?? [],
   ownerUserId: r.owner_user_id, createdAt: r.created_at,
 });
 
@@ -65,7 +65,7 @@ export const rowToOffer = (r: OfferRow): Offer => ({
   id: r.id, businessId: r.business_id, title: r.title, description: r.description, category: r.category,
   offerType: r.offer_type, price: Number(r.price), originalPrice: r.original_price == null ? undefined : Number(r.original_price),
   validFrom: r.valid_from, validUntil: r.valid_until, maxClaims: r.max_claims, currentClaims: r.current_claims, views: r.views,
-  tags: r.tags ?? [], studentOnly: r.student_only, verificationRequired: r.verification_required, active: r.active, createdAt: r.created_at,
+  tags: r.tags ?? [], studentOnly: r.student_only, active: r.active, createdAt: r.created_at,
   oneTimePerUser: true, redemptionWindowMinutes: 5,
 });
 
