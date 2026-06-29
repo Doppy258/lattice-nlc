@@ -47,9 +47,11 @@ const MEDALS = ["#18498b", "#3372d9", "#8fb6ff"];
 
 /**
  * Tier bands (SSS → F). A business's default band is derived from its average
- * rating; a manual drag can override it. Accents step from the strongest brand
- * navy (SSS) down to a muted neutral (F): blue-forward, solid fills, no
- * gradients. Thresholds are tuned for the typical 3.5–5.0 range.
+ * rating; a head-to-head ranking or a manual drag can override it. Accents step
+ * from the strongest brand navy (SSS) down to a muted neutral (F): blue-forward,
+ * solid fills, no gradients. Bands are dense at the top (0.2 apart across
+ * SSS/SS/S) and widen downward — most businesses rate above 4.0, and anything
+ * under 2.0 lands in F.
  */
 type Tier = {
   id: string;
@@ -64,14 +66,14 @@ type Tier = {
 };
 
 const TIERS: Tier[] = [
-  { id: "SSS", min: 4.0, caption: "4.0-5.0", bg: "#18498b", fg: "#ffffff" },
-  { id: "SS", min: 3.5, caption: "3.5-4.0", bg: "#2352de", fg: "#ffffff" },
-  { id: "S", min: 3.0, caption: "3.0-3.5", bg: "#3372d9", fg: "#ffffff" },
-  { id: "A", min: 2.5, caption: "2.5-3.0", bg: "#4d7fe0", fg: "#ffffff" },
-  { id: "B", min: 2.0, caption: "2.0-2.5", bg: "#8fb6ff", fg: "#16233c" },
-  { id: "C", min: 1.5, caption: "1.5-2.0", bg: "#b9c6de", fg: "#16233c" },
-  { id: "D", min: 1.0, caption: "1.0-1.5", bg: "#ccd3e0", fg: "#2f3b57" },
-  { id: "F", min: -Infinity, caption: "<1.0", bg: "#dde2ec", fg: "#51618a" },
+  { id: "SSS", min: 4.7, caption: "4.7+", bg: "#18498b", fg: "#ffffff" },
+  { id: "SS", min: 4.5, caption: "4.5-4.7", bg: "#2352de", fg: "#ffffff" },
+  { id: "S", min: 4.3, caption: "4.3-4.5", bg: "#3372d9", fg: "#ffffff" },
+  { id: "A", min: 4.0, caption: "4.0-4.3", bg: "#4d7fe0", fg: "#ffffff" },
+  { id: "B", min: 3.6, caption: "3.6-4.0", bg: "#8fb6ff", fg: "#16233c" },
+  { id: "C", min: 3.0, caption: "3.0-3.6", bg: "#b9c6de", fg: "#16233c" },
+  { id: "D", min: 2.0, caption: "2.0-3.0", bg: "#ccd3e0", fg: "#2f3b57" },
+  { id: "F", min: -Infinity, caption: "<2.0", bg: "#dde2ec", fg: "#51618a" },
 ];
 
 const TIER_IDS = new Set(TIERS.map((t) => t.id));
@@ -85,6 +87,16 @@ function tierForRating(rating: number): Tier {
 function effectiveTierId(business: Business, overrides: Record<string, string>): string {
   const override = overrides[business.id];
   return override && TIER_IDS.has(override) ? override : tierForRating(business.ratingAverage).id;
+}
+
+/** Shift a tier id by N bands (positive = down toward F, negative = up toward
+ *  SSS), clamped to the ends. Used to drop a newly-ranked spot one band below
+ *  the company it lost to (a strict preference shouldn't read as "same level"). */
+function shiftTierId(id: string, steps: number): string {
+  const from = TIERS.findIndex((t) => t.id === id);
+  const idx = from === -1 ? TIERS.length - 1 : from;
+  const to = Math.max(0, Math.min(TIERS.length - 1, idx + steps));
+  return TIERS[to].id;
 }
 
 /** Pointer position (viewport coords) from a Framer drag event, mouse or touch. */
@@ -141,10 +153,33 @@ export function RankingsPage() {
   }));
 
   function finalize(s: InsertionSession) {
+    const index = s.insertIndex ?? s.list.length;
+    // Place the new spot relative to the neighbour it was ranked against:
+    //  • Preferred a company over it  → sit ONE tier BELOW that company. A strict
+    //    preference shouldn't read as the same level.
+    //  • It's the new favourite (none above) → sit one tier ABOVE the one it beat.
+    //  • "About the same" → share that company's exact band.
+    //  • First spot of all (no neighbours) → follow its star rating.
+    // A later drag back onto its rating band clears the override.
+    const upperId = index > 0 ? s.list[index - 1] : undefined;
+    const lowerId = index < s.list.length ? s.list[index] : undefined;
+
     setData((d) => {
       const current = getRanking(activeUser.id, s.category, s.needType, d.rankings);
-      const updated = insertBusinessAtIndex(current, s.newBusinessId, s.insertIndex ?? current.rankedBusinessIds.length);
-      return { ...d, rankings: upsertRanking(d.rankings, updated) };
+      const updated = insertBusinessAtIndex(current, s.newBusinessId, index);
+      const overrides = { ...(current.tierOverrides ?? {}) };
+      const find = (id?: string | null) => (id ? d.businesses.find((b) => b.id === id) : undefined);
+      const equalPeer = find(s.equalToId);
+      const upper = find(upperId);
+      const lower = find(lowerId);
+      if (equalPeer) {
+        overrides[s.newBusinessId] = effectiveTierId(equalPeer, overrides);
+      } else if (upper) {
+        overrides[s.newBusinessId] = shiftTierId(effectiveTierId(upper, overrides), 1);
+      } else if (lower) {
+        overrides[s.newBusinessId] = shiftTierId(effectiveTierId(lower, overrides), -1);
+      }
+      return { ...d, rankings: upsertRanking(d.rankings, { ...updated, tierOverrides: overrides }) };
     });
     const name = data.businesses.find((b) => b.id === s.newBusinessId)?.name ?? "Business";
     toast.success(`${name} added to your ${CATEGORY_META[s.category].label} ranking`);
@@ -227,7 +262,7 @@ export function RankingsPage() {
       <PageHeader
         title="Your personal"
         accent="rankings"
-        subtitle="Rank the businesses whose offers you've claimed with quick head-to-head comparisons. Lattice uses binary insertion, so you only answer a handful of questions to place each one."
+        subtitle="Rank the businesses whose offers you've claimed with quick head-to-head comparisons. Lattice uses binary insertion, so a handful of picks drop each spot straight into a tier — your preference overrides its star rating."
       />
 
       <ChipGroup>
@@ -252,7 +287,7 @@ export function RankingsPage() {
             </h2>
             {rankedBusinesses.length > 0 && (
               <p className="text-[12.5px] text-muted-foreground">
-                Banded SSS to F by rating — drag any tile onto another tier to place it yourself.
+                Placed by your head-to-head picks — star rating is just the starting point. Drag any tile to re-tier it.
               </p>
             )}
           </div>
