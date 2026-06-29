@@ -9,12 +9,14 @@ import { useMemo, useState } from "react";
 import { useApp } from "@/app/providers";
 import { navigate } from "@/app/navigation";
 import { Button } from "@/components/common/Button";
-import { Badge, type BadgeTone } from "@/components/common/Badge";
+import { Badge } from "@/components/common/Badge";
 import { Card } from "@/components/common/Card";
 import { Icon } from "@/components/common/Icon";
 import { EmptyState } from "@/components/common/EmptyState";
 import { SegmentedControl } from "@/components/common/SegmentedControl";
 import { PageHeader } from "@/components/common/PageHeader";
+import { SummaryBar } from "@/components/common/SummaryBar";
+import { PassCode } from "@/components/common/PassCode";
 import { Modal } from "@/components/common/Modal";
 import { Stagger, StaggerItem } from "@/components/motion/Reveal";
 import { BusinessImage } from "@/components/domain/BusinessImage";
@@ -22,17 +24,11 @@ import { LatticePass } from "@/components/domain/LatticePass";
 import { ReviewModal } from "@/components/domain/ReviewModal";
 import { canUserReviewClaim } from "@/services/reviewService";
 import { calculateEstimatedSavings } from "@/services/reportService";
+import { claimStatusMeta } from "@/utils/statusMeta";
 import { formatCurrency, relativeTime } from "@/utils/formatting";
-import type { Claim, ClaimStatus } from "@/models";
+import type { Claim } from "@/models";
 
 type Filter = "all" | "pending" | "redeemed" | "expired";
-
-const STATUS_META: Record<ClaimStatus, { tone: BadgeTone; label: string }> = {
-  pending: { tone: "brand", label: "Active" },
-  redeemed: { tone: "success", label: "Redeemed" },
-  expired: { tone: "neutral", label: "Expired" },
-  cancelled: { tone: "neutral", label: "Cancelled" },
-};
 
 export function ClaimsPage() {
   const { data, activeUser } = useApp();
@@ -81,11 +77,11 @@ export function ClaimsPage() {
         subtitle="Every offer you've claimed lives here. Show an active pass at the business to redeem it, then leave a verified review."
       />
 
-      <div className="rounded-[var(--tile-radius)] border border-border bg-card/75 px-4 py-3 text-sm text-muted-foreground shadow-[var(--shadow-soft)]">
+      <SummaryBar>
         <span className="font-semibold text-foreground">{counts.active}</span> active,{" "}
         <span className="font-semibold text-foreground">{counts.redeemed}</span> redeemed, and{" "}
         <span className="font-semibold text-foreground">{formatCurrency(counts.saved)}</span> saved from completed visits.
-      </div>
+      </SummaryBar>
 
       <SegmentedControl
         value={filter}
@@ -115,7 +111,7 @@ export function ClaimsPage() {
             const offer = offerFor(c);
             const business = bizFor(c);
             if (!offer || !business) return null;
-            const status = STATUS_META[c.status];
+            const status = claimStatusMeta(c.status);
             const reviewed = data.reviews.some((r) => r.claimId === c.id);
             const canReview = canUserReviewClaim(activeUser.id, c.id, data.claims, data.reviews);
             return (
@@ -146,15 +142,14 @@ export function ClaimsPage() {
                     <button
                       type="button"
                       onClick={() => navigate(`/business?id=${business.id}`)}
-                      className="cursor-pointer text-[13px] text-muted-foreground transition-colors hover:text-primary"
+                      aria-label={`View ${business.name}`}
+                      className="cursor-pointer rounded-sm text-[13px] text-muted-foreground underline-offset-2 outline-none transition-colors hover:text-primary hover:underline focus-visible:ring-2 focus-visible:ring-ring/45 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                     >
                       {business.name}
                     </button>
                   </div>
                   <div className="flex items-center justify-between gap-3 sm:flex-col sm:items-end">
-                    <span className="mono rounded-xl bg-[var(--tint-blue)] px-3 py-1.5 text-[15px] font-semibold tracking-[0.08em] text-[var(--primary-strong)]">
-                      {c.backupCode}
-                    </span>
+                    <PassCode code={c.backupCode} />
                     <div className="flex items-center gap-2">
                       {c.status === "pending" && (
                         <Button variant="brand" size="sm" iconLeft={<Icon name="ticket" size={15} />} onClick={() => setCodeClaim(c)}>

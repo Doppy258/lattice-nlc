@@ -62,10 +62,6 @@ export function isBusinessOpenDuring(
   guard.setHours(23, 59, 59, 999);
 
   while (cursor <= guard) {
-    const dayStart = Math.max(
-      cursor.getTime(),
-      new Date(cursor).setHours(0, 0, 0, 0)
-    );
     const windowStartMin = clampToDay(start, cursor);
     const windowEndMin = clampToDay(end, cursor);
     if (windowEndMin > windowStartMin) {
@@ -79,7 +75,6 @@ export function isBusinessOpenDuring(
         if (overlapEnd > overlapStart) coveredMinutes += overlapEnd - overlapStart;
       }
     }
-    void dayStart;
     cursor.setDate(cursor.getDate() + 1);
   }
 

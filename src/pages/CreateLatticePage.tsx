@@ -8,8 +8,13 @@
  * gate before submission.
  */
 
+<<<<<<< HEAD
 import { useMemo, useState, useCallback, type ReactNode } from "react";
 import { ChevronDown, Check, Sparkles, Type } from "lucide-react";
+=======
+import { useMemo, useState, type ReactNode } from "react";
+import { ChevronDown, Check } from "lucide-react";
+>>>>>>> de7766ac840f51fe3477c146fca301d5b923dbc9
 import { motion, AnimatePresence } from "motion/react";
 import { useApp } from "@/app/providers";
 import { navigate, useHashRoute } from "@/app/navigation";
@@ -31,7 +36,11 @@ import {
 import { BotCheckModal } from "@/components/domain/BotCheckModal";
 import { ShareLocationButton } from "@/components/common/ShareLocationButton";
 import { useUserLocation } from "@/hooks/useUserLocation";
+<<<<<<< HEAD
 import { validatePingRequest } from "@/services/requestValidationService";
+=======
+import { validatePingRequest, getRequestQuality } from "@/services/requestValidationService";
+>>>>>>> de7766ac840f51fe3477c146fca301d5b923dbc9
 import { getMatchingOffers } from "@/services/offerMatchingService";
 import {
   ALL_CATEGORIES,
@@ -50,11 +59,22 @@ import { upsertRequest } from "@/services/dbService";
 import { formatTimeRange } from "@/utils/formatting";
 import type { BusinessCategory, NeedType, PingRequest } from "@/models";
 import { cn } from "@/lib/utils";
+<<<<<<< HEAD
 import { toast } from "sonner";
 import { Reveal, Stagger, StaggerItem } from "@/components/motion/Reveal";
 import { NaturalLanguageInput } from "@/components/domain/NaturalLanguageInput";
 import type { NLParseResult } from "@/services/nlpParser";
 
+=======
+import { Reveal, Stagger, StaggerItem } from "@/components/motion/Reveal";
+
+const QUALITY: Record<string, { tone: BadgeTone; label: string }> = {
+  invalid: { tone: "danger", label: "Incomplete" },
+  weak: { tone: "warning", label: "Weak" },
+  strong: { tone: "success", label: "Strong" },
+};
+
+>>>>>>> de7766ac840f51fe3477c146fca301d5b923dbc9
 /** An inline, fill-in-the-blank dropdown used to build the mad-libs sentence. */
 function Blank({
   placeholder,
@@ -184,6 +204,7 @@ export function CreateLatticePage() {
   );
   const [verifyOpen, setVerifyOpen] = useState(false);
 
+<<<<<<< HEAD
   const [mode, setMode] = useState<"nl" | "form">("nl");
   const [populatedByNl, setPopulatedByNl] = useState(false);
 
@@ -247,6 +268,8 @@ export function CreateLatticePage() {
     [],
   );
 
+=======
+>>>>>>> de7766ac840f51fe3477c146fca301d5b923dbc9
   const draft = useMemo(
     () => ({
       userId: activeUser.id,
@@ -267,6 +290,10 @@ export function CreateLatticePage() {
     [editId, data.requests],
   );
   const validation = useMemo(() => validatePingRequest(draft, validationExisting), [draft, validationExisting]);
+<<<<<<< HEAD
+=======
+  const quality = useMemo(() => getRequestQuality(draft, validationExisting), [draft, validationExisting]);
+>>>>>>> de7766ac840f51fe3477c146fca301d5b923dbc9
   const errors = useMemo(
     () => Object.fromEntries(validation.errors.map((e) => [e.field, e.message])) as Record<string, string>,
     [validation],
@@ -352,10 +379,20 @@ export function CreateLatticePage() {
         ...d,
         requests: d.requests.map((r) => (r.id === editId ? updated : r)),
       }));
+<<<<<<< HEAD
       upsertRequest(updated).catch(() => toast.error("Failed to save request"));
       navigate(`/matches?request=${editId}`);
       return;
     }
+=======
+      void upsertRequest(updated);
+      navigate(`/matches?request=${editId}`);
+      return;
+    }
+    // Build the request locally (works with or without Supabase), append it to
+    // app state, then best-effort sync to the shared backend — a no-op when
+    // Supabase isn't configured (demo mode), matching the claim/offer flows.
+>>>>>>> de7766ac840f51fe3477c146fca301d5b923dbc9
     const request: PingRequest = {
       id: createId("req"),
       userId: activeUser.id,
@@ -372,7 +409,11 @@ export function CreateLatticePage() {
       createdAt: new Date().toISOString(),
     };
     setData((d) => ({ ...d, requests: [...d.requests, request] }));
+<<<<<<< HEAD
     upsertRequest(request).catch(() => toast.error("Failed to save request"));
+=======
+    void upsertRequest(request);
+>>>>>>> de7766ac840f51fe3477c146fca301d5b923dbc9
     navigate(`/matches?request=${request.id}`);
   }
 
@@ -412,8 +453,13 @@ export function CreateLatticePage() {
         subtitle="Fill in the blanks and we'll match you with verified local offers — by budget, timing, distance, and preferences."
       />
 
+<<<<<<< HEAD
       <Card variant="solid" className={cn("p-7 sm:p-9", mode === "nl" && "pb-9")}>
         {/* Step marker */}
+=======
+      <Card variant="solid" className="p-7 sm:p-9">
+        {/* Step marker — this card is the request, the first move in the flow — beside a live quality read */}
+>>>>>>> de7766ac840f51fe3477c146fca301d5b923dbc9
         <div className="flex items-center justify-between gap-3">
           <span className="mono inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
             <span className="size-1.5 rounded-[2px] bg-primary" aria-hidden="true" />
@@ -421,6 +467,7 @@ export function CreateLatticePage() {
             <span className="text-muted-foreground/50">—</span>
             Request
           </span>
+<<<<<<< HEAD
         </div>
 
         {/* Mode toggle */}
@@ -719,6 +766,247 @@ export function CreateLatticePage() {
               </Stagger>
             </motion.div>
 
+=======
+        </div>
+        <AnimatePresence>
+          {category && (
+            <motion.div
+              key="request-badge"
+              {...slideFade}
+              className="mb-5 flex items-center justify-between gap-3"
+            >
+              <span className="text-[12px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+                Your request
+              </span>
+              <motion.div whileTap={{ scale: 0.95 }}>
+                <Badge tone={QUALITY[quality].tone}>{QUALITY[quality].label}</Badge>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Mad-libs sentence — blanks reveal after a business type is picked */}
+        <div className="mt-7 flex flex-wrap items-center gap-x-2 gap-y-3 font-display text-[22px] leading-[1.7] tracking-[-0.015em] text-foreground sm:text-[26px]">
+          <motion.span
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+          >
+            I'm looking for
+          </motion.span>
+          <Blank
+            placeholder="a business type"
+            value={category ? CATEGORY_META[category].label : undefined}
+          >
+            {ALL_CATEGORIES.map((cat) => {
+              const meta = CATEGORY_META[cat];
+              return (
+                <Option key={cat} active={category === cat} onSelect={() => selectCategory(cat)}>
+                  <Icon name={meta.icon as IconName} size={16} className="text-primary" />
+                  {meta.label}
+                </Option>
+              );
+            })}
+          </Blank>
+
+          <AnimatePresence>
+            {category && (
+              <motion.span key="for-span" {...slideFade} transition={{ delay: 0.05 }}>
+                for
+              </motion.span>
+            )}
+          </AnimatePresence>
+          <AnimatePresence>
+            {category && (
+              <motion.div key="need-blank" {...slideFade} transition={{ delay: 0.1 }}>
+                <Blank
+                  placeholder="what you need"
+                  value={needType ? NEED_TYPE_LABELS[needType] : undefined}
+                >
+                  {NEED_TYPES_BY_CATEGORY[category].map((nt) => (
+                    <Option key={nt} active={needType === nt} onSelect={() => selectNeed(nt)}>
+                      {NEED_TYPE_LABELS[nt]}
+                    </Option>
+                  ))}
+                </Blank>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <AnimatePresence>
+            {category && (
+              <motion.span key="budget-span" {...slideFade} transition={{ delay: 0.15 }}>
+                on a budget of
+              </motion.span>
+            )}
+          </AnimatePresence>
+          <AnimatePresence>
+            {category && (
+              <motion.div key="budget-blank" {...slideFade} transition={{ delay: 0.2 }}>
+                <Blank placeholder="anything" value={budgetValue} invalid={!!errors.budget}>
+                  {budgetPresets.map((preset, i) => (
+                    <Option key={preset.label} active={budgetSel === i} onSelect={() => selectBudget(i)}>
+                      {preset.label}
+                    </Option>
+                  ))}
+                  <DropdownMenuSeparator />
+                  <Option active={budgetSel === "custom"} onSelect={() => applyCustomBudget(customBudget)}>
+                    Custom amount…
+                  </Option>
+                </Blank>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+              {budgetSel === "custom" && (
+                <span className="inline-flex items-center gap-1 rounded-xl bg-secondary px-2.5 py-0.5 text-primary-strong ring-1 ring-inset ring-primary/20">
+                  <span>$</span>
+                  <input
+                    type="number"
+                    min={0}
+                    inputMode="decimal"
+                    placeholder="max"
+                    value={customBudget}
+                    onChange={(e) => applyCustomBudget(e.target.value)}
+                    aria-invalid={!!errors.budget}
+                    className="w-16 bg-transparent font-semibold text-primary-strong outline-none placeholder:text-primary/40"
+                  />
+                </span>
+              )}
+
+          <AnimatePresence>
+            {category && (
+              <motion.span key="within-span" {...slideFade} transition={{ delay: 0.25 }}>
+                within
+              </motion.span>
+            )}
+          </AnimatePresence>
+          <AnimatePresence>
+            {category && (
+              <motion.div key="distance-blank" {...slideFade} transition={{ delay: 0.3 }}>
+                <Blank placeholder="any distance" value={distanceKm ? `${distanceKm} km` : undefined}>
+                  {DISTANCE_OPTIONS_KM.map((km) => (
+                    <Option key={km} active={distanceKm === km} onSelect={() => setDistanceKm(km)}>
+                      <Icon name="location" size={15} className="text-primary" />
+                      Within {km} km
+                    </Option>
+                  ))}
+                </Blank>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <AnimatePresence>
+            {category && (
+              <motion.span key="location-span" {...slideFade} transition={{ delay: 0.35 }}>
+                of your location,
+              </motion.span>
+            )}
+          </AnimatePresence>
+          <AnimatePresence>
+            {category && (
+              <motion.div key="time-blank" {...slideFade} transition={{ delay: 0.4 }}>
+                <Blank placeholder="anytime" value={timeValue} invalid={!!errors.time}>
+                  {TIME_WINDOW_PRESETS.map((preset) => (
+                    <Option
+                      key={preset.id}
+                      active={timePreset === preset.id}
+                      onSelect={() => selectTime(preset.id)}
+                    >
+                      <Icon name="clock" size={15} className="text-primary" />
+                      {preset.label}
+                    </Option>
+                  ))}
+                </Blank>
+              </motion.div>
+            )}
+          </AnimatePresence>
+          <AnimatePresence>
+            {category && (
+              <motion.span key="period" {...slideFade} transition={{ delay: 0.45 }}>
+                .
+              </motion.span>
+            )}
+          </AnimatePresence>
+          {!category && (
+            <span className="ml-2 text-[16px] leading-relaxed text-muted-foreground">
+              Choose a business type to begin.
+            </span>
+          )}
+        </div>
+
+        <AnimatePresence>
+          {category && (
+            <motion.div key="form-body" {...slideFade} transition={{ delay: 0.5 }}>
+            {/* Custom time window */}
+            {timePreset === "custom" && (
+              <motion.div
+                key="custom-time"
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                className="overflow-hidden"
+              >
+                <div className="mt-6 grid gap-3 rounded-[16px] bg-muted/60 p-4 ring-1 ring-inset ring-border/70 sm:grid-cols-3">
+                  <div className="mono text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground sm:col-span-3">
+                  Custom window
+                </div>
+                <FormField label="Date" htmlFor="c-date">
+                    <Input id="c-date" type="date" value={customDate} onChange={(e) => updateCustomTime(e.target.value, customStart, customEnd)} />
+                  </FormField>
+                  <FormField label="Start" htmlFor="c-start">
+                    <Input id="c-start" type="time" value={customStart} onChange={(e) => updateCustomTime(customDate, e.target.value, customEnd)} />
+                  </FormField>
+                  <FormField label="End" htmlFor="c-end">
+                    <Input id="c-end" type="time" value={customEnd} onChange={(e) => updateCustomTime(customDate, customStart, e.target.value)} />
+                  </FormField>
+                </div>
+              </motion.div>
+            )}
+            <AnimatePresence>
+              {budgetSel !== null && errors.budget && (
+                <motion.p
+                  key="budget-error"
+                  initial={{ opacity: 0, y: -6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  className="mt-3 text-[13px] font-medium text-destructive"
+                >
+                  {errors.budget}
+                </motion.p>
+              )}
+            </AnimatePresence>
+
+            {/* Preferences */}
+            <motion.div
+              key="preferences"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
+              className="mt-8 border-t border-border/70 pt-6"
+            >
+              <div className="mb-3 mono text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                Preferences <span className="text-muted-foreground/55">· Optional</span>
+              </div>
+              <Stagger>
+                <ChipGroup>
+                  {availablePrefs.map((pref) => (
+                    <StaggerItem key={pref.id} as="span">
+                      <ToggleChip
+                        active={preferences.includes(pref.id)}
+                        onClick={() => togglePref(pref.id)}
+                        icon={preferences.includes(pref.id) ? <Icon name="check" size={14} /> : undefined}
+                      >
+                        {pref.label}
+                      </ToggleChip>
+                    </StaggerItem>
+                  ))}
+                </ChipGroup>
+              </Stagger>
+            </motion.div>
+
+>>>>>>> de7766ac840f51fe3477c146fca301d5b923dbc9
             <AnimatePresence>
               {errors.duplicate && (
                 <motion.p
@@ -784,9 +1072,12 @@ export function CreateLatticePage() {
           </motion.div>
         )}
       </AnimatePresence>
+<<<<<<< HEAD
             </motion.div>
           )}
         </AnimatePresence>
+=======
+>>>>>>> de7766ac840f51fe3477c146fca301d5b923dbc9
       </Card>
 
       <BotCheckModal

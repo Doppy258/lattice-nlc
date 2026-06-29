@@ -9,13 +9,13 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Icon } from "@/components/common/Icon";
 import { Input } from "@/components/ui/input";
+import { DURATION, EASE_OUT_EXPO } from "@/components/motion/tokens";
 import { cn } from "@/lib/utils";
 import type { BusinessHours } from "@/models";
 
 const DAY_LABELS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const DEFAULT_OPEN = "09:00";
 const DEFAULT_CLOSE = "17:00";
-const EASE = [0.16, 1, 0.3, 1] as const;
 
 type DayRow = { open: boolean; openTime: string; closeTime: string };
 
@@ -74,7 +74,7 @@ export function BusinessHoursEditor({
           <motion.div
             layout
             key={i}
-            transition={{ duration: 0.22, ease: EASE }}
+            transition={{ duration: DURATION.base, ease: EASE_OUT_EXPO }}
             className={cn(
               "rounded-xl border px-3 py-2.5 transition-colors",
               row.open ? "border-[var(--tint-blue-border)] bg-[var(--tint-blue)]/50" : "border-border bg-card",
@@ -106,7 +106,7 @@ export function BusinessHoursEditor({
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: "auto", opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.22, ease: EASE }}
+                  transition={{ duration: DURATION.base, ease: EASE_OUT_EXPO }}
                   className="overflow-hidden"
                 >
                   <div className="mt-2.5 space-y-2">

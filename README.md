@@ -116,6 +116,10 @@ npm run dev:demo
 - Backend & auth by [Supabase](https://supabase.com)
 - Animation by [motion](https://motion.dev)
 - Icons from [Lucide](https://lucide.dev) and [Google Material Symbols](https://fonts.google.com/icons) (Apache‑2.0)
+<<<<<<< HEAD
 - Storefront photos from [Unsplash](https://unsplash.com/license) (representative stock — not the actual businesses; no business logos used)
+=======
+- Storefront photos from [Unsplash](https://unsplash.com/license) — a distinct, subject‑appropriate photo per business (representative stock — not the actual businesses; no business logos used; see [ATTRIBUTIONS](docs/ATTRIBUTIONS.md) §4)
+>>>>>>> de7766ac840f51fe3477c146fca301d5b923dbc9
 - Fonts: Geist, Space Grotesk, and Instrument Serif via [Fontsource](https://fontsource.org) (SIL OFL 1.1)
 - Real business names are used for educational/demo purposes only; all trademarks belong to their owners (see [ATTRIBUTIONS](docs/ATTRIBUTIONS.md) §6)

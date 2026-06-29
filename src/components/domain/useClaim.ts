@@ -39,7 +39,11 @@ export function useClaim() {
   }
 
   /** Run the real claim after the human check passes. */
+<<<<<<< HEAD
   async function confirmClaim() {
+=======
+  function confirmClaim() {
+>>>>>>> de7766ac840f51fe3477c146fca301d5b923dbc9
     if (!pendingClaim) return;
     const { offer, requestId } = pendingClaim;
     setPendingClaim(null);
@@ -54,15 +58,27 @@ export function useClaim() {
     setData((prev) => ({
       ...prev,
       claims: [...prev.claims, pass],
+<<<<<<< HEAD
+=======
+      offers: prev.offers.map((o) =>
+        o.id === offer.id ? { ...o, currentClaims: o.currentClaims + 1 } : o,
+      ),
+>>>>>>> de7766ac840f51fe3477c146fca301d5b923dbc9
       requests: requestId
         ? prev.requests.map((r) => (r.id === requestId ? { ...r, status: "matched" } : r))
         : prev.requests,
     }));
+<<<<<<< HEAD
     try {
       await upsertClaim(pass);
     } catch {
       toast.error("Failed to save pass. Please try again.");
     }
+=======
+    // Persist to the shared backend so the business can scan/approve it from any
+    // device or browser (the redeem console looks passes up via Supabase).
+    void upsertClaim(pass);
+>>>>>>> de7766ac840f51fe3477c146fca301d5b923dbc9
     if (business) setResult({ claim: pass, offer, business });
     toast.success("Lattice Pass created", { description: `Backup code ${pass.backupCode}` });
   }

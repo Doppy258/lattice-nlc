@@ -145,6 +145,7 @@ export function RedeemPage() {
         o.id === redeemedPass.offerId ? { ...o, currentClaims: o.currentClaims + 1 } : o,
       ),
     }));
+<<<<<<< HEAD
     try {
       await upsertClaim(redeemedPass);
       if (currentOffer) {
@@ -154,6 +155,11 @@ export function RedeemPage() {
       toast.error("Failed to persist redemption. Please try again.");
       return;
     }
+=======
+    // Persist the redeemed status so the customer's pass updates on their device.
+    void upsertClaim(redeemedPass);
+    const offer = candidate.offer;
+>>>>>>> de7766ac840f51fe3477c146fca301d5b923dbc9
     const saved = offer ? offerSavingsPerRedemption(offer) : 0;
     const savings = saved > 0 ? saved : null;
     setSuccess({

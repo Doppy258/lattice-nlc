@@ -5,6 +5,10 @@
 import { useId, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { ChevronDown } from "lucide-react";
+<<<<<<< HEAD
+=======
+import { DURATION } from "@/components/motion/tokens";
+>>>>>>> de7766ac840f51fe3477c146fca301d5b923dbc9
 import { MatchReasons } from "./MatchReasons";
 
 /**
@@ -39,7 +43,11 @@ export function MatchReasonsDisclosure({
             <span className="mono text-[12px] font-semibold text-primary">{score}%</span>
           )}
         </span>
+<<<<<<< HEAD
         <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2 }}>
+=======
+        <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ duration: DURATION.base }}>
+>>>>>>> de7766ac840f51fe3477c146fca301d5b923dbc9
           <ChevronDown size={16} className="text-muted-foreground" />
         </motion.span>
       </button>
@@ -51,7 +59,11 @@ export function MatchReasonsDisclosure({
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
+<<<<<<< HEAD
             transition={{ duration: 0.22, ease: "easeInOut" }}
+=======
+            transition={{ duration: DURATION.base, ease: "easeInOut" }}
+>>>>>>> de7766ac840f51fe3477c146fca301d5b923dbc9
             className="overflow-hidden"
           >
             <MatchReasons reasons={reasons} title="" className="px-3.5 pb-3.5" />

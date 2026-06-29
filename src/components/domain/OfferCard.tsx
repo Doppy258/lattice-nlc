@@ -32,7 +32,10 @@ export function OfferCard({
   distanceKm,
   saved = false,
   claiming = false,
+<<<<<<< HEAD
   full: fullProp,
+=======
+>>>>>>> de7766ac840f51fe3477c146fca301d5b923dbc9
   pinNumber,
   onClaim,
   onSave,
@@ -45,8 +48,11 @@ export function OfferCard({
   distanceKm?: number;
   saved?: boolean;
   claiming?: boolean;
+<<<<<<< HEAD
   /** When true, the claim button is disabled and shows "Fully claimed". */
   full?: boolean;
+=======
+>>>>>>> de7766ac840f51fe3477c146fca301d5b923dbc9
   /** When set, shows a chip matching this offer's numbered pin on the matches map. */
   pinNumber?: number;
   onClaim?: (offer: Offer) => void;
@@ -54,7 +60,11 @@ export function OfferCard({
   onView?: (business: Business) => void;
   className?: string;
 }) {
+<<<<<<< HEAD
   const full = fullProp ?? (offer.currentClaims >= offer.maxClaims);
+=======
+  const full = offer.currentClaims >= offer.maxClaims;
+>>>>>>> de7766ac840f51fe3477c146fca301d5b923dbc9
   const pricing = getOfferPricing(offer);
 
   return (

@@ -4,12 +4,19 @@
  * array — dbService handles persistence.
  */
 
+<<<<<<< HEAD
 import type { BusinessCategory, DiscountKind, NeedType, Offer, OfferType, Claim } from "../models";
+=======
+import type { BusinessCategory, DiscountKind, NeedType, Offer, OfferType } from "../models";
+>>>>>>> de7766ac840f51fe3477c146fca301d5b923dbc9
 import { createId } from "../utils/ids";
 import { isPast } from "../utils/dateTime";
 import { containsLink, isNonEmpty, isNumber, isRepeatedNonsense, lengthWithin } from "../utils/validation";
 import { MAX_OFFER_CLAIMS } from "../utils/constants";
+<<<<<<< HEAD
 import { remainingRedemptions } from "./redemptionService";
+=======
+>>>>>>> de7766ac840f51fe3477c146fca301d5b923dbc9
 
 /** Lifecycle state of an offer from the owner's point of view. */
 export type OfferStatus = "active" | "paused" | "expired" | "full";

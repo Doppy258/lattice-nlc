@@ -66,6 +66,16 @@ export function QrScanModal({
   const [errorMsg, setErrorMsg] = useState("");
   const [attempt, setAttempt] = useState(0);
 
+  // Keep the latest callbacks in refs so the camera effect can stay out of the
+  // dependency list — otherwise a parent re-render (fresh onResult/onClose
+  // closures) would needlessly tear down and restart the live webcam.
+  const onResultRef = useRef(onResult);
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onResultRef.current = onResult;
+    onCloseRef.current = onClose;
+  });
+
   useEffect(() => {
     if (!open) return;
     let cancelled = false;
@@ -77,8 +87,8 @@ export function QrScanModal({
       if (cancelled) return;
       controls.stop();
       controlsRef.current = null;
-      onResult(extractPassCode(text));
-      onClose();
+      onResultRef.current(extractPassCode(text));
+      onCloseRef.current();
     };
 
     // On first open the dialog's portal may not have mounted the <video> yet;
@@ -95,6 +105,12 @@ export function QrScanModal({
 
     const decode = (constraints: MediaStreamConstraints, video: HTMLVideoElement) =>
       reader.decodeFromConstraints(constraints, video, (result, _err, controls) => {
+        // A late callback from a torn-down scan must not revive a stopped
+        // scanner or clobber the live one's controls.
+        if (cancelled) {
+          controls.stop();
+          return;
+        }
         controlsRef.current = controls;
         if (result) handleResult(result.getText(), controls);
       });
@@ -137,7 +153,7 @@ export function QrScanModal({
       controlsRef.current?.stop();
       controlsRef.current = null;
     };
-  }, [open, attempt, onClose, onResult]);
+  }, [open, attempt]);
 
   return (
     <Modal

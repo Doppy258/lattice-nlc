@@ -91,6 +91,7 @@ fonts, served by Google.
 
 ## 4. Images & video
 
+<<<<<<< HEAD
 - **Business storefront photos — Unsplash.** All storefront imagery is hot‑linked
   from the [Unsplash](https://unsplash.com) CDN under the
   [Unsplash License](https://unsplash.com/license) (free to use; attribution
@@ -99,6 +100,20 @@ fonts, served by Google.
   category* — they are **not** photographs of the real named businesses, and **no
   business logos or trademarked imagery are used**. If a photo fails to load, the
   app falls back to a plain category‑icon tile.
+=======
+- **Business storefront photos — Unsplash.** Every seeded business maps to its
+  **own distinct**, subject‑appropriate photo (a taco plate for the taqueria, a
+  climbing wall for the bouldering gym, a bookshelf for the tutoring center…),
+  hot‑linked from the [Unsplash](https://unsplash.com) CDN under the
+  [Unsplash License](https://unsplash.com/license) (free to use; attribution
+  appreciated). Each photo id was HTTP‑verified to load; see `BY_BUSINESS` /
+  `BY_CATEGORY` in `src/data/businessImages.ts` for the exact IDs. A second,
+  different category photo (`businessFallbackUrl`) is tried if the primary fails,
+  and if neither loads the app falls back to a plain category‑icon tile.
+  **Important:** these are *generic, representative stock photos chosen to suit a
+  category* — they are **not** photographs of the real named businesses, and **no
+  business logos or trademarked imagery are used**.
+>>>>>>> de7766ac840f51fe3477c146fca301d5b923dbc9
 - **Landing page imagery & video** (`public/lumio/assets/`): original assets
   created by the Lattice team for the marketing landing page (see §7).
 

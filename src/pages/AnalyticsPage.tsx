@@ -98,6 +98,10 @@ export function AnalyticsPage() {
         rows: [
           ["Date range", rangeLabel],
           ["Status filter", status === "all" ? "Any status" : status],
+<<<<<<< HEAD
+=======
+          ["Offer views", report.offerViews],
+>>>>>>> de7766ac840f51fe3477c146fca301d5b923dbc9
           ["Claims", report.claims],
           ["Redemptions", report.redemptions],
           ["Pending passes", report.pending],
