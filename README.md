@@ -1,6 +1,10 @@
 # Lattice NLC
 
 <p align="center">
+  <img src="docs/recreated_logo_transparent.svg" alt="Lattice NLC logo" width="128" height="123" />
+</p>
+
+<p align="center">
   <b>Smart local discovery</b>
 </p>
 <p align="center">
