@@ -44,7 +44,7 @@
 | **React 18 + Vite**                           | Component model keeps the UI modular and declarative; Vite gives instant HMR in dev and a fast, tree-shaken production build.                                                                                              |
 | **Tailwind CSS v4 + design tokens**           | Utility-first styling with a single token source (`styles/tokens.css`) keeps the visual language consistent and theme-able.                                                                                                |
 | **In-house services/utils, few dependencies** | Core logic (the match-scoring engine, validation, reports, CSV export, the Q&A ranker, charts, CAPTCHA) is written from scratch — no heavy frameworks — so the program runs standalone and the algorithms are inspectable. |
-| **Supabase (optional)**                       | Provides shared Postgres/Auth/Storage.                                                                                                                                                                                     |
+| **Supabase**                       | Provides shared Postgres/Auth/Storage.                                                                                                                                                                                     |
 
 ## Project Structure
 
