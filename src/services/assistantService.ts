@@ -1,15 +1,12 @@
 /**
- * assistantService — the offline "Ask Lattice" intelligent Q&A engine.
+ * assistantService — the Lattice Assistant Q&A engine.
  *
- * A dependency-free retrieval ranker over the help knowledge base. It tokenizes
- * the user's question, expands domain synonyms, and scores every help topic by
- * weighted term overlap (question > category > answer), then returns the best
- * answer plus related follow-ups. Everything runs client-side, so it works with
- * no network — important for the offline competition demo, where judges can't
- * open external links or scan QR codes.
+ * Uses a real AI model (Gemini, with NVIDIA NIM fallback) to answer questions.
+ * Falls back to the offline retrieval ranker when the AI is unavailable.
  *
  * Key exports: answerQuestion, starterQuestions, topicVisibleTo
  */
+import { callAI } from "@/services/aiProvider";
 import { HELP_TOPICS, type HelpTopic } from "@/data/helpTopics";
 
 /** A help topic paired with its relevance score for a given query. */
@@ -19,7 +16,7 @@ export type AssistantMatch = { topic: HelpTopic; score: number };
 export type AssistantAnswer = {
   /** Best-matching topic, or null when nothing clears the relevance floor. */
   best: HelpTopic | null;
-  /** Confidence 0–1, the top score relative to the strongest possible match. */
+  /** Confidence 0–1. */
   confidence: number;
   /** Up to three related topics offered as follow-up suggestions. */
   related: HelpTopic[];
@@ -136,10 +133,10 @@ function scoreTopic(topic: HelpTopic, queryTokens: string[], normQuery: string):
 }
 
 /**
- * Answers a free-text question by ranking the role-visible help topics. Returns
- * the best answer (when it clears a small relevance floor) plus related topics.
+ * Offline fallback: scores the question against the knowledge base using term
+ * matching and synonym expansion.
  */
-export function answerQuestion(query: string, role: string): AssistantAnswer {
+function offlineAnswer(query: string, role: string): AssistantAnswer {
   const pool = HELP_TOPICS.filter((t) => topicVisibleTo(t, role));
   const queryTokens = tokenize(query);
   if (queryTokens.length === 0) {
@@ -159,12 +156,52 @@ export function answerQuestion(query: string, role: string): AssistantAnswer {
     .filter((m) => m.score > 0 && m.topic.id !== best?.id)
     .slice(0, 3)
     .map((m) => m.topic);
-  // Always offer something helpful, even when nothing matched.
   if (related.length === 0) {
     related = pool.filter((t) => t.id !== best?.id).slice(0, 3);
   }
 
   return { best, confidence, related };
+}
+
+/**
+ * Answers a free-text question using an AI model (Gemini, with NVIDIA NIM
+ * fallback). Falls back to the offline retrieval ranker when the AI is
+ * unavailable.
+ */
+export async function answerQuestion(query: string, role: string): Promise<AssistantAnswer> {
+  const trimmed = query.trim();
+  if (!trimmed) return offlineAnswer(query, role);
+
+  const pool = HELP_TOPICS.filter((t) => topicVisibleTo(t, role));
+
+  try {
+    const aiAnswer = await callAI(trimmed, role, pool);
+
+    const queryTokens = tokenize(trimmed);
+    const normQuery = trimmed.toLowerCase();
+    const scored: AssistantMatch[] = pool
+      .map((topic) => ({ topic, score: scoreTopic(topic, queryTokens, normQuery) }))
+      .sort((a, b) => b.score - a.score);
+
+    const related = scored
+      .filter((m) => m.score > 0)
+      .slice(0, 3)
+      .map((m) => m.topic);
+
+    return {
+      best: {
+        id: "ai-answer",
+        category: "",
+        question: trimmed,
+        answer: aiAnswer,
+        audience: "all",
+      },
+      confidence: 1,
+      related: related.length > 0 ? related : pool.slice(0, 3),
+    };
+  } catch {
+    return offlineAnswer(trimmed, role);
+  }
 }
 
 /** A curated set of opening questions, filtered to what the role can see. */
