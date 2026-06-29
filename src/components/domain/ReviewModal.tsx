@@ -63,10 +63,8 @@ export function ReviewModal({
     setRatingError(null);
   }
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
-    // Semantic check surfaced inline (not just as a toast) so the user sees
-    // exactly which field needs attention before the request is attempted.
     if (rating < 1) {
       setRatingError("Tap a star to rate your visit from 1 to 5.");
       return;
@@ -87,17 +85,23 @@ export function ReviewModal({
       return;
     }
     const review = res.review;
-    const updatedBusiness = updateBusinessRating(business.id, [...data.reviews, review], business);
+    let updatedBusiness: Business | undefined;
     setData((d) => {
       const reviews = [...d.reviews, review];
+      const updatedBiz = updateBusinessRating(business.id, reviews, business);
+      updatedBusiness = updatedBiz;
       const businesses = d.businesses.map((b) =>
-        b.id === business.id ? updateBusinessRating(business.id, reviews, b) : b,
+        b.id === business.id ? updatedBiz : b,
       );
       return { ...d, reviews, businesses };
     });
-    // Persist the verified review + recalculated rating so they show everywhere.
-    void insertReview(review);
-    void upsertBusiness(updatedBusiness);
+    try {
+      await insertReview(review);
+      if (updatedBusiness) await upsertBusiness(updatedBusiness);
+    } catch {
+      toast.error("Failed to save review. Please try again.");
+      return;
+    }
     toast.success("Review posted — thanks for the feedback!");
     reset();
     onOpenChange(false);
