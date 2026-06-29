@@ -11,7 +11,7 @@
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { Send, Sparkles } from "lucide-react";
+import { Loader2, Send, Sparkles } from "lucide-react";
 import { useApp } from "@/app/providers";
 import { navigate } from "@/app/navigation";
 import { Button } from "@/components/common/Button";
@@ -62,29 +62,41 @@ export function Assistant() {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
+  const [loading, setLoading] = useState(false);
   const idRef = useRef(0);
   const threadRef = useRef<HTMLDivElement>(null);
 
   const starters = useMemo(() => starterQuestions(role), [role]);
   const nextId = () => `m${(idRef.current += 1)}`;
 
-  /** Runs one question through the retrieval engine and appends the exchange. */
-  function ask(question: string) {
+  /** Sends a question to the AI and appends the exchange. */
+  async function ask(question: string) {
     const q = question.trim();
-    if (!q) return;
-    const answer = answerQuestion(q, role);
-    setMessages((prev) => [
-      ...prev,
-      { id: nextId(), role: "user", text: q },
-      {
-        id: nextId(),
-        role: "assistant",
-        text: answer.best ? answer.best.answer : FALLBACK_TEXT,
-        action: answer.best?.action,
-        related: answer.related,
-      },
-    ]);
+    if (!q || loading) return;
+    setLoading(true);
     setInput("");
+    const userId = nextId();
+    setMessages((prev) => [...prev, { id: userId, role: "user", text: q }]);
+    try {
+      const answer = await answerQuestion(q, role);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: nextId(),
+          role: "assistant",
+          text: answer.best ? answer.best.answer : FALLBACK_TEXT,
+          action: answer.best?.action,
+          related: answer.related,
+        },
+      ]);
+    } catch {
+      setMessages((prev) => [
+        ...prev,
+        { id: nextId(), role: "assistant", text: FALLBACK_TEXT, related: [] },
+      ]);
+    } finally {
+      setLoading(false);
+    }
   }
 
   // Allow any surface (e.g. the Help page) to open the assistant, optionally
@@ -224,9 +236,10 @@ export function Assistant() {
             placeholder="Ask a question…"
             aria-label="Ask the Lattice assistant a question"
             autoComplete="off"
+            disabled={loading}
           />
-          <Button type="submit" variant="brand" aria-label="Send" disabled={!input.trim()}>
-            <Send size={16} aria-hidden="true" />
+          <Button type="submit" variant="brand" aria-label="Send" disabled={!input.trim() || loading}>
+            {loading ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} aria-hidden="true" />}
           </Button>
         </form>
       </Modal>
