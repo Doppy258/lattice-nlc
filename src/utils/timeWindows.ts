@@ -81,6 +81,52 @@ export function timeWindowForPreset(
 }
 
 /**
+ * Best-effort reverse mapping from a concrete window back onto a relative preset.
+ * The NL parser resolves phrases like "right now" into absolute ISO times; this
+ * recovers the friendly chip ("Now", "Tonight", …) so the request form shows a
+ * preset the user recognises instead of a raw Custom range. Compares absolute
+ * epochs — not strings, which mix the parser's local format with the presets'
+ * UTC `toISOString()` — and returns the closest preset whose start and end both
+ * fall within tolerance, or "custom" when the AI picked a genuinely specific time.
+ */
+export function presetForTimeWindow(
+  timeStart: string,
+  timeEnd: string,
+  now: Date = new Date()
+): TimeWindowPresetId {
+  const startMs = Date.parse(timeStart);
+  const endMs = Date.parse(timeEnd);
+  if (Number.isNaN(startMs) || Number.isNaN(endMs)) return "custom";
+
+  const TOLERANCE_MS = 90 * 60 * 1000; // 90 minutes on each edge
+  const candidates: TimeWindowPresetId[] = [
+    "now",
+    "afterSchool",
+    "tonight",
+    "tomorrow",
+    "thisWeekend",
+  ];
+
+  let best: TimeWindowPresetId = "custom";
+  let bestDelta = Infinity;
+  for (const id of candidates) {
+    const window = timeWindowForPreset(id, now);
+    if (!window) continue;
+    const startDelta = Math.abs(Date.parse(window.timeStart) - startMs);
+    const endDelta = Math.abs(Date.parse(window.timeEnd) - endMs);
+    if (
+      startDelta <= TOLERANCE_MS &&
+      endDelta <= TOLERANCE_MS &&
+      startDelta + endDelta < bestDelta
+    ) {
+      bestDelta = startDelta + endDelta;
+      best = id;
+    }
+  }
+  return best;
+}
+
+/**
  * Builds a window from custom date + time inputs. Returns empty strings when
  * inputs are incomplete/invalid so downstream validation reports the problem.
  */

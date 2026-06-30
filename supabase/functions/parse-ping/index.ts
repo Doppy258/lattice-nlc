@@ -146,16 +146,16 @@ VALID needType values (category → valid needTypes):
 VALID preference values: "studentDiscount", "openNow", "highlyRated", "verifiedOnly", "groupFriendly", "wheelchairAccessible", "quiet", "vegetarian", "fastService", "under30"
 
 RULES:
-1. Infer the category from the need. E.g., "tacos" → food/lunch, "haircut" → services/haircut, "phone repair" → repair/phoneRepair
-2. For budget: "cheap", "affordable", "budget-friendly" → low budgetMax
-3. For distance: "near", "nearby", "close" → 5km. "walking distance" → 3km. "downtown" → 10km. Specific location references are extracted as locationHint but also set a sensible distanceKm.
-4. For time: "now" → set timeStart/timeEnd to a 2-hour window starting now. "around 2pm" → 2pm-3pm today. "tonight" → 6pm-9pm today. "this weekend" → this Saturday.
-5. Set confidence LOW (0.1-0.3) when no information was given for a field.
+1. Infer the category from the need (always fill category and needType). E.g., "tacos" → food/lunch, "haircut" → services/haircut, "phone repair" → repair/phoneRepair.
+2. DEFAULTS: If the user does NOT mention a field, default to the MOST PERMISSIVE / least restrictive value — which is null — instead of guessing a specific one. null means "no preference": budgetMax/budgetMin → null (no max price), distanceKm → null (no distance limit), timeStart/timeEnd → null (anytime). Never invent a number for a field the user didn't mention.
+3. For budget: "cheap", "affordable", "budget-friendly" → low budgetMax; an explicit amount ("under $10") → that number. Not mentioned (or "no budget"/"any price") → null.
+4. For distance: "near", "nearby", "close", "near me" → 5km. "walking distance" → 3km. "downtown" → 10km. Specific location references are also extracted as locationHint. Not mentioned (or "anywhere"/"no limit") → null.
+5. For time: "now" → a 2-hour window starting now. "around 2pm" → 2pm-3pm today. "tonight" → 6pm-9pm today. "this weekend" → this Saturday. Not mentioned (or "anytime") → BOTH timeStart and timeEnd null.
 6. Set confidence HIGH (0.8-1.0) when the user explicitly states a value.
 7. Set confidence MEDIUM (0.4-0.7) when values are inferred implicitly.
-8. overall confidence should reflect how many fields were confidently extracted.
-9. Use null (not string "null") for missing values.
-10. If you cannot determine a field at all, set it to null with confidence 0.`;
+8. Set confidence LOW (0.1-0.3) when a field was defaulted to null because the user gave no information.
+9. overall confidence should reflect how many fields were confidently extracted.
+10. Use null (not the string "null") for missing values. If you cannot determine a field at all, set it to null.`;
 }
 
 Deno.serve(async (req) => {

@@ -44,7 +44,7 @@ import {
   TIME_WINDOW_PRESETS,
   budgetPresetsFor,
 } from "@/data/catalog";
-import { customTimeWindow, timeWindowForPreset, type TimeWindowPresetId } from "@/utils/timeWindows";
+import { customTimeWindow, timeWindowForPreset, presetForTimeWindow, type TimeWindowPresetId } from "@/utils/timeWindows";
 import { createId } from "@/utils/ids";
 import { upsertRequest } from "@/services/dbService";
 import { formatTimeRange } from "@/utils/formatting";
@@ -206,26 +206,44 @@ export function CreateLatticePage() {
           setBudgetMin(result.budgetMin);
           setBudgetMax(result.budgetMax);
         }
+      } else if (result.needType) {
+        // The parser found no budget (e.g. "lunch discount near me") — default
+        // the dropdown to the explicit "No budget" option so the factor is
+        // filled in rather than left blank.
+        const presets = budgetPresetsFor(result.needType);
+        const idx = presets.findIndex((p) => p.min === undefined && p.max === undefined);
+        if (idx >= 0) {
+          setBudgetSel(idx);
+          setBudgetMin(undefined);
+          setBudgetMax(undefined);
+        }
       }
       if (result.distanceKm != null) setDistanceKm(result.distanceKm);
       // The parser returns concrete local-time ISO strings (e.g.
-      // "2026-06-29T18:00:00"), or undefined when the user said "anytime". When
-      // there's a real time, drop it straight into the editable Custom inputs so
-      // the user sees and can tweak exactly what the AI picked. We deliberately
-      // don't reverse-map onto a relative preset chip ("Tonight" etc.): the AI has
-      // already resolved it to an absolute date/time, and string-matching the two
-      // formats (local vs UTC `toISOString()`) is unreliable and would leave the
-      // Custom fields empty. No explicit time → fall back to the Anytime preset.
+      // "2026-06-29T18:00:00"), or undefined when the user said "anytime". Map a
+      // concrete window back onto its relative preset ("right now" → Now,
+      // "tonight" → Tonight, …) so the form shows a chip the user recognises and
+      // can re-pick from the dropdown. Only a genuinely specific time that matches
+      // no preset falls through to the editable Custom inputs. No explicit time →
+      // fall back to the Anytime preset.
       if (result.timeStart && result.timeEnd) {
-        const d = new Date(result.timeStart);
-        const e = new Date(result.timeEnd);
-        const pad2 = (n: number) => String(n).padStart(2, "0");
-        setCustomDate(`${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`);
-        setCustomStart(`${pad2(d.getHours())}:${pad2(d.getMinutes())}`);
-        setCustomEnd(`${pad2(e.getHours())}:${pad2(e.getMinutes())}`);
-        setTimePreset("custom");
-        setTimeStart(result.timeStart);
-        setTimeEnd(result.timeEnd);
+        const preset = presetForTimeWindow(result.timeStart, result.timeEnd);
+        if (preset !== "custom") {
+          const w = timeWindowForPreset(preset);
+          setTimePreset(preset);
+          setTimeStart(w?.timeStart);
+          setTimeEnd(w?.timeEnd);
+        } else {
+          const d = new Date(result.timeStart);
+          const e = new Date(result.timeEnd);
+          const pad2 = (n: number) => String(n).padStart(2, "0");
+          setCustomDate(`${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`);
+          setCustomStart(`${pad2(d.getHours())}:${pad2(d.getMinutes())}`);
+          setCustomEnd(`${pad2(e.getHours())}:${pad2(e.getMinutes())}`);
+          setTimePreset("custom");
+          setTimeStart(result.timeStart);
+          setTimeEnd(result.timeEnd);
+        }
       } else {
         const anytime = timeWindowForPreset("anytime");
         if (anytime) {

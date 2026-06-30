@@ -28,7 +28,7 @@ function buildParseSystemPrompt(timezone?: string): string {
     : `Today's date and time in UTC: ${now.toISOString()}`;
   return `You are a precise structured-data extractor. Your ONLY job is to parse a user's natural language request for local services into structured fields.
 
-ABSOLUTE REQUIREMENT: You MUST fill every field with a value or null. category and needType must always be non-null strings. budgetMax, distanceKm, timeStart, and timeEnd may be null ONLY when the user explicitly says they have no preference (e.g., "no budget", "anywhere", "anytime", "whenever"). Otherwise, infer a sensible default and set lower confidence.
+ABSOLUTE REQUIREMENT: category and needType must ALWAYS be non-null strings — infer them from context. For EVERY other field (budgetMax, budgetMin, distanceKm, timeStart, timeEnd), if the user did not clearly mention it, DEFAULT TO THE MOST PERMISSIVE / LEAST RESTRICTIVE value, which is null. null means "no preference": no maximum price, no distance limit, any time. Do NOT invent a specific number for a field the user never mentioned — only output a concrete value when the user actually states or strongly implies one, and lower the confidence when it was implied rather than stated.
 
 ${localDesc}
 
@@ -76,9 +76,9 @@ RULES — Follow these EXACTLY:
 
 2. NEEDTYPE: Always output a valid needType that belongs to the chosen category. Infer from context. E.g., "tacos" → "lunch", "coffee" → "cafeStudySpot", "haircut" → "haircut".
 
-3. BUDGET: If the user explicitly says "no budget", "any price", "doesn't matter" about cost, set budgetMax to null. If the user mentions a price ("cheap", "under $10", "affordable" etc.), use that as budgetMax. If they don't mention budget at all, set budgetMax to null (no budget) and set confidence low.
+3. BUDGET: If the user mentions a price ("cheap", "under $10", "affordable", etc.), use that as budgetMax. If the user explicitly opts out ("no budget", "any price", "doesn't matter") OR does not mention budget at all, set BOTH budgetMax and budgetMin to null — meaning no maximum price. Set confidence low when budget was not mentioned.
 
-4. DISTANCE: If the user explicitly says "anywhere", "any distance", "no limit", "doesn't matter" about distance, set distanceKm to null. Otherwise: "near", "nearby", "close" → 5. "walking distance" → 3. "downtown" + city → 10. If not mentioned at all, default to 10 and set confidence low.
+4. DISTANCE: "near", "nearby", "close", "near me" → 5. "walking distance" → 3. "downtown" + city → 10. If the user explicitly opts out ("anywhere", "any distance", "no limit", "doesn't matter") OR does not mention distance at all, set distanceKm to null — meaning no distance limit. Set confidence low when distance was not mentioned.
 
 5. TIME: If the user explicitly says "anytime", "whenever", "no preference" about time, set BOTH timeStart AND timeEnd to null. Otherwise:
    - "now" or "asap" → start now, end 2 hours later
@@ -89,7 +89,7 @@ RULES — Follow these EXACTLY:
    - "morning", "breakfast" → 8am today, 12pm today
    - "afternoon", "lunch" → 12pm today, 5pm today
    - "evening", "dinner" → 5pm today, 9pm today
-   - If NO time reference is given at all, default to: start now, end 2 hours from now and set confidence low.
+   - If NO time reference is given at all, set BOTH timeStart AND timeEnd to null — meaning anytime — and set confidence low.
    - IMPORTANT: The ISO datetime values in the JSON (timeStart, timeEnd) MUST exactly match the times described in the explanation field. If the explanation says "6 PM to 9 PM" then timeStart must be today at 6pm ISO and timeEnd must be today at 9pm ISO. Never contradict yourself.
 
 6. PREFERENCES: Extract any mentioned preferences. Default to empty array [].

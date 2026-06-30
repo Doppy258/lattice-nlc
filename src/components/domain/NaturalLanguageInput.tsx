@@ -4,7 +4,8 @@ import { Sparkles, ArrowRight, X, RotateCcw, Check, AlertCircle, Loader2, Type, 
 import { Button } from "@/components/common/Button";
 import { cn } from "@/lib/utils";
 import { parseNaturalLanguage, type NLParseState, type NLParseResult } from "@/services/nlpParser";
-import { CATEGORY_META, NEED_TYPE_LABELS } from "@/data/catalog";
+import { CATEGORY_META, NEED_TYPE_LABELS, TIME_WINDOW_PRESETS } from "@/data/catalog";
+import { presetForTimeWindow } from "@/utils/timeWindows";
 import type { BusinessCategory, NeedType } from "@/models";
 
 const EXAMPLE_QUERIES = [
@@ -113,25 +114,49 @@ function ResultCard({
       icon: <DollarSign size={14} />,
       conf: result.confidence.budget,
     });
+  } else {
+    // No budget parsed — still surface the factor (defaults to "No budget" /
+    // any price) so it isn't silently dropped from the summary.
+    fields.push({
+      label: "Budget",
+      value: "No budget",
+      icon: <DollarSign size={14} />,
+      conf: result.confidence.budget,
+    });
   }
 
   if (result.distanceKm != null) {
     fields.push({
       label: "Distance",
-      value: `Within ${result.distanceKm} km`,
+      value: result.distanceKm >= 999 ? "No limit" : `Within ${result.distanceKm} km`,
       icon: <MapPin size={14} />,
       conf: result.confidence.distance,
     });
   }
 
   if (result.timeStart && result.timeEnd) {
+    // Show the friendly preset label ("Now", "Tonight", …) when the parsed
+    // window matches one — matching what gets applied to the form — and only
+    // fall back to a literal time range for genuinely specific times.
+    const preset = presetForTimeWindow(result.timeStart, result.timeEnd);
+    const presetLabel =
+      preset !== "custom" ? TIME_WINDOW_PRESETS.find((p) => p.id === preset)?.label : undefined;
     const fmt = (iso: string) => {
       const d = new Date(iso);
       return d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
     };
     fields.push({
       label: "Time",
-      value: `${fmt(result.timeStart)} – ${fmt(result.timeEnd)}`,
+      value: presetLabel ?? `${fmt(result.timeStart)} – ${fmt(result.timeEnd)}`,
+      icon: <Clock size={14} />,
+      conf: result.confidence.time,
+    });
+  } else {
+    // No time mentioned → most permissive default (anytime), surfaced so the
+    // factor isn't silently dropped from the summary.
+    fields.push({
+      label: "Time",
+      value: "Anytime",
       icon: <Clock size={14} />,
       conf: result.confidence.time,
     });
