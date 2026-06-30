@@ -1,12 +1,13 @@
 /**
  * SignupPage - /signup.
  * Purpose: Account creation with account-type selection (personal vs.
- * business), form validation, reCAPTCHA (or offline bot-check fallback),
- * and Supabase Auth sign-up.
- * Key flows: Toggle account type; validate fields; reCAPTCHA render or
- * BotCheckModal for demo mode; signUp call → navigate to /onboarding or /home.
+ * business), form validation, a self-contained human verification
+ * (BotCheckModal — the same distorted-code challenge used in the app), and
+ * Supabase Auth sign-up.
+ * Key flows: Toggle account type; validate fields; BotCheckModal human check;
+ * signUp call → navigate to /onboarding or /home.
  */
-import { useState, useRef, useEffect, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { useApp } from "../app/providers";
 import { navigate } from "../app/navigation";
 import { Button } from "@/components/common/Button";
@@ -27,19 +28,6 @@ const ACCOUNT_TYPES: { id: AccountType; label: string; description: string; icon
   { id: "business", label: "Business", description: "List offers & redeem passes", icon: "store" },
 ];
 
-declare global {
-  interface Window {
-    grecaptcha: {
-      render: (container: string | HTMLElement, params: { sitekey: string; callback: (token: string) => void }) => number;
-      getResponse: (id?: number) => string;
-      reset: (id?: number) => void;
-    };
-    onRecaptchaLoad?: () => void;
-  }
-}
-
-const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY || "";
-
 export function SignupPage() {
   const { signUp } = useApp();
   const [accountType, setAccountType] = useState<AccountType>("customer");
@@ -49,31 +37,11 @@ export function SignupPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const recaptchaRef = useRef<HTMLDivElement>(null);
-  const [recaptchaToken, setRecaptchaToken] = useState("");
-  const [, setRecaptchaReady] = useState(false);
-  // Offline fallback used when no reCAPTCHA key is configured (e.g. the demo):
-  // a self-contained human check still gates account creation against bots.
+  // Self-contained human check (the same distorted-code challenge used to gate
+  // offer claims) keeps bots from mass-creating fake accounts — always on, no
+  // third-party reCAPTCHA dependency.
   const [humanVerified, setHumanVerified] = useState(false);
   const [botCheckOpen, setBotCheckOpen] = useState(false);
-
-  useEffect(() => {
-    if (!RECAPTCHA_SITE_KEY || !recaptchaRef.current) return;
-
-    const timer = setInterval(() => {
-      if (!window.grecaptcha?.render) return;
-      clearInterval(timer);
-      if (recaptchaRef.current && !recaptchaRef.current.querySelector("iframe")) {
-        window.grecaptcha.render(recaptchaRef.current, {
-          sitekey: RECAPTCHA_SITE_KEY,
-          callback: (token: string) => setRecaptchaToken(token),
-        });
-      }
-      setRecaptchaReady(true);
-    }, 200);
-
-    return () => clearInterval(timer);
-  }, []);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -103,24 +71,18 @@ export function SignupPage() {
       setError("Passwords do not match.");
       return;
     }
-    if (RECAPTCHA_SITE_KEY && !recaptchaToken) {
-      setError("Please complete the reCAPTCHA verification.");
-      return;
-    }
-    if (!RECAPTCHA_SITE_KEY && !humanVerified) {
+    if (!humanVerified) {
       setError("Please complete the human verification.");
       return;
     }
 
     setSubmitting(true);
     const role = accountType === "business" ? "businessOwner" : "customer";
-    const err = await signUp(email.trim(), password, displayName.trim(), recaptchaToken, role);
+    const err = await signUp(email.trim(), password, displayName.trim(), "", role);
     setSubmitting(false);
 
     if (err) {
       setError(err);
-      setRecaptchaToken("");
-      window.grecaptcha?.reset();
     }
   };
 
@@ -218,9 +180,7 @@ export function SignupPage() {
           </FormField>
         </div>
 
-        {RECAPTCHA_SITE_KEY ? (
-          <div ref={recaptchaRef} className="recaptcha-wrapper" />
-        ) : humanVerified ? (
+        {humanVerified ? (
           <div className="flex items-center gap-2.5 rounded-2xl border border-[var(--success)]/30 bg-[var(--success)]/10 p-3.5 text-sm font-medium text-foreground">
             <Icon name="check" size={18} className="text-[var(--success)]" />
             Verified — you're human.

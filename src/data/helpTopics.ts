@@ -212,7 +212,7 @@ export const HELP_TOPICS: HelpTopic[] = [
     category: "Account & safety",
     question: "How does Lattice keep out bots?",
     answer:
-      "Account creation and offer claims are protected by a verification step. We use reCAPTCHA where available and a built-in human-check challenge as a reliable fallback, so spam accounts and automated claiming are blocked.",
+      "Account creation and offer claims are protected by a verification step: a built-in human-check challenge where you re-type a randomized, distorted code. It runs entirely in the app with no third-party dependency, so spam accounts and automated claiming are blocked.",
     audience: "all",
   },
   {
